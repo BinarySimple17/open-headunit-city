@@ -54,6 +54,7 @@ import com.andrerinas.openheadunit.utils.Settings
 import com.andrerinas.openheadunit.utils.ToastUtils
 import com.andrerinas.openheadunit.view.OverlayTouchView
 import com.andrerinas.openheadunit.view.PerformanceOverlay
+import com.andrerinas.openheadunit.geely.hvac.HvacPanelController
 import com.andrerinas.openheadunit.utils.HeadUnitScreenConfig
 import com.andrerinas.openheadunit.utils.SystemUI
 import com.andrerinas.openheadunit.aap.AapService
@@ -129,6 +130,9 @@ class AapProjectionActivity : SurfaceActivity(), IProjectionView.Callbacks, Vide
     // instead of persisting to Settings. This keeps toggles local to the Activity lifecycle.
     private var activityFullscreenOverride: Settings.FullscreenMode? = null
     private var touchOverlayView: OverlayTouchView? = null
+    // Geely climate panel (F005); lives in the isolated geely.hvac package and hides itself
+    // when the car bridge is unavailable.
+    private var hvacPanel: HvacPanelController? = null
     private val performanceOverlay by lazy {
         PerformanceOverlay(settings) { videoDecoder.lastFrameRenderedMs }
     }
@@ -1174,6 +1178,10 @@ class AapProjectionActivity : SurfaceActivity(), IProjectionView.Callbacks, Vide
         loadingOverlay?.bringToFront()
         performanceOverlay.bringToFront()
 
+        // Geely climate panel over the projection (F005, isolated geely.hvac package); it
+        // re-raises the overlays above itself, shows nothing when the car bridge is missing.
+        hvacPanel = HvacPanelController.attach(this, container)
+
         // Set up custom loading screen if configured
         setupCustomLoadingScreen()
 
@@ -1805,9 +1813,11 @@ class AapProjectionActivity : SurfaceActivity(), IProjectionView.Callbacks, Vide
             findViewById<View>(R.id.loading_overlay)?.visibility = View.GONE
             stopCustomLoadingMedia()
             performanceOverlay.setVisible(false)
+            hvacPanel?.setPipHidden(true)
         } else {
             // Restore UI if needed
             performanceOverlay.setVisible(settings.showPerformanceOverlay)
+            hvacPanel?.setPipHidden(false)
             setFullscreen()
         }
     }
@@ -2317,6 +2327,8 @@ class AapProjectionActivity : SurfaceActivity(), IProjectionView.Callbacks, Vide
     }
 
     override fun onDestroy() {
+        hvacPanel?.detach()
+        hvacPanel = null
         // TextureView/GLES destruction can arrive after this activity removes its callback.
         // Stop our target now, while it is still valid, without touching a replacement owner.
         ownedSurface?.let {

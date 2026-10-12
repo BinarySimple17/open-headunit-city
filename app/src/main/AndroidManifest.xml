@@ -12,6 +12,9 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
         <package android:name="com.google.android.projection.gearhead" />
+        <!-- Dev-only mock car service (F006): bound by debug builds when the ECARX bridge
+             is unavailable; release never binds it (BuildConfig.DEBUG gate). -->
+        <package android:name="com.geely.mockcar" />
         <!-- OEM AA/CarPlay apps that conflict with Open Headunit -->
         <package android:name="com.zjinnova.zlink" />
         <package android:name="com.syu.carlink" />
@@ -61,6 +64,14 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Geely HVAC (F007/D-006): vendor property access through the
+         standard android.car CarPropertyManager; granted silently on automotive builds,
+         ignored elsewhere (the panel then falls back or hides itself). -->
+    <uses-permission android:name="android.car.permission.CAR_VENDOR_EXTENSION" />
+    <!-- Geely oneOS service access: working climate apps on Geely units declare this
+         alongside CAR_VENDOR_EXTENSION, and the first on-HU round rejected every property
+         write without it. Unknown to non-Geely builds, where declaring it is a no-op. -->
+    <uses-permission android:name="geely.oneos.permission.SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />

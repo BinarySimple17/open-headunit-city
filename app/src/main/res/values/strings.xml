@@ -1327,4 +1327,35 @@
     <string name="copy_to_clipboard">Copy</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="audio_settings_reconnect">Audio settings saved. Reconnect Android Auto to apply them.</string>
+    <!-- Geely climate panel (F005) -->
+    <string name="settings_tab_geely">GEELY</string>
+    <string name="geely_settings_category">Geely climate panel</string>
+    <string name="hvac_handle">Climate</string>
+    <string name="hvac_btn_seats">Seats</string>
+    <string name="hvac_btn_wheel">Wheel</string>
+    <string name="hvac_btn_front_defrost">Windshield</string>
+    <string name="hvac_btn_rear_defrost">Rear window</string>
+    <string name="hvac_btn_max_defrost">MAX defrost</string>
+    <string name="hvac_btn_recirculation">Recirculation</string>
+    <string name="hvac_seat_driver">Driver seat</string>
+    <string name="hvac_seat_passenger">Passenger seat</string>
+    <string name="hvac_seat_rear_left">Rear left seat</string>
+    <string name="hvac_seat_rear_right">Rear right seat</string>
+    <string name="hvac_toast_level">%1$s: level %2$d</string>
+    <string name="hvac_toast_off">%1$s: off</string>
+    <string name="hvac_toast_on">%1$s: on</string>
+    <string name="hvac_cmd_failed">Command rejected by the car</string>
+    <string name="hvac_panel_mode">Panel visibility</string>
+    <string name="hvac_panel_mode_description">How the climate panel appears during projection</string>
+    <string name="hvac_panel_mode_collapsed">Collapsed (handle)</string>
+    <string name="hvac_panel_mode_always">Always visible</string>
+    <string name="hvac_car_model">Car model</string>
+    <string name="hvac_car_model_description">Front windshield defrost property ID differs between models</string>
+    <string name="hvac_debug_log">Detailed HVAC log</string>
+    <string name="hvac_debug_log_summary">Writes every panel and car-service event to HVAC_Log_*.txt in the Download folder - enable this when the panel misbehaves and share the file</string>
+    <string name="hvac_hide_timeout">Icon hide timeout</string>
+    <string name="hvac_timeout_seconds">%1$d s</string>
+    <string name="hvac_seat_auto_level">Seat auto-heat level</string>
+    <string name="hvac_wheel_auto_level">Steering wheel auto-heat level</string>
+    <string name="hvac_level_number">Level %1$d</string>
 </resources>

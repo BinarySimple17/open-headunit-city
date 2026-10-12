@@ -56,6 +56,15 @@
                 android:layout_weight="1"
                 android:text="@string/settings_tab_advanced" />
 
+            <!-- Geely climate panel settings (F005); a third tier after Advanced. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tabGeely"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/settings_tab_geely" />
+
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <com.google.android.material.textfield.TextInputLayout

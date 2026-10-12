@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mock Car (Geely)</string>
+    <string name="notification_title">Mock car service</string>
+    <string name="notification_text">Standing in for the Geely/ECARX car service</string>
+    <string name="status_running">Mock car service running</string>
+    <string name="status_log_file">Log file: %s</string>
+    <string name="start_service">Start service</string>
+    <string name="clear_values">Clear property values</string>
+    <string name="table_empty">No property values set yet</string>
+</resources>

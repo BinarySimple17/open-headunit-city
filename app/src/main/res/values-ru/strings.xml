@@ -1249,4 +1249,35 @@
     <string name="pref_set_default_launcher_title">Главное приложение по умолчанию</string>
     <string name="pref_default_launcher_status_active">Активно (Нажмите для управления)</string>
     <string name="pref_default_launcher_status_inactive">Не задано (Нажмите для настройки)</string>
+    <!-- Geely climate panel (F005) -->
+    <string name="settings_tab_geely">GEELY</string>
+    <string name="geely_settings_category">Климат-панель Geely</string>
+    <string name="hvac_handle">Климат</string>
+    <string name="hvac_btn_seats">Сиденья</string>
+    <string name="hvac_btn_wheel">Руль</string>
+    <string name="hvac_btn_front_defrost">Лобовое</string>
+    <string name="hvac_btn_rear_defrost">Заднее стекло</string>
+    <string name="hvac_btn_max_defrost">MAX обдув</string>
+    <string name="hvac_btn_recirculation">Рециркуляция</string>
+    <string name="hvac_seat_driver">Сиденье водителя</string>
+    <string name="hvac_seat_passenger">Сиденье пассажира</string>
+    <string name="hvac_seat_rear_left">Заднее левое сиденье</string>
+    <string name="hvac_seat_rear_right">Заднее правое сиденье</string>
+    <string name="hvac_toast_level">%1$s: уровень %2$d</string>
+    <string name="hvac_toast_off">%1$s: выкл</string>
+    <string name="hvac_toast_on">%1$s: вкл</string>
+    <string name="hvac_cmd_failed">Машина отклонила команду</string>
+    <string name="hvac_panel_mode">Видимость панели</string>
+    <string name="hvac_panel_mode_description">Как климат-панель показывается во время проекции</string>
+    <string name="hvac_panel_mode_collapsed">Свёрнутая (ручка)</string>
+    <string name="hvac_panel_mode_always">Всегда видна</string>
+    <string name="hvac_car_model">Модель автомобиля</string>
+    <string name="hvac_car_model_description">ID обогрева лобового стекла различается между моделями</string>
+    <string name="hvac_debug_log">Подробный лог HVAC</string>
+    <string name="hvac_debug_log_summary">Пишет все события панели и car-сервиса в HVAC_Log_*.txt в папке Download - включите, если панель работает неправильно, и пришлите файл</string>
+    <string name="hvac_hide_timeout">Таймаут скрытия иконок</string>
+    <string name="hvac_timeout_seconds">%1$d с</string>
+    <string name="hvac_seat_auto_level">Уровень автоподогрева сидений</string>
+    <string name="hvac_wheel_auto_level">Уровень автоподогрева руля</string>
+    <string name="hvac_level_number">Уровень %1$d</string>
 </resources>

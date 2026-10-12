@@ -1,3 +1,5 @@
+.reference/*
+
 # Built application files
 *.apk
 *.ap_
@@ -15,6 +17,7 @@ out/
 
 # Gradle files
 .gradle/
+.venv/
 build/
 
 adi-registration.properties
@@ -40,6 +43,9 @@ captures/
 
 # Keystore files
 *.jks
+*.jkc
+keystore*
+key.properties
 
 # Secrets configuration file
 secrets.properties
@@ -60,6 +66,10 @@ install_manifest.txt
 CTestTestfile.cmake
 .externalNativeBuild
 externalNativeBuild
+# The CMake rule above is unanchored and swallows the harness root Makefile
+# (real hand-written task runner, not a CMake artifact). Same pattern as the
+# playstore/ re-include below; do not drop this line.
+!Makefile
 
 #
 cert/
@@ -82,3 +92,21 @@ deploy_old_tablet.sh
 .antigravitycli
 .agents
 dev-note8.ps1
+
+# ZCode agent session state (plan-mode files, MCP workspace config) — machine-local,
+# меняется каждую сессию и ломает правило чистого дерева при Session Start.
+.zcode/
+
+# Kotlin 2.x compiler session files (machine-local build noise)
+.kotlin/
+
+# Local docs / harness (не коммитим по решению планировщика)
+docs/
+solution/
+DECISIONS.md
+/AGENTS.md
+/Makefile
+/init.sh
+/scripts/
+/.github/workflows/android-ci.yml
+/.github/workflows/README.md

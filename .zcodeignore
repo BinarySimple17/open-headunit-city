@@ -1,0 +1,39 @@
+# Артефакты сборки и зависимостей (синхронизировано с .gitignore)
+build/
+.gradle/
+.cxx/
+.externalNativeBuild/
+app/build/
+contract/build/
+captures/
+bin/
+gen/
+out/
+
+# Локальные справочные материалы (не часть репозитория)
+.reference/
+
+# Ключи и секреты
+*.jks
+*.jkc
+keystore*
+cert/
+secrets.properties
+key.properties
+
+# Логи и временные файлы (debug-артефакты — см. End of Session в AGENTS.md)
+*.log
+*.tmp
+*.orig
+*.rej
+*.hprof
+
+# Рантайм-артефакты наблюдаемости (не исходники)
+.harness/traces/traces.jsonl
+
+# Локальные настройки агентов
+.claude/settings.local.json
+
+# ОС
+.DS_Store
+Thumbs.db

@@ -1,0 +1,11 @@
+# Нормализация переводов строк: bash-скрипты и Makefile требуют LF,
+# иначе на Windows они ломаются ("\r: command not found").
+* text=auto
+*.sh text eol=lf
+# gradlew не имеет расширения .sh, но это тот же bash-скрипт: CRLF ломает
+# шебанг (msys ищет интерпретатор "/bin/sh\r" -> "cannot execute").
+gradlew text eol=lf
+*.py text eol=lf
+Makefile text eol=lf
+*.md text
+*.json text

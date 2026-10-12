@@ -94,7 +94,9 @@ android {
         // changed to Open Headunit. The code package and namespace stay openheadunit, so the
         // applicationId deliberately differs from the namespace, like com.google.talk for Hangouts.
         applicationId = "com.andrerinas.headunitrevived"
-        minSdk = 16
+        // Fork floor raised from upstream's 16 to 21 (D-005): Geely head units run Android 8+,
+        // and a 21 floor keeps Geely-specific code free of pre-Lollipop guards.
+        minSdk = 21
         targetSdk = 36
         versionCode = 117
         versionName = "3.5.0-beta4"
@@ -113,6 +115,7 @@ android {
                 cppFlags("")
             }
         }
+        applicationIdSuffix = rootProject.extra["defaultApplicationIdSuffix"] as String
     }
 
     flavorDimensions.add("distribution")
@@ -123,7 +126,7 @@ android {
         }
         create("github") {
             dimension = "distribution"
-            // Default minSdk 16 from defaultConfig is used
+            // minSdk 21 from defaultConfig is used (D-005)
         }
     }
 
@@ -214,6 +217,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    buildToolsVersion = "37.0.0"
 
     applicationVariants.all {
         val variant = this
@@ -231,7 +235,8 @@ android {
 }
 
 dependencies {
-    // Conscrypt (Flavor specific: 2.6.1 for Playstore 16KB alignment; 2.5.3 for Github minSdk 16)
+    // Conscrypt (Flavor specific: 2.6.1 for Playstore 16KB alignment; 2.5.3 for Github —
+    // kept as-is on the minSdk 21 floor, see DECISIONS.md D-005)
     "playstoreImplementation"("org.conscrypt:conscrypt-android:2.6.1")
     "githubImplementation"("org.conscrypt:conscrypt-android:2.5.3")
 

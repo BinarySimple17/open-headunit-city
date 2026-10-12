@@ -23,6 +23,9 @@ import android.content.ClipboardManager
 import com.andrerinas.openheadunit.aap.protocol.messages.BluetoothAnnouncePolicy
 import com.andrerinas.openheadunit.utils.OemAppManager
 import com.andrerinas.openheadunit.utils.CarLauncherManager
+import com.andrerinas.openheadunit.geely.hvac.Hvac
+import com.andrerinas.openheadunit.geely.hvac.HvacLog
+import com.andrerinas.openheadunit.geely.hvac.HvacSettings
 import com.andrerinas.openheadunit.ssl.ConscryptInitializer
 import com.andrerinas.openheadunit.utils.UpdateChecker
 import com.andrerinas.openheadunit.utils.UpdateLinkPolicy
@@ -162,6 +165,18 @@ class SettingsFragment : Fragment() {
 
     // Local state to hold changes before saving
     private var pendingAdvancedSettings: Boolean? = null
+    // Geely tab (F005) is transient: it is a viewing tier, not a persisted preference, so the
+    // screen reopens on the saved Basic/Advanced choice.
+    private var pendingGeelyTab: Boolean = false
+
+    // Geely HVAC settings ride the common Save flow: the pickers write these pending
+    // values, saveSettings() applies them to HvacSettings — no immediate persistence.
+    private var pendingHvacPanelMode: Hvac.PanelMode? = null
+    private var pendingHvacCarModel: Hvac.CarModel? = null
+    private var pendingHvacDebugLog: Boolean? = null
+    private var pendingHvacHideTimeoutSec: Int? = null
+    private var pendingHvacSeatAutoLevel: Int? = null
+    private var pendingHvacWheelAutoLevel: Int? = null
     private var pendingUseGps: Boolean? = null
     private var pendingShowNavigationNotifications: Boolean? = null
     private var pendingSyncMediaSessionAaMetadata: Boolean? = null
@@ -341,6 +356,15 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         settings = App.provide(requireContext()).settings
+
+        HvacSettings(requireContext().applicationContext).also { hvac ->
+            pendingHvacPanelMode = hvac.panelMode
+            pendingHvacCarModel = hvac.carModel
+            pendingHvacDebugLog = hvac.debugLog
+            pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
+            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
+            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
+        }
 
         // Initialize local state with current values
         pendingAdvancedSettings = settings.isAdvancedSettingsActive
@@ -570,6 +594,15 @@ class SettingsFragment : Fragment() {
         pendingHideBatteryLevel = settings.hideBatteryLevel
         pendingHidePhoneSignal = settings.hidePhoneSignal
         pendingHideClock = settings.hideClock
+
+        HvacSettings(requireContext().applicationContext).also { hvac ->
+            pendingHvacPanelMode = hvac.panelMode
+            pendingHvacCarModel = hvac.carModel
+            pendingHvacDebugLog = hvac.debugLog
+            pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
+            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
+            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
+        }
     }
 
     /**
@@ -705,6 +738,20 @@ class SettingsFragment : Fragment() {
         val languageChanged = pendingAppLanguage != settings.appLanguage
 
         pendingAdvancedSettings?.let { if (it != settings.isAdvancedSettingsActive) settings.isAdvancedSettingsActive = it }
+        // Geely HVAC: applied with the common Save; the log file follows the saved toggle.
+        HvacSettings(requireContext().applicationContext).also { hvac ->
+            pendingHvacPanelMode?.let { if (it != hvac.panelMode) hvac.panelMode = it }
+            pendingHvacCarModel?.let { if (it != hvac.carModel) hvac.carModel = it }
+            pendingHvacHideTimeoutSec?.let { if (it != hvac.hideTimeoutSec) hvac.hideTimeoutSec = it }
+            pendingHvacSeatAutoLevel?.let { if (it != hvac.seatAutoLevel) hvac.seatAutoLevel = it }
+            pendingHvacWheelAutoLevel?.let { if (it != hvac.wheelAutoLevel) hvac.wheelAutoLevel = it }
+            pendingHvacDebugLog?.let { pending ->
+                if (pending != hvac.debugLog) {
+                    hvac.debugLog = pending
+                    if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
+                }
+            }
+        }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
         pendingSyncMediaSessionAaMetadata?.let { if (it != settings.syncMediaSessionWithAaMetadata) settings.syncMediaSessionWithAaMetadata = it }
@@ -864,6 +911,14 @@ class SettingsFragment : Fragment() {
         }
 
         // Reset change tracking
+        HvacSettings(requireContext().applicationContext).also { hvac ->
+            pendingHvacPanelMode = hvac.panelMode
+            pendingHvacCarModel = hvac.carModel
+            pendingHvacDebugLog = hvac.debugLog
+            pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
+            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
+            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
+        }
         hasChanges = false
         requiresRestart = false
         requiresServiceRestart = false
@@ -966,7 +1021,17 @@ class SettingsFragment : Fragment() {
                         pendingKeepDummyVpnDuringSession != settings.keepDummyVpnDuringSession ||
                         pendingHideBatteryLevel != settings.hideBatteryLevel ||
                         pendingHidePhoneSignal != settings.hidePhoneSignal ||
-                        pendingHideClock != settings.hideClock
+                        pendingHideClock != settings.hideClock ||
+                        run {
+                            // Geely HVAC rides the common Save flow.
+                            val hvac = HvacSettings(requireContext().applicationContext)
+                            pendingHvacPanelMode != hvac.panelMode ||
+                                pendingHvacCarModel != hvac.carModel ||
+                                pendingHvacDebugLog != hvac.debugLog ||
+                                pendingHvacHideTimeoutSec != hvac.hideTimeoutSec ||
+                                pendingHvacSeatAutoLevel != hvac.seatAutoLevel ||
+                                pendingHvacWheelAutoLevel != hvac.wheelAutoLevel
+                        }
 
         hasChanges = anyChange
 
@@ -3185,14 +3250,134 @@ class SettingsFragment : Fragment() {
             }
         ))
 
-        // Add a dedicated Save button at the bottom if there are changes
-        if (hasChanges) {
-            items.add(SettingItem.ActionButton(
-                stableId = "bottomSaveButton",
-                textResId = if (requiresRestart) R.string.save_and_restart else R.string.save,
-                onClick = { saveSettings() }
-            ))
+        // --- Geely (F005): tab-scoped section, hidden from the Basic/Advanced tiers. Changes
+        // ride the common Save flow: pickers write pending values and light up the
+        // Save button; HvacSettings is only written by saveSettings().
+        val hvac = HvacSettings(requireContext().applicationContext)
+        val hvacPanelMode = pendingHvacPanelMode ?: hvac.panelMode
+        val hvacCarModel = pendingHvacCarModel ?: hvac.carModel
+        val hvacDebugLog = pendingHvacDebugLog ?: hvac.debugLog
+        val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
+        val hvacSeatAutoLevel = pendingHvacSeatAutoLevel ?: hvac.seatAutoLevel
+        val hvacWheelAutoLevel = pendingHvacWheelAutoLevel ?: hvac.wheelAutoLevel
+        val saveHvacChange: () -> Unit = {
+            hasChanges = true
+            updateSaveButtonState()
+            updateSettingsList()
         }
+        items.add(SettingItem.CategoryHeader("hvacHeader", R.string.geely_settings_category))
+        items.add(SettingItem.SettingEntry(
+            stableId = "hvacPanelMode",
+            nameResId = R.string.hvac_panel_mode,
+            value = when (hvacPanelMode) {
+                Hvac.PanelMode.ALWAYS -> getString(R.string.hvac_panel_mode_always)
+                else -> getString(R.string.hvac_panel_mode_collapsed)
+            },
+            searchKeywords = getString(R.string.hvac_panel_mode_collapsed) + " " +
+                getString(R.string.hvac_panel_mode_always),
+            onClick = { _ ->
+                val modes = arrayOf(
+                    getString(R.string.hvac_panel_mode_collapsed),
+                    getString(R.string.hvac_panel_mode_always)
+                )
+                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
+                    .setTitle(R.string.hvac_panel_mode)
+                    .setSingleChoiceItems(modes, hvacPanelMode.ordinal) { dialog, which ->
+                        pendingHvacPanelMode = Hvac.PanelMode.entries[which]
+                        dialog.dismiss()
+                        saveHvacChange()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            }
+        ))
+        items.add(SettingItem.SettingEntry(
+            stableId = "hvacCarModel",
+            nameResId = R.string.hvac_car_model,
+            value = hvacCarModel.name,
+            searchKeywords = Hvac.CarModel.entries.joinToString(" ") { it.name },
+            onClick = { _ ->
+                val models = Hvac.CarModel.entries.map { it.name }.toTypedArray()
+                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
+                    .setTitle(R.string.hvac_car_model)
+                    .setSingleChoiceItems(models, hvacCarModel.ordinal) { dialog, which ->
+                        pendingHvacCarModel = Hvac.CarModel.entries[which]
+                        dialog.dismiss()
+                        saveHvacChange()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            }
+        ))
+        items.add(SettingItem.SettingEntry(
+            stableId = "hvacHideTimeout",
+            nameResId = R.string.hvac_hide_timeout,
+            value = getString(R.string.hvac_timeout_seconds, hvacHideTimeoutSec),
+            searchKeywords = Hvac.HIDE_TIMEOUT_CHOICES.joinToString(" ") { getString(R.string.hvac_timeout_seconds, it) },
+            onClick = { _ ->
+                val options = Hvac.HIDE_TIMEOUT_CHOICES.map { getString(R.string.hvac_timeout_seconds, it) }.toTypedArray()
+                val selected = Hvac.HIDE_TIMEOUT_CHOICES.indexOf(hvacHideTimeoutSec).takeIf { it >= 0 } ?: 0
+                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
+                    .setTitle(R.string.hvac_hide_timeout)
+                    .setSingleChoiceItems(options, selected) { dialog, which ->
+                        pendingHvacHideTimeoutSec = Hvac.HIDE_TIMEOUT_CHOICES[which]
+                        dialog.dismiss()
+                        saveHvacChange()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            }
+        ))
+        items.add(SettingItem.SettingEntry(
+            stableId = "hvacSeatAutoLevel",
+            nameResId = R.string.hvac_seat_auto_level,
+            value = getString(R.string.hvac_level_number, hvacSeatAutoLevel),
+            searchKeywords = (1..3).joinToString(" ") { getString(R.string.hvac_level_number, it) },
+            onClick = { _ ->
+                val options = (1..3).map { getString(R.string.hvac_level_number, it) }.toTypedArray()
+                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
+                    .setTitle(R.string.hvac_seat_auto_level)
+                    .setSingleChoiceItems(options, (hvacSeatAutoLevel - 1).coerceIn(0, 2)) { dialog, which ->
+                        pendingHvacSeatAutoLevel = which + 1
+                        dialog.dismiss()
+                        saveHvacChange()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            }
+        ))
+        items.add(SettingItem.SettingEntry(
+            stableId = "hvacWheelAutoLevel",
+            nameResId = R.string.hvac_wheel_auto_level,
+            value = getString(R.string.hvac_level_number, hvacWheelAutoLevel),
+            searchKeywords = (1..3).joinToString(" ") { getString(R.string.hvac_level_number, it) },
+            onClick = { _ ->
+                val options = (1..3).map { getString(R.string.hvac_level_number, it) }.toTypedArray()
+                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
+                    .setTitle(R.string.hvac_wheel_auto_level)
+                    .setSingleChoiceItems(options, (hvacWheelAutoLevel - 1).coerceIn(0, 2)) { dialog, which ->
+                        pendingHvacWheelAutoLevel = which + 1
+                        dialog.dismiss()
+                        saveHvacChange()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "hvacDebugLog",
+            nameResId = R.string.hvac_debug_log,
+            descriptionResId = R.string.hvac_debug_log_summary,
+            isChecked = hvacDebugLog,
+            onCheckedChanged = { checked ->
+                // Applied on Save: the log file follows the saved value, not the toggle.
+                pendingHvacDebugLog = checked
+                saveHvacChange()
+            }
+        ))
+
+        // No bottom save button: the toolbar Save is the single save
+        // affordance — it lights up for pending changes on every tab, GEELY included.
 
         fullSettingsList = items
         renderSettings(scrollState)
@@ -3205,6 +3390,7 @@ class SettingsFragment : Fragment() {
         settingsTabGroup?.check(if (pendingAdvancedSettings == false) R.id.tabBasic else R.id.tabAdvanced)
         settingsTabGroup?.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
+            pendingGeelyTab = checkedId == R.id.tabGeely
             pendingAdvancedSettings = (checkedId == R.id.tabAdvanced)
             checkChanges()
             renderSettings()
@@ -3312,6 +3498,11 @@ class SettingsFragment : Fragment() {
             return headerMatchesQuery || searchableText(item).contains(query, ignoreCase = true)
         }
 
+        // Geely tab (F005): without a query the tier shows ONLY Geely items, and Geely items
+        // never appear in the Basic/Advanced tiers (they are excluded below, so no duplicates).
+        if (isGeelyItem(item)) return pendingGeelyTab
+        if (pendingGeelyTab) return false
+
         if (pendingAdvancedSettings == true) return true
 
         return item.stableId in basicSettingIds
@@ -3319,6 +3510,14 @@ class SettingsFragment : Fragment() {
 
     // Items scoped to a USB connection (the Wireless Connection category is the WiFi scope).
     private val usbScopedIds = setOf("useLibusb")
+
+    // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
+    private val geelyItemIds = setOf(
+        "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
+        "hvacHideTimeout", "hvacSeatAutoLevel", "hvacWheelAutoLevel"
+    )
+
+    private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds
 
     // Resolutions this wide or more (1440p, 4K) are flagged as high-bandwidth.
     private val HIGH_BANDWIDTH_WIDTH = 2560

@@ -1,7 +1,7 @@
 import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.repositories
 
-include(":app", ":contract")
+include(":app", ":contract", ":mockcar")
 
 
 rootProject.name = "open-headunit"
@@ -12,6 +12,9 @@ pluginManagement {
         google()
         mavenCentral()
     }
+}
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
 }
 
 dependencyResolutionManagement {

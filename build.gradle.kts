@@ -9,4 +9,5 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20")
     }
 }
+val defaultApplicationIdSuffix by extra("binarysimple")
 
