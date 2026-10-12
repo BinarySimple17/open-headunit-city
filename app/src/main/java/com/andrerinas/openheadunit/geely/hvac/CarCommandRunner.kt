@@ -17,8 +17,9 @@ import java.util.concurrent.Executor
  *    level never leaks into the display); cycling down to off leaves everything off;
  *  - a tap on a TOGGLE button flips it (defrost 0/1, recirculation with its ON/OFF codes);
  *  - a long-press toggles AUTO (F008): a zone already in auto switches off COMPLETELY
- *    (auto 0 AND manual 0, so no masked heating survives); entering auto takes the manual
- *    level when the function is on, otherwise the configured one ([autoLevelHint]).
+ *    (every auto entrance back to zero, so no masked heating survives); entering auto runs
+ *    the start ladder (S008 — the first encoding was rejected on the car), and an auto
+ *    function the port's probe reported unsupported does not get written at all.
  *
  * Taps are optimistic — a successful write is folded into the status snapshot immediately
  * (PanelStatusStore.overwrite) and the poller confirms or corrects it.
@@ -44,8 +45,21 @@ class CarCommandRunner(
         }
     }
 
+    /**
+     * Long-press toggles AUTO (F008) — behind the port's own support verdict: the first ГУ
+     * round showed the probe predicts the write (wheel_auto: notavailable AND rejected), so a
+     * property the car does not expose is not written blindly. Entering auto runs the
+     * [CarFunctionSpec.autoStartAttempts] ladder (S008): the encoding of the first round was
+     * rejected, so the candidates go in likelihood order and the first accepted one wins.
+     * Leaving auto writes every entrance back to zero, best-effort.
+     */
     fun longPress(node: ActionNode<CarFunctionSpec>) {
         val autoSpec = node.function.auto ?: return
+        if (!port.isFunctionSupported(autoSpec.propertyId, autoSpec.areaId)) {
+            HvacLog.i("auto: ${autoSpec.id} unavailable (probe verdict)")
+            toastUnavailable()
+            return
+        }
         if (autoSpec.levelOf(store.lastStatus[autoSpec.id]) > 0) autoOff(node, autoSpec) else autoOn(node, autoSpec)
     }
 
@@ -99,36 +113,54 @@ class CarCommandRunner(
         }
     }
 
-    /** Long-press while auto runs: auto to 0 AND the manual level to 0 — fully off. */
+    /** Long-press while auto runs: every auto entrance back to zero — fully off, best-effort. */
     private fun autoOff(node: ActionNode<CarFunctionSpec>, autoSpec: CarFunctionSpec) {
-        val spec = node.function
+        val attempts = node.function.autoOffAttempts()
         executor.execute {
-            val okAuto = port.setInt(autoSpec.propertyId, autoSpec.areaId, 0)
-            val okManual = port.setInt(spec.propertyId, spec.areaId, 0)
+            val verdicts = attempts.map { attempt -> attempt to port.setInt(attempt.propertyId, attempt.areaId, attempt.value) }
             mainHandler.post {
                 if (isDetached()) return@post
-                if (okAuto) store.overwrite(autoSpec.id, 0)
-                if (okManual) store.overwrite(spec.id, 0)
-                HvacLog.i("auto: ${autoSpec.id} -> off (heating fully off, auto=$okAuto manual=$okManual)")
-                toastToggle(node.labelRes, on = false, ok = okAuto && okManual)
+                for ((attempt, ok) in verdicts) {
+                    if (ok && attempt.label == "auto-off") store.overwrite(autoSpec.id, 0)
+                    if (ok && attempt.label == "manual-off") store.overwrite(node.function.id, 0)
+                }
+                val accepted = verdicts.count { it.second }
+                val detail = verdicts.joinToString(" ") { "${it.first.label}=${if (it.second) "ok" else "rejected"}" }
+                HvacLog.i("auto: ${autoSpec.id} -> off ($accepted/${attempts.size} accepted: $detail)")
+                toastToggle(node.labelRes, on = false, ok = accepted > 0)
             }
         }
     }
 
-    /** Long-press with auto off: enter auto at the manual level, or the configured one. */
+    /** Long-press with auto off: run the start ladder at the manual level, or the configured one. */
     private fun autoOn(node: ActionNode<CarFunctionSpec>, autoSpec: CarFunctionSpec) {
         val spec = node.function
         val manual = spec.levelOf(store.lastStatus[spec.id])
         val chosen = if (manual > 0) manual else autoLevelHint(spec)
         val table = autoSpec.levels ?: return
-        val value = table[chosen.coerceIn(1, table.lastIndex)]
+        val level = chosen.coerceIn(1, table.lastIndex)
+        val attempts = spec.autoStartAttempts(level)
+        if (attempts.isEmpty()) return
         executor.execute {
-            val ok = port.setInt(autoSpec.propertyId, autoSpec.areaId, value)
+            var won: CarWriteAttempt? = null
+            for (attempt in attempts) {
+                val ok = port.setInt(attempt.propertyId, attempt.areaId, attempt.value)
+                HvacLog.i("auto: ${autoSpec.id} try ${attempt.label} prop=${attempt.propertyId} " +
+                    "area=${attempt.areaId} value=${attempt.value} -> ${if (ok) "ok" else "rejected"}")
+                if (ok) {
+                    won = attempt
+                    break
+                }
+            }
+            val winner = won
             mainHandler.post {
                 if (isDetached()) return@post
-                if (ok) store.overwrite(autoSpec.id, value)
-                HvacLog.i("auto: ${autoSpec.id} -> $value (${if (ok) "ok" else "rejected"})")
-                toastToggle(node.labelRes, on = true, ok = ok)
+                // Optimistic state only for the AUTO property itself; a TIME/manual-code
+                // winner changes state the poller shows within one cycle.
+                if (winner != null && winner.propertyId == autoSpec.propertyId) {
+                    store.overwrite(autoSpec.id, winner.value)
+                }
+                toastToggle(node.labelRes, on = true, ok = winner != null)
             }
         }
     }
@@ -150,5 +182,9 @@ class CarCommandRunner(
         val text = if (!ok) context.getString(R.string.hvac_cmd_failed)
         else context.getString(if (on) R.string.hvac_toast_on else R.string.hvac_toast_off, label)
         ToastUtils.showToast(context, text, force = true)
+    }
+
+    private fun toastUnavailable() {
+        ToastUtils.showToast(context, context.getString(R.string.hvac_fn_unavailable), force = true)
     }
 }

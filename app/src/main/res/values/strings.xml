@@ -1345,6 +1345,7 @@
     <string name="hvac_toast_off">%1$s: off</string>
     <string name="hvac_toast_on">%1$s: on</string>
     <string name="hvac_cmd_failed">Command rejected by the car</string>
+    <string name="hvac_fn_unavailable">Not available on this car</string>
     <string name="hvac_panel_mode">Panel visibility</string>
     <string name="hvac_panel_mode_description">How the climate panel appears during projection</string>
     <string name="hvac_panel_mode_collapsed">Collapsed (handle)</string>

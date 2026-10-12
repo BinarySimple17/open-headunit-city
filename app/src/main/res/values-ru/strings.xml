@@ -1267,6 +1267,7 @@
     <string name="hvac_toast_off">%1$s: выкл</string>
     <string name="hvac_toast_on">%1$s: вкл</string>
     <string name="hvac_cmd_failed">Машина отклонила команду</string>
+    <string name="hvac_fn_unavailable">Недоступно на этом автомобиле</string>
     <string name="hvac_panel_mode">Видимость панели</string>
     <string name="hvac_panel_mode_description">Как климат-панель показывается во время проекции</string>
     <string name="hvac_panel_mode_collapsed">Свёрнутая (ручка)</string>

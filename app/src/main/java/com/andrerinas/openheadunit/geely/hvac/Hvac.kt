@@ -46,6 +46,17 @@ object Hvac {
     const val PROP_AUTO_STEERING_WHEEL_HEAT = 269025792
     val AUTO_WHEEL_HEAT_LEVELS = intArrayOf(0, 269025793, 269025794, 269025795)
 
+    // Companions of the AUTO properties (конспект §2.5): duration knobs — the only auto
+    // surface the voice protocol exposes — and the wheel switch. The first ГУ round rejected
+    // the base|level write on the AUTO properties themselves (S008); the auto start ladder
+    // (CarFunctionSpec.autoStartAttempts) tries these entrances too. TIME_2 is the default
+    // experiment duration until the semantics are confirmed.
+    const val PROP_AUTO_SEAT_HEATING_TIME = 268764672
+    val AUTO_SEAT_HEAT_TIME_LEVELS = intArrayOf(0, 268764673, 268764674, 268764675, 268764676)
+    const val PROP_AUTO_STEERING_WHEEL_HEAT_TIME = 269026048
+    val AUTO_WHEEL_HEAT_TIME_LEVELS = intArrayOf(0, 269026049, 269026050, 269026051)
+    const val PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH = 269026304
+
     /** Head-unit models with a model-specific front-defrost property ID. */
     enum class CarModel(val defrostFrontPropertyId: Int) {
         CITYRAY(269755136),

@@ -24,4 +24,12 @@ interface CarFunctionPort {
 
     /** Writes an int property for a zone; false means the write did not go through. */
     fun setInt(propertyId: Int, areaId: Int, value: Int): Boolean
+
+    /**
+     * Connect-time support verdict for a property/area (the port's own probe, when it makes
+     * one). Optimistic by default — ports without probe data answer yes and let the write
+     * itself produce the verdict; EcarxCarPort answers from its probe lines, so a property
+     * the car reported `notavailable` is not written blindly.
+     */
+    fun isFunctionSupported(propertyId: Int, areaId: Int): Boolean = true
 }

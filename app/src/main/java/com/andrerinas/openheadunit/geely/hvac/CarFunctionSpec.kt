@@ -30,6 +30,13 @@ class CarFunctionSpec(
     val autoReadCode: Int? = null,
     /** The linked AUTO function (F008), when this leveled function has one. */
     val auto: CarFunctionSpec? = null,
+    /**
+     * The AUTO property's duration knob (S008): meaning only on an AUTO spec — the TIME
+     * property the catalog and the voice protocol expose for it, and the "on" value to write
+     * there (TIME_2 until the duration semantics are confirmed on the car).
+     */
+    val autoTimePropertyId: Int? = null,
+    val autoTimeOnValue: Int? = null,
 ) {
 
     /** Display ordinal (0..3) of a raw read; 0 for off, unknown, garbage — or a toggle. */
@@ -58,13 +65,73 @@ class CarFunctionSpec(
 
     /** Value to write to switch a toggle on/off. */
     fun toggleValue(turnOn: Boolean): Int = if (turnOn) onValue else offValue
+
+    /**
+     * Ordered candidate writes to ENTER auto at display [level] (1..3), first accepted wins
+     * (S008 experiment ladder). The ГУ round of 2026-10-12 rejected the base|level write on
+     * the dedicated AUTO property, so the ladder leads with the entrances the references
+     * actually point at: the manual property's own auto level code (catalog: "уровни/авто" —
+     * the same code an auto-enabled seat answers with), then the AUTO property's TIME knob
+     * (the only auto surface the voice protocol exposes), and only then the AUTO property
+     * itself in both value encodings. A function without auto has an empty ladder.
+     */
+    fun autoStartAttempts(level: Int): List<CarWriteAttempt> {
+        val linked = auto ?: return emptyList()
+        return buildList {
+            autoReadCode?.let { add(CarWriteAttempt("auto-code", propertyId, areaId, it)) }
+            linked.autoTimePropertyId?.let { timeProperty ->
+                val timeValue = linked.autoTimeOnValue ?: 0
+                add(CarWriteAttempt("time", timeProperty, linked.areaId, timeValue))
+                if (linked.areaId != Hvac.GLOBAL_AREA) {
+                    add(CarWriteAttempt("time-global", timeProperty, Hvac.GLOBAL_AREA, timeValue))
+                }
+            }
+            add(CarWriteAttempt("auto-plain", linked.propertyId, linked.areaId, level))
+            add(CarWriteAttempt("auto-encoded", linked.propertyId, linked.areaId, linked.levels?.getOrNull(level) ?: level))
+        }
+    }
+
+    /** Ordered writes to LEAVE auto: every entrance of [autoStartAttempts] back to zero, best-effort. */
+    fun autoOffAttempts(): List<CarWriteAttempt> {
+        val linked = auto ?: return emptyList()
+        return buildList {
+            linked.autoTimePropertyId?.let { timeProperty ->
+                add(CarWriteAttempt("time-off", timeProperty, linked.areaId, 0))
+                if (linked.areaId != Hvac.GLOBAL_AREA) {
+                    add(CarWriteAttempt("time-off-global", timeProperty, Hvac.GLOBAL_AREA, 0))
+                }
+            }
+            add(CarWriteAttempt("auto-off", linked.propertyId, linked.areaId, 0))
+            add(CarWriteAttempt("manual-off", propertyId, areaId, 0))
+        }
+    }
 }
+
+/** One candidate write of the auto start/off ladder: a log label plus its bus destination. */
+data class CarWriteAttempt(val label: String, val propertyId: Int, val areaId: Int, val value: Int)
 
 /** The two value semantics a car function carries (a plain BINARY and a coded toggle fold into TOGGLE). */
 enum class FunctionKind { LEVELS, TOGGLE }
 
-/** One entry of the connect-time probe list: the spec plus its short log label. */
-class CarFunctionProbe(val spec: CarFunctionSpec, val label: String)
+/**
+ * One entry of the connect-time probe list: its short log label plus the bus address. Probes
+ * of tracked functions carry the spec too; companion properties (auto TIME/SWITCH) are
+ * probed bare — they are diagnostics, not buttons.
+ */
+class CarFunctionProbe(
+    val spec: CarFunctionSpec?,
+    val label: String,
+    val propertyId: Int,
+    val areaId: Int,
+) {
+    constructor(spec: CarFunctionSpec, label: String) : this(spec, label, spec.propertyId, spec.areaId)
+
+    companion object {
+        /** A probe of a companion property the panel never reads or buttons (S008 diagnostics). */
+        fun bare(label: String, propertyId: Int, areaId: Int) =
+            CarFunctionProbe(null, label, propertyId, areaId)
+    }
+}
 
 /**
  * The registry of every car function the panel tracks — the single source of truth (F010).
@@ -85,6 +152,8 @@ object GeelyCarFunctions {
             id = Hvac.seatAutoKey(zone),
             propertyId = Hvac.PROP_AUTO_SEAT_HEATING, areaId = zone,
             kind = FunctionKind.LEVELS, levels = Hvac.AUTO_SEAT_HEAT_LEVELS,
+            autoTimePropertyId = Hvac.PROP_AUTO_SEAT_HEATING_TIME,
+            autoTimeOnValue = Hvac.AUTO_SEAT_HEAT_TIME_LEVELS[2],
         ),
     )
 
@@ -96,6 +165,8 @@ object GeelyCarFunctions {
             id = Hvac.KEY_WHEEL_AUTO,
             propertyId = Hvac.PROP_AUTO_STEERING_WHEEL_HEAT, areaId = Hvac.GLOBAL_AREA,
             kind = FunctionKind.LEVELS, levels = Hvac.AUTO_WHEEL_HEAT_LEVELS,
+            autoTimePropertyId = Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME,
+            autoTimeOnValue = Hvac.AUTO_WHEEL_HEAT_TIME_LEVELS[2],
         ),
     )
 
@@ -147,12 +218,20 @@ object GeelyCarFunctions {
     /** Every distinct property ID the panel may touch, plus all model front-defrost ids (catalog dump). */
     fun trackedPropertyIds(): Set<Int> =
         all(Hvac.CarModel.CITYRAY).map { it.propertyId }.toSet() +
-            Hvac.CarModel.values().map { it.defrostFrontPropertyId }
+            Hvac.CarModel.values().map { it.defrostFrontPropertyId } +
+            // The auto companions: not polled, but the android.car catalog dump and the
+            // adaptapi probes should tell us whether THIS car registers them at all (S008).
+            setOf(
+                Hvac.PROP_AUTO_SEAT_HEATING_TIME,
+                Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME,
+                Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH,
+            )
 
     /**
      * The connect-time probe list (isFunctionSupported / catalog): every (property, area) the
      * panel reads or writes, the front defrost of EVERY model included, with the historical
-     * log labels — EcarxCarPort's probe lines come out exactly as before F010.
+     * log labels — EcarxCarPort's probe lines come out exactly as before F010. The auto
+     * companions follow their auto properties (bare probes: diagnostics, not buttons).
      */
     fun probes(): List<CarFunctionProbe> = buildList {
         for (seat in seatSpecs) {
@@ -161,6 +240,11 @@ object GeelyCarFunctions {
         }
         add(CarFunctionProbe(wheelSpec, "wheel"))
         add(CarFunctionProbe(wheelSpec.auto!!, "wheel_auto"))
+        for (seat in seatSpecs) {
+            add(CarFunctionProbe.bare("seat_auto_time", Hvac.PROP_AUTO_SEAT_HEATING_TIME, seat.areaId))
+        }
+        add(CarFunctionProbe.bare("wheel_auto_time", Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME, Hvac.GLOBAL_AREA))
+        add(CarFunctionProbe.bare("wheel_auto_switch", Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH, Hvac.GLOBAL_AREA))
         for (model in Hvac.CarModel.values()) {
             add(CarFunctionProbe(defrostFrontSpec(model), "defrost_front@${model.name}"))
         }
