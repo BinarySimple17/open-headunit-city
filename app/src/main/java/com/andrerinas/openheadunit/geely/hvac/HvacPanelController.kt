@@ -139,7 +139,7 @@ class HvacPanelController private constructor(
         specRoot = HvacPanelSpec.root(settings.carModel)
         val panelSurface = PanelSurface<CarFunctionSpec>(
             context, theme,
-            anchorIconRes = R.drawable.hvac_ic_geely,
+            anchorIconRes = R.drawable.hvac_ic_car,
             anchorContentDescription = context.getString(R.string.hvac_handle),
             label = { node -> context.getString(node.labelRes) },
         )

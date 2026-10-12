@@ -71,7 +71,7 @@ class PanelViewFactory(
     }
 
     fun makeAnchorButton(contentDescription: String): RoundButton {
-        // The anchor mark (the Geely logo for the HVAC panel); tinted with the text color so
+        // The anchor mark (a neutral car silhouette); tinted with the text color so
         // it follows the day/night theme like everything else.
         val icon = ImageView(context).apply {
             setImageResource(anchorIconRes)

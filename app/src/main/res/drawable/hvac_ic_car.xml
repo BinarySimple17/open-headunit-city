@@ -1,0 +1,14 @@
+<!-- Neutral car silhouette for the climate panel anchor (brand-free side view:
+     body, cabin and wheels as one union). Runtime-tinted by the panel theme. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="31dp"
+    android:viewportWidth="40"
+    android:viewportHeight="31">
+    <path
+        android:fillColor="#212121"
+        android:pathData="M 5.5,14 H 34.5 A 2.5,2.5 0 0 1 37,16.5 V 19 A 2.5,2.5 0 0 1 34.5,21.5 H 5.5 A 2.5,2.5 0 0 1 3,19 V 16.5 A 2.5,2.5 0 0 1 5.5,14 Z
+            M 12,14.5 C 13.3,10.3 16,8.2 19.5,8.2 L 24.5,8.2 C 28,8.2 30.7,10.3 32,14.5 Z
+            M 14.4,21.5 A 3.1,3.1 0 1 1 8.2,21.5 A 3.1,3.1 0 1 1 14.4,21.5 Z
+            M 32.6,21.5 A 3.1,3.1 0 1 1 26.4,21.5 A 3.1,3.1 0 1 1 32.6,21.5 Z" />
+</vector>
