@@ -1,4 +1,10 @@
 # Changelog
+### v.3.5.0-beta5
+- Added: climate (HVAC) panel over the projection - seat (4 zones) and wheel heating with a per-zone auto mode (long-press), front/rear/MAX defrost, recirculation; the live status is polled from the car every 2 s, external changes light the buttons themselves
+- Added: car backends - the vendor climate API with the standard android.car channel as read/fallback, and a standalone mock-car app (mockcar-debug.apk) so the panel runs and is testable on a plain emulator
+- Added: CAR settings tab - panel mode (anchor only / always visible), icon auto-hide timeout, car model, auto-heat levels, detailed HVAC log into the Download folder
+- Changed: brand-neutral UI - the panel anchor shows a car silhouette, the settings tab is named CAR
+- Changed: minSdk 16 -> 21 (head units run Android 5+)
 ### v.3.5.0-beta4
 - Native AA: reconnect to a network that is still there, instead of rebuilding it every time
 - Native AA: wake the phone over the Bluetooth module on a cold start, and from the WiFi button
