@@ -1249,9 +1249,9 @@
     <string name="pref_set_default_launcher_title">Главное приложение по умолчанию</string>
     <string name="pref_default_launcher_status_active">Активно (Нажмите для управления)</string>
     <string name="pref_default_launcher_status_inactive">Не задано (Нажмите для настройки)</string>
-    <!-- Geely climate panel (F005) -->
-    <string name="settings_tab_geely">GEELY</string>
-    <string name="geely_settings_category">Климат-панель Geely</string>
+    <!-- Car climate panel (F005) -->
+    <string name="settings_tab_geely">CAR</string>
+    <string name="geely_settings_category">Климат-панель автомобиля</string>
     <string name="hvac_handle">Климат</string>
     <string name="hvac_btn_seats">Сиденья</string>
     <string name="hvac_btn_wheel">Руль</string>

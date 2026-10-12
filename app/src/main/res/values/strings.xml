@@ -1327,9 +1327,9 @@
     <string name="copy_to_clipboard">Copy</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="audio_settings_reconnect">Audio settings saved. Reconnect Android Auto to apply them.</string>
-    <!-- Geely climate panel (F005) -->
-    <string name="settings_tab_geely">GEELY</string>
-    <string name="geely_settings_category">Geely climate panel</string>
+    <!-- Car climate panel (F005) -->
+    <string name="settings_tab_geely">CAR</string>
+    <string name="geely_settings_category">Car climate panel</string>
     <string name="hvac_handle">Climate</string>
     <string name="hvac_btn_seats">Seats</string>
     <string name="hvac_btn_wheel">Wheel</string>
