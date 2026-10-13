@@ -25,6 +25,7 @@ import com.andrerinas.openheadunit.utils.OemAppManager
 import com.andrerinas.openheadunit.utils.CarLauncherManager
 import com.andrerinas.openheadunit.geely.hvac.Hvac
 import com.andrerinas.openheadunit.geely.hvac.HvacLog
+import com.andrerinas.openheadunit.geely.hvac.HvacLogShare
 import com.andrerinas.openheadunit.geely.hvac.HvacSettings
 import com.andrerinas.openheadunit.ssl.ConscryptInitializer
 import com.andrerinas.openheadunit.utils.UpdateChecker
@@ -3375,6 +3376,19 @@ class SettingsFragment : Fragment() {
                 saveHvacChange()
             }
         ))
+        items.add(SettingItem.SettingEntry(
+            stableId = "hvacSendLogs",
+            nameResId = R.string.hvac_send_logs,
+            value = getString(R.string.hvac_send_logs_summary),
+            onClick = { _ ->
+                // A MediaStore query plus a directory listing - off the main thread; the
+                // chooser itself opens from the lifecycle scope's main dispatcher. Immediate
+                // action: nothing pending, nothing for the common Save to apply.
+                viewLifecycleOwner.lifecycleScope.launch {
+                    HvacLogShare.share(requireContext().applicationContext)
+                }
+            }
+        ))
 
         // No bottom save button: the toolbar Save is the single save
         // affordance — it lights up for pending changes on every tab, GEELY included.
@@ -3514,7 +3528,7 @@ class SettingsFragment : Fragment() {
     // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
     private val geelyItemIds = setOf(
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
-        "hvacHideTimeout", "hvacSeatAutoLevel", "hvacWheelAutoLevel"
+        "hvacHideTimeout", "hvacSeatAutoLevel", "hvacWheelAutoLevel", "hvacSendLogs"
     )
 
     private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds

@@ -49,7 +49,7 @@ object HvacLog {
     private const val TAG = "HVAC"
 
     /** Old captures beyond this are rotated away at the next start. */
-    private const val MAX_FILES = 10
+    internal const val MAX_FILES = 10
 
     @Volatile private var sink: DownloadSink? = null
 
