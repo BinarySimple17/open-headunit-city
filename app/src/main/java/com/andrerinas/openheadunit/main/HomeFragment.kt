@@ -135,11 +135,16 @@ class HomeFragment : Fragment() {
         updateProjectionButtonText()
         updateButtonStyle()
         updateButtonScale()
+        updateButtonVisibility()
         updateExitButtonVisibility()
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                commManager.connectionState.collect { updateProjectionButtonText() }
+                commManager.connectionState.collect {
+                    updateProjectionButtonText()
+                    updateButtonVisibility()
+                    updateButtonStyle()
+                }
             }
         }
 
@@ -350,7 +355,7 @@ class HomeFragment : Fragment() {
         val v = view ?: return
         val appSettings = App.provide(ctx).settings
         val isNightActive = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        HomeUiHelper.applyButtonStyles(ctx, v, appSettings, isNightActive)
+        HomeUiHelper.applyButtonStyles(ctx, v, appSettings, isNightActive, commManager.isConnected)
     }
 
     private fun updateButtonScale() {
@@ -360,6 +365,13 @@ class HomeFragment : Fragment() {
         val density = resources.displayMetrics.density
         val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
         HomeUiHelper.applyButtonScale(v, appSettings.homeButtonScalePercent, isPortrait, density)
+    }
+
+    private fun updateButtonVisibility() {
+        val v = view ?: return
+        val ctx = context ?: return
+        val appSettings = App.provide(ctx).settings
+        HomeUiHelper.applyButtonVisibility(v, appSettings, commManager.isConnected)
     }
 
     private fun updateExitButtonVisibility() {
@@ -725,6 +737,7 @@ class HomeFragment : Fragment() {
         updateProjectionButtonText()
         updateButtonStyle()
         updateButtonScale()
+        updateButtonVisibility()
         updateTextColors()
         updateExitButtonVisibility()
         if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {

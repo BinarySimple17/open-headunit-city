@@ -247,11 +247,11 @@ class DpiPickerView @JvmOverloads constructor(
     }
 
     companion object {
-        private const val MIN = 110
+        private const val MIN = 80
         private const val MAX = 640
-        // Must stay equal to android:stepSize on dpi_slider in view_dpi_picker.xml: applyDpi
-        // assigns slider.value, and a Slider throws IllegalStateException for a value that is not
-        // valueFrom plus a whole number of steps. 1 so a typed 175 stays 175 rather than snapping.
+        // MIN and STEP must equal android:valueFrom and android:stepSize on dpi_slider in
+        // view_dpi_picker.xml: applyDpi assigns slider.value, and a Slider throws for a value
+        // below valueFrom or off its steps. STEP 1 so a typed 175 stays 175 rather than snapping.
         private const val STEP = 1
         private const val SMALL_REP = 132
         private const val MEDIUM_REP = 175

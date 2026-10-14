@@ -164,7 +164,12 @@
     <string name="onb_change_later">आप इसे बाद में सेटिंग्स में बदल सकते हैं।</string>
     <string name="dpi_automatic">स्वचालित</string>
     <string name="dpi_automatic_desc">डिवाइस घनत्व का उपयोग करें</string>
-    <string name="dpi_automatic_desc_format">डिवाइस घनत्व (%1$d DPI) का उपयोग करता है</string>
+    <string name="dpi_widescreen_hint">%1$d DPI या उससे कम पर Android Auto मैप के बगल में मीडिया कार्ड दिखाता है, और टेक्स्ट छोटा हो जाता है।</string>
+    <string name="dpi_automatic_desc_canvas">%2$s के लिए %1$d DPI इस्तेमाल करता है, यानी %3$dx%4$d dp का कैनवास</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">स्वचालित: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, %2$d के रूप में भेजा गया (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto को कम से कम 748x450 dp का कैनवास चाहिए, इसलिए %1$d DPI को %2$d के रूप में भेजा जाता है।</string>
     <string name="dpi_value_format">%1$d DPI</string>
     <string name="dpi_input_hint">DPI</string>
 

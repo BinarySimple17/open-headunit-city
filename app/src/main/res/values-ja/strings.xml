@@ -782,6 +782,12 @@
     <string name="onb_change_later">これはあとで設定で変更できます。</string>
     <string name="dpi_automatic">自動</string>
     <string name="dpi_automatic_desc">デバイスの密度を使用</string>
+    <string name="dpi_widescreen_hint">%1$d DPI以下では、Android Autoは地図の横にメディアカードを表示し、文字が小さくなります。</string>
+    <string name="dpi_automatic_desc_canvas">%2$sに%1$d DPIを使用（%3$dx%4$d dpのキャンバス）</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">自動: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, 送信値 %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Autoには748x450 dp以上のキャンバスが必要なため、%1$d DPIは%2$dとして送信されます。</string>
     <string name="onb_conn_usb_label">USB（またはアダプター）</string>
     <string name="onb_connection_self_detail">自律モードはスマートフォンを接続せずにこの端末で Android Auto を実行します。</string>
     <string name="connection_kind_all">すべて</string>
@@ -795,7 +801,6 @@
     <string name="resolution_high_bandwidth_message">この解像度は帯域を大幅に消費し、安定した接続（良好な 5GHz WiFi または安定した USB 接続）が必要です。遅延が出たら低い解像度を選んでください。</string>
     <string name="resolution_use_anyway">そのまま使用</string>
     <string name="resolution_use_recommended">推奨を使用</string>
-    <string name="dpi_automatic_desc_format">デバイスの密度を使用します（%1$d DPI）</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">特大</string>
     <string name="onb_vehicle_title">あなたの車</string>

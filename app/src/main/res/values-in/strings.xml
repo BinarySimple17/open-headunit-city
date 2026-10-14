@@ -164,7 +164,12 @@
     <string name="onb_change_later">Anda dapat mengubah ini nanti di Pengaturan.</string>
     <string name="dpi_automatic">Otomatis</string>
     <string name="dpi_automatic_desc">Gunakan kerapatan perangkat</string>
-    <string name="dpi_automatic_desc_format">Menggunakan kerapatan perangkat (%1$d DPI)</string>
+    <string name="dpi_widescreen_hint">Pada %1$d DPI atau lebih rendah, Android Auto menampilkan peta dengan kartu media di sampingnya, dan teks menjadi lebih kecil.</string>
+    <string name="dpi_automatic_desc_canvas">Memakai %1$d DPI untuk %2$s, kanvas %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Otomatis: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, dikirim sebagai %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto membutuhkan kanvas minimal 748x450 dp, sehingga %1$d DPI dikirim sebagai %2$d.</string>
     <string name="dpi_value_format">%1$d DPI</string>
     <string name="dpi_input_hint">DPI</string>
 

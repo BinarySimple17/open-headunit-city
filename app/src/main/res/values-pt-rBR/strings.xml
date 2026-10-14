@@ -776,6 +776,12 @@
     <string name="onb_change_later">Você pode alterar isso depois nas Configurações.</string>
     <string name="dpi_automatic">Automático</string>
     <string name="dpi_automatic_desc">Usar a densidade do dispositivo</string>
+    <string name="dpi_widescreen_hint">Com %1$d DPI ou menos, o Android Auto mostra o mapa com um cartão de mídia ao lado, e o texto fica menor.</string>
+    <string name="dpi_automatic_desc_canvas">Usa %1$d DPI para %2$s, uma tela de %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Automático: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, enviado como %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">O Android Auto precisa de uma tela de pelo menos 748x450 dp, então %1$d DPI é enviado como %2$d.</string>
     <string name="onb_conn_usb_label">USB (ou adaptador)</string>
     <string name="onb_connection_self_detail">O modo autônomo executa o Android Auto neste dispositivo sem conectar um telefone.</string>
     <string name="connection_kind_all">Todos</string>
@@ -789,7 +795,6 @@
     <string name="resolution_high_bandwidth_message">Esta resolução usa muito mais banda e precisa de uma conexão forte: um bom WiFi de 5GHz ou uma conexão USB estável. Se notar travamentos, escolha uma resolução menor.</string>
     <string name="resolution_use_anyway">Usar mesmo assim</string>
     <string name="resolution_use_recommended">Usar recomendada</string>
-    <string name="dpi_automatic_desc_format">Usa a densidade do dispositivo (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">Enorme</string>
     <string name="onb_vehicle_title">Seu carro</string>

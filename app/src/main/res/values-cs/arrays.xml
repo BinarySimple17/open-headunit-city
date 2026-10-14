@@ -8,6 +8,7 @@
         <item>Jas obrazovky</item>
         <item>Signál světlometů auta (ILL+)</item>
         <item>Poloha (podle oblasti)</item>
+        <item>Automaticky (Systém)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Automaticky (Systém)</item>

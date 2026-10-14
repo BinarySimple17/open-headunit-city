@@ -8,6 +8,7 @@
         <item>سطوع الشاشة</item>
         <item>إشارة مصابيح السيارة (ILL+)</item>
         <item>الموقع (حسب المنطقة)</item>
+        <item>تلقائي (النظام)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>تلقائي (النظام)</item>

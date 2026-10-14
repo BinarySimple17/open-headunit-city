@@ -2,16 +2,78 @@ package com.andrerinas.openheadunit.utils
 
 import android.R
 import android.content.Context
+import android.content.DialogInterface
 import android.util.TypedValue
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 object DialogUtils {
+    /** Wraps a dialog body so it can scroll once the keyboard leaves it too little height. */
+    private fun scrollable(container: LinearLayout): ScrollView =
+        ScrollView(container.context).apply {
+            isFillViewport = true
+            addView(container)
+        }
+
+    /**
+     * On a short, wide head-unit screen the keyboard can cover the dialog's buttons, leaving no
+     * way to save or close it. Enter on the last field presses OK and on earlier fields moves on,
+     * a tap anywhere in the dialog body outside a field closes the keyboard, and the window
+     * resizes above the keyboard so the buttons stay on screen when there is room.
+     */
+    private fun fitKeyboard(dialog: AlertDialog, container: View, fields: List<EditText>) {
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        fields.forEachIndexed { index, field ->
+            field.setSingleLine(true)
+            field.imeOptions = TextDialogKeyPolicy.imeAction(isLastField = index == fields.lastIndex)
+            field.setOnEditorActionListener { _, actionId, event ->
+                if (!TextDialogKeyPolicy.isSubmit(actionId, event?.keyCode, event?.action)) {
+                    return@setOnEditorActionListener false
+                }
+                if (index == fields.lastIndex) {
+                    dialog.getButton(DialogInterface.BUTTON_POSITIVE)?.performClick()
+                } else {
+                    fields[index + 1].requestFocus()
+                }
+                true
+            }
+        }
+        // The body takes focus from the field only for the tap that hides the keyboard, and lets
+        // it go again afterwards, so it never becomes an invisible stop for D-pad or rotary keys.
+        container.setOnFocusChangeListener { view, hasFocus ->
+            if (!hasFocus) view.isFocusable = false
+        }
+        // On every view but the fields: a clickable child such as the checkbox keeps its taps,
+        // so a listener on the container alone would never see them. Returning false leaves the
+        // tap to do what it did before.
+        val hideOnTouch = View.OnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                container.isFocusableInTouchMode = true
+                container.requestFocus()
+                val imm = container.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                imm?.hideSoftInputFromWindow(container.windowToken, 0)
+            }
+            false
+        }
+        fun attach(view: View) {
+            if (view is EditText) return
+            view.setOnTouchListener(hideOnTouch)
+            if (view is ViewGroup) for (i in 0 until view.childCount) attach(view.getChildAt(i))
+        }
+        attach(container)
+    }
+
     fun showTextInputDialog(
         context: Context,
         titleResId: Int,
@@ -92,7 +154,7 @@ object DialogUtils {
 
         val dialog = MaterialAlertDialogBuilder(context, com.andrerinas.openheadunit.R.style.DarkAlertDialog)
             .setTitle(titleResId)
-            .setView(container)
+            .setView(scrollable(container))
             .setPositiveButton(R.string.ok) { _, _ ->
                 val value = editText.text.toString().trim()
                 onResult(value, checked())
@@ -106,6 +168,7 @@ object DialogUtils {
                 imm?.hideSoftInputFromWindow(editText.windowToken, 0)
             }
             .create()
+        fitKeyboard(dialog, container, listOf(editText))
 
         dialog.window?.clearFlags(
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -166,7 +229,7 @@ object DialogUtils {
 
         val dialog = MaterialAlertDialogBuilder(context, com.andrerinas.openheadunit.R.style.DarkAlertDialog)
             .setTitle(titleResId)
-            .setView(container)
+            .setView(scrollable(container))
             .setPositiveButton(R.string.ok) { _, _ ->
                 onResult(first.text.toString().trim(), second.text.toString().trim())
             }
@@ -177,6 +240,7 @@ object DialogUtils {
                 imm?.hideSoftInputFromWindow(first.windowToken, 0)
             }
             .create()
+        fitKeyboard(dialog, container, listOf(first, second))
 
         dialog.window?.clearFlags(
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or

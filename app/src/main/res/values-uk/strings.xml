@@ -776,6 +776,12 @@
     <string name="onb_change_later">Ви можете змінити це пізніше в налаштуваннях.</string>
     <string name="dpi_automatic">Автоматично</string>
     <string name="dpi_automatic_desc">Використовувати щільність пристрою</string>
+    <string name="dpi_widescreen_hint">При %1$d DPI або менше Android Auto показує карту з карткою мультимедіа поруч, а текст стає дрібнішим.</string>
+    <string name="dpi_automatic_desc_canvas">Використовує %1$d DPI для %2$s, полотно %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Авто: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, надсилається як %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto потрібне полотно не менше 748x450 dp, тому %1$d DPI надсилається як %2$d.</string>
     <string name="onb_conn_usb_label">USB (або адаптер)</string>
     <string name="onb_connection_self_detail">Автономний режим запускає Android Auto на цьому пристрої без телефона.</string>
     <string name="connection_kind_all">Усі</string>
@@ -789,7 +795,6 @@
     <string name="resolution_high_bandwidth_message">Ця роздільність споживає набагато більше трафіку й потребує стабільного зʼєднання: хорошого WiFi 5 ГГц або стабільного USB. Якщо помітите лаги, виберіть нижчу роздільність.</string>
     <string name="resolution_use_anyway">Все одно використати</string>
     <string name="resolution_use_recommended">Використати рекомендовану</string>
-    <string name="dpi_automatic_desc_format">Використовує щільність пристрою (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">Величезний</string>
     <string name="onb_vehicle_title">Ваш автомобіль</string>

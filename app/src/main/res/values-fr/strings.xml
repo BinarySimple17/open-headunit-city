@@ -170,7 +170,12 @@
     <string name="onb_change_later">Tu pourras modifier cela plus tard dans les Paramètres.</string>
     <string name="dpi_automatic">Automatique</string>
     <string name="dpi_automatic_desc">Utiliser la densité de l\'appareil</string>
-    <string name="dpi_automatic_desc_format">Utilise la densité de l\'appareil (%1$d DPI)</string>
+    <string name="dpi_widescreen_hint">À %1$d DPI ou moins, Android Auto affiche la carte avec une carte multimédia à côté, et le texte devient plus petit.</string>
+    <string name="dpi_automatic_desc_canvas">Utilise %1$d DPI pour %2$s, soit une zone de %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Automatique : %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, envoyé comme %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto exige une zone d\'au moins 748x450 dp. Les %1$d DPI sont donc envoyés comme %2$d.</string>
     <string name="dpi_value_format">%1$d DPI</string>
     <string name="dpi_input_hint">DPI</string>
 

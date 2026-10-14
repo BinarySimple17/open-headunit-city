@@ -8,6 +8,7 @@
         <item>Brillo de pantalla</item>
         <item>Señal de faros del coche (ILL+)</item>
         <item>Ubicación (por zona)</item>
+        <item>Automático (Sistema)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Automático (Sistema)</item>

@@ -780,6 +780,12 @@
     <string name="onb_change_later">나중에 설정에서 변경할 수 있습니다.</string>
     <string name="dpi_automatic">자동</string>
     <string name="dpi_automatic_desc">기기 밀도 사용</string>
+    <string name="dpi_widescreen_hint">%1$d DPI 이하에서는 Android Auto가 지도 옆에 미디어 카드를 표시하며, 텍스트가 작아집니다.</string>
+    <string name="dpi_automatic_desc_canvas">%2$s에 %1$d DPI 사용, %3$dx%4$d dp 캔버스</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">자동: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, 전송값 %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto에는 최소 748x450 dp 캔버스가 필요하므로 %1$d DPI가 %2$d(으)로 전송됩니다.</string>
     <string name="onb_conn_usb_label">USB (또는 어댑터)</string>
     <string name="onb_connection_self_detail">자율 모드는 휴대전화를 연결하지 않고 이 기기에서 Android Auto를 실행하므로 기본 탭에서 USB 및 WiFi 옵션이 숨겨집니다.</string>
     <string name="connection_kind_all">모두</string>
@@ -793,7 +799,6 @@
     <string name="resolution_high_bandwidth_message">이 해상도는 훨씬 많은 대역폭을 사용하며 안정적인 연결(양호한 5GHz WiFi 또는 안정적인 USB)이 필요합니다. 지연이 있으면 더 낮은 해상도를 선택하세요.</string>
     <string name="resolution_use_anyway">그래도 사용</string>
     <string name="resolution_use_recommended">권장값 사용</string>
-    <string name="dpi_automatic_desc_format">기기 밀도를 사용합니다 (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">매우 크게</string>
     <string name="onb_vehicle_title">내 차</string>

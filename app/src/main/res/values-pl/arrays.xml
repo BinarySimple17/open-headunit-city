@@ -8,6 +8,7 @@
         <item>Jasność ekranu</item>
         <item>Sygnał świateł auta (ILL+)</item>
         <item>Lokalizacja (według obszaru)</item>
+        <item>Automatycznie (System)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Automatycznie (System)</item>

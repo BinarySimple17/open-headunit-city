@@ -8,6 +8,7 @@
         <item>Ekran Parlaklığı</item>
         <item>Araç farı sinyali (ILL+)</item>
         <item>Konum (bölgeye göre)</item>
+        <item>Otomatik (Sistem)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Otomatik (Sistem)</item>

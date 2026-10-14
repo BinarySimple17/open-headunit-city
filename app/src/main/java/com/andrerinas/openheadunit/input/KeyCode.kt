@@ -6,6 +6,8 @@ import com.andrerinas.openheadunit.utils.AppLog
 
 object KeyCode {
 
+    const val KEY_NIGHT_MODE = 65539
+
     val supported = listOf(
         // Standard Android KeyEvents used in the convert method or common
         KeyEvent.KEYCODE_SOFT_LEFT,
@@ -33,6 +35,63 @@ object KeyCode {
         KeyEvent.KEYCODE_HEADSETHOOK,
         KeyEvent.KEYCODE_MEDIA_STOP,
 
+        // Alphabetic keys (A through Z) for text entry and search
+        KeyEvent.KEYCODE_A,
+        KeyEvent.KEYCODE_B,
+        KeyEvent.KEYCODE_C,
+        KeyEvent.KEYCODE_D,
+        KeyEvent.KEYCODE_E,
+        KeyEvent.KEYCODE_F,
+        KeyEvent.KEYCODE_G,
+        KeyEvent.KEYCODE_H,
+        KeyEvent.KEYCODE_I,
+        KeyEvent.KEYCODE_J,
+        KeyEvent.KEYCODE_K,
+        KeyEvent.KEYCODE_L,
+        KeyEvent.KEYCODE_M,
+        KeyEvent.KEYCODE_N,
+        KeyEvent.KEYCODE_O,
+        KeyEvent.KEYCODE_P,
+        KeyEvent.KEYCODE_Q,
+        KeyEvent.KEYCODE_R,
+        KeyEvent.KEYCODE_S,
+        KeyEvent.KEYCODE_T,
+        KeyEvent.KEYCODE_U,
+        KeyEvent.KEYCODE_V,
+        KeyEvent.KEYCODE_W,
+        KeyEvent.KEYCODE_X,
+        KeyEvent.KEYCODE_Y,
+        KeyEvent.KEYCODE_Z,
+
+        // Text editing, navigation and escape
+        KeyEvent.KEYCODE_DEL,
+        KeyEvent.KEYCODE_FORWARD_DEL,
+        KeyEvent.KEYCODE_ESCAPE,
+
+        // Punctuation and symbols
+        KeyEvent.KEYCODE_COMMA,
+        KeyEvent.KEYCODE_PERIOD,
+        KeyEvent.KEYCODE_MINUS,
+        KeyEvent.KEYCODE_EQUALS,
+        KeyEvent.KEYCODE_SLASH,
+        KeyEvent.KEYCODE_BACKSLASH,
+        KeyEvent.KEYCODE_SEMICOLON,
+        KeyEvent.KEYCODE_APOSTROPHE,
+        KeyEvent.KEYCODE_GRAVE,
+        KeyEvent.KEYCODE_AT,
+        KeyEvent.KEYCODE_PLUS,
+        KeyEvent.KEYCODE_LEFT_BRACKET,
+        KeyEvent.KEYCODE_RIGHT_BRACKET,
+
+        // Modifiers
+        KeyEvent.KEYCODE_SHIFT_LEFT,
+        KeyEvent.KEYCODE_SHIFT_RIGHT,
+        KeyEvent.KEYCODE_ALT_LEFT,
+        KeyEvent.KEYCODE_ALT_RIGHT,
+        KeyEvent.KEYCODE_CTRL_LEFT,
+        KeyEvent.KEYCODE_CTRL_RIGHT,
+        KeyEvent.KEYCODE_CAPS_LOCK,
+
         // Additional keys explicitly listed by number in BuildCarConfig.java
         // Mapped to named constants where they exist in KeyEvent
         KeyEvent.KEYCODE_ENDCALL, // 6
@@ -58,6 +117,16 @@ object KeyCode {
         268, 269, 270, 271, // Rotary controller
         65536, 65537, 65538 // Rotary controller
     ).distinct().sorted()
+
+    /**
+     * Keymaps saved before [KEY_NIGHT_MODE] stored the night action under KEYCODE_N, which is
+     * now a letter. Moves that entry once; the night key stays local and is never announced.
+     */
+    fun migrateLegacyNightKey(keymap: Map<Int, Int>): Map<Int, Int> {
+        val physical = keymap[KeyEvent.KEYCODE_N] ?: return keymap
+        val night = keymap[KEY_NIGHT_MODE] ?: physical
+        return keymap - KeyEvent.KEYCODE_N + (KEY_NIGHT_MODE to night)
+    }
 
     val KeyEvent.isMediaSessionKey: Boolean
         get() = keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||

@@ -8,6 +8,7 @@
         <item>屏幕亮度</item>
         <item>車輛大燈訊號 (ILL+)</item>
         <item>位置（依區域）</item>
+        <item>自動（系統）</item>
 </string-array>
 
     <string-array name="app_theme">        <item>自動（系統）</item>

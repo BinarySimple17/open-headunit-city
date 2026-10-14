@@ -8,6 +8,7 @@
         <item>Яркость экрана</item>
         <item>Сигнал фар (ILL+)</item>
         <item>Местоположение (по региону)</item>
+        <item>Автоматически (Система)</item>
 </string-array>
 
     <string-array name="app_theme">

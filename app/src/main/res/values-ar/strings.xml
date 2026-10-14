@@ -776,6 +776,12 @@
     <string name="onb_change_later">يمكنك تغيير هذا لاحقًا من الإعدادات.</string>
     <string name="dpi_automatic">تلقائي</string>
     <string name="dpi_automatic_desc">استخدام كثافة الجهاز</string>
+    <string name="dpi_widescreen_hint">عند %1$d DPI أو أقل، يعرض Android Auto الخريطة مع بطاقة وسائط بجانبها، ويصغر النص.</string>
+    <string name="dpi_automatic_desc_canvas">يستخدم %1$d DPI لـ %2$s، أي مساحة %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">تلقائي: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, أُرسلت كـ %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">يحتاج Android Auto إلى مساحة لا تقل عن 748x450 dp، لذلك يُرسل %1$d DPI على أنه %2$d.</string>
     <string name="onb_conn_usb_label">USB (أو محول)</string>
     <string name="onb_connection_self_detail">يشغّل الوضع المستقل Android Auto على هذا الجهاز دون توصيل هاتف.</string>
     <string name="connection_kind_all">الكل</string>
@@ -789,7 +795,6 @@
     <string name="resolution_high_bandwidth_message">تستهلك هذه الدقة نطاقًا تردديًا أكبر بكثير وتحتاج اتصالًا قويًا: شبكة WiFi جيدة بتردد 5GHz أو اتصال USB مستقر. إذا لاحظت تقطعًا، فاختر دقة أقل.</string>
     <string name="resolution_use_anyway">استخدام على أي حال</string>
     <string name="resolution_use_recommended">استخدام الموصى به</string>
-    <string name="dpi_automatic_desc_format">يستخدم كثافة الجهاز (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">ضخم</string>
     <string name="onb_vehicle_title">سيارتك</string>

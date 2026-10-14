@@ -14,6 +14,8 @@ object OnboardingDisplayPolicy {
     private const val MIN_DPI = 110
     private const val MAX_DPI_LANDSCAPE = 240
     private const val MAX_DPI_PORTRAIT = 190
+    private const val TARGET_DPI_PER_800_PX = 150
+    private const val REFERENCE_DIAGONAL_INCH = 7.5f
 
     /** The preset nearest the panel's physical diagonal. An xdpi of 40 or less is unreadable. */
     fun estimatePreset(widthPx: Int, heightPx: Int, xdpi: Float, ydpi: Float, densityDpi: Int): DisplaySizePreset {
@@ -26,16 +28,28 @@ object OnboardingDisplayPolicy {
             ?: DisplaySizePreset.STANDARD_9_10
     }
 
-    /** DPI of the surface Android Auto draws (the panel-capped resolution) at the chosen size. */
+    /**
+     * DPI of the surface Android Auto draws at the chosen size. Landscape aims at a 853 dp wide
+     * canvas and never goes under Android Auto's minimum; portrait keeps the physical formula.
+     */
     fun recommendedDpi(preset: DisplaySizePreset, renderWidthPx: Int, renderHeightPx: Int, portrait: Boolean): Int {
-        val diagonalPx = sqrt((renderWidthPx * renderWidthPx + renderHeightPx * renderHeightPx).toFloat())
-        val dpi = ((diagonalPx / preset.diagonalInch) * LEGIBILITY_FACTOR).toInt()
-        return dpi.coerceAtMost(if (portrait) MAX_DPI_PORTRAIT else MAX_DPI_LANDSCAPE).coerceAtLeast(MIN_DPI)
+        if (portrait) {
+            val diagonalPx = sqrt((renderWidthPx * renderWidthPx + renderHeightPx * renderHeightPx).toFloat())
+            val dpi = ((diagonalPx / preset.diagonalInch) * LEGIBILITY_FACTOR).toInt()
+            return dpi.coerceAtMost(MAX_DPI_PORTRAIT).coerceAtLeast(MIN_DPI)
+        }
+        val base = renderWidthPx * TARGET_DPI_PER_800_PX / 800f
+        val scaled = base * minOf(1f, REFERENCE_DIAGONAL_INCH / preset.diagonalInch)
+        val cap = minOf(MAX_DPI_LANDSCAPE, AnnouncedDensityPolicy.huigMaxDpi(renderWidthPx, renderHeightPx))
+        return Math.round(scaled).coerceAtLeast(MIN_DPI).coerceAtMost(cap)
     }
 
     /** A size change moves the picker, unless the user has already set the DPI by hand. */
     fun pickerDpiAfterSizeChange(recommended: Int, current: Int, pickerTouched: Boolean): Int =
         if (pickerTouched) current else recommended
+
+    /** An untouched picker keeps what is stored: Automatic on a fresh install, a typed value on upgrade. */
+    fun dpiToSave(pickerDpi: Int, pickerTouched: Boolean, stored: Int): Int = if (pickerTouched) pickerDpi else stored
 
     /** The size the user picked last time, or the estimate when there is none. */
     fun initialPreset(stored: String?, estimated: DisplaySizePreset): DisplaySizePreset =

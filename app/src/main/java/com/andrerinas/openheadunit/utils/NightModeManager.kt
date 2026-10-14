@@ -1,9 +1,12 @@
 package com.andrerinas.openheadunit.utils
 
 import android.content.BroadcastReceiver
+import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.database.ContentObserver
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -36,6 +39,7 @@ class NightModeManager(
     private var isSensorRegistered = false
     private var isObserverRegistered = false
     private var isCarSignalObserverRegistered = false
+    private var isSystemCallbacksRegistered = false
     
     private val handler = Handler(Looper.getMainLooper())
 
@@ -64,6 +68,15 @@ class NightModeManager(
         override fun onChange(selfChange: Boolean) {
             update(debounce = false)
         }
+    }
+
+    private val systemThemeCallbacks = object : ComponentCallbacks {
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            update(debounce = false)
+        }
+
+        @Deprecated("Deprecated in Java")
+        override fun onLowMemory() {}
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -110,6 +123,10 @@ class NightModeManager(
         if (isCarSignalObserverRegistered) {
             context.contentResolver.unregisterContentObserver(carSignalObserver)
             isCarSignalObserverRegistered = false
+        }
+        if (isSystemCallbacksRegistered) {
+            context.unregisterComponentCallbacks(systemThemeCallbacks)
+            isSystemCallbacksRegistered = false
         }
         handler.removeCallbacks(debounceRunnable)
     }
@@ -179,6 +196,19 @@ class NightModeManager(
                 isCarSignalObserverRegistered = false
             }
         }
+
+        // 4. System dark theme
+        if (settings.nightMode == Settings.NightMode.SYSTEM) {
+            if (!isSystemCallbacksRegistered) {
+                context.registerComponentCallbacks(systemThemeCallbacks)
+                isSystemCallbacksRegistered = true
+            }
+        } else {
+            if (isSystemCallbacksRegistered) {
+                context.unregisterComponentCallbacks(systemThemeCallbacks)
+                isSystemCallbacksRegistered = false
+            }
+        }
     }
 
     // Made public so Service can force an update
@@ -237,6 +267,13 @@ class NightModeManager(
                     AppLog.w("NightModeManager: CAR_SIGNAL key 'car_mode' not present; keeping previous state")
                     isNight = lastEmittedValue ?: false
                 }
+            }
+            Settings.NightMode.SYSTEM -> {
+                // Resources.getSystem() rather than the context's resources: the app theme's
+                // AppCompatDelegate.setDefaultNightMode override can leak into app-level resources.
+                val uiMode = Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                isNight = uiMode == Configuration.UI_MODE_NIGHT_YES
+                AppLog.d("NightModeManager: SYSTEM uiMode=$uiMode isNight=$isNight")
             }
             // Delegate to standard calculator for other modes (Auto, Day, Night, Manual)
             else -> {
