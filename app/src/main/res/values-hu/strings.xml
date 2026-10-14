@@ -773,6 +773,12 @@
     <string name="onb_change_later">Ezt később a Beállításokban módosíthatod.</string>
     <string name="dpi_automatic">Automatikus</string>
     <string name="dpi_automatic_desc">Az eszköz sűrűségének használata</string>
+    <string name="dpi_widescreen_hint">%1$d DPI vagy az alatt az Android Auto a térkép mellett egy médiakártyát jelenít meg, és a szöveg kisebb lesz.</string>
+    <string name="dpi_automatic_desc_canvas">%1$d DPI-t használ %2$s felbontáshoz, ez %3$dx%4$d dp-s vászon</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Automatikus: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, elküldve mint %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Az Android Autónak legalább 748x450 dp-s vászon kell, ezért a(z) %1$d DPI helyett %2$d megy ki.</string>
     <string name="onb_conn_usb_label">USB (vagy adapter)</string>
     <string name="onb_connection_self_detail">Az önálló mód telefon csatlakoztatása nélkül futtatja az Android Autót ezen az eszközön.</string>
     <string name="connection_kind_all">Összes</string>
@@ -786,7 +792,6 @@
     <string name="resolution_high_bandwidth_message">Ez a felbontás sokkal több sávszélességet használ, és erős kapcsolatot igényel: jó 5GHz-es WiFi vagy stabil USB. Ha akadozást tapasztalsz, válassz alacsonyabb felbontást.</string>
     <string name="resolution_use_anyway">Mégis használ</string>
     <string name="resolution_use_recommended">Ajánlott használata</string>
-    <string name="dpi_automatic_desc_format">Az eszköz sűrűségét használja (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">Hatalmas</string>
     <string name="onb_vehicle_title">Az autód</string>

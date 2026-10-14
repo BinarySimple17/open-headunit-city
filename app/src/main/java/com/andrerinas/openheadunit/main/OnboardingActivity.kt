@@ -24,6 +24,7 @@ import com.andrerinas.openheadunit.utils.AppThemeManager
 import com.andrerinas.openheadunit.utils.LocaleHelper
 import com.andrerinas.openheadunit.utils.PermissionRowBinder
 import com.andrerinas.openheadunit.utils.Settings
+import com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy
 import com.andrerinas.openheadunit.utils.OnboardingDisplayPolicy
 import com.andrerinas.openheadunit.utils.SystemOptimizer
 import androidx.activity.result.contract.ActivityResultContracts
@@ -724,8 +725,17 @@ class OnboardingActivity : BaseActivity() {
         return getString(R.string.onb_display_detected, m.widthPixels, m.heightPixels, m.densityDpi, codec)
     }
 
-    private fun recommendedDpi(): Int =
-        SystemOptimizer(this).calculateOptimalSettings(selectedSize, selectedPortrait).recommendedDpi
+    /** What Automatic will send for the stored resolution, after the margins, as connect decides it. */
+    private fun recommendedDpi(): Int {
+        val m = realMetrics()
+        val chosen = Settings.Resolution.fromId(settings.resolutionId)
+        val r = if (chosen == null || chosen == Settings.Resolution.AUTO) {
+            SystemOptimizer.recommendedResolution(m.widthPixels, m.heightPixels)
+        } else chosen
+        val (pw, ph) = AnnouncedDensityPolicy.orientPanel(m.widthPixels, m.heightPixels, selectedPortrait)
+        val (w, h) = AnnouncedDensityPolicy.visibleSize(settings.videoFitMode, pw, ph, r.width, r.height)
+        return AnnouncedDensityPolicy.decide(0, selectedSize, w, h).announced
+    }
 
     /** Warn (in red) when the current resolution is higher than the panel: the DPI is computed for
      * the capped resolution the device actually projects (issue #767). Relevant mainly for
@@ -776,7 +786,9 @@ class OnboardingActivity : BaseActivity() {
         // Next is a button, so it never takes focus off the DPI field; without this a value the
         // user typed and did not confirm would be dropped in favour of the previous one.
         dpiPicker?.commitPendingInput()
-        settings.dpiPixelDensity = dpiPicker?.dpi ?: result.recommendedDpi
+        val stored = settings.dpiPixelDensity
+        val dpi = dpiPicker?.let { OnboardingDisplayPolicy.dpiToSave(it.dpi, it.hasUserInteracted, stored) } ?: stored
+        if (dpi != stored) settings.dpiPixelDensity = dpi
         if (settings.displaySizePreset != selectedSize.name) settings.displaySizePreset = selectedSize.name
         settings.commit()
         updateDpiOverPanelWarning()

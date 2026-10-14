@@ -774,6 +774,12 @@
     <string name="onb_change_later">Je kunt dit later wijzigen in Instellingen.</string>
     <string name="dpi_automatic">Automatisch</string>
     <string name="dpi_automatic_desc">Gebruik de dichtheid van het apparaat</string>
+    <string name="dpi_widescreen_hint">Bij %1$d DPI of lager toont Android Auto de kaart met een mediakaart ernaast, en wordt de tekst kleiner.</string>
+    <string name="dpi_automatic_desc_canvas">Gebruikt %1$d DPI voor %2$s, een canvas van %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Automatisch: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, verzonden als %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto heeft een canvas van minstens 748x450 dp nodig, dus %1$d DPI wordt verzonden als %2$d.</string>
     <string name="onb_conn_usb_label">USB (of adapter)</string>
     <string name="onb_connection_self_detail">De zelfstandige modus draait Android Auto op dit apparaat zonder telefoon.</string>
     <string name="connection_kind_all">Alle</string>
@@ -787,7 +793,6 @@
     <string name="resolution_high_bandwidth_message">Deze resolutie gebruikt veel meer bandbreedte en heeft een sterke verbinding nodig: een goede 5GHz-WiFi of een stabiele USB-verbinding. Bij haperingen kies je een lagere resolutie.</string>
     <string name="resolution_use_anyway">Toch gebruiken</string>
     <string name="resolution_use_recommended">Aanbevolen gebruiken</string>
-    <string name="dpi_automatic_desc_format">Gebruikt de dichtheid van het apparaat (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">Enorm</string>
     <string name="onb_vehicle_title">Je auto</string>

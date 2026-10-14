@@ -8,6 +8,7 @@
         <item>Độ sáng màn hình</item>
         <item>Tín hiệu đèn xe (ILL+)</item>
         <item>Vị trí (theo khu vực)</item>
+        <item>Tự động (Theo hệ thống)</item>
 </string-array>
 
     <string-array name="app_theme">

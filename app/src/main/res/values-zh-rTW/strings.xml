@@ -773,6 +773,12 @@
     <string name="onb_change_later">你可以稍後在設定中變更。</string>
     <string name="dpi_automatic">自動</string>
     <string name="dpi_automatic_desc">使用裝置密度</string>
+    <string name="dpi_widescreen_hint">%1$d DPI 以下時，Android Auto 會在地圖旁顯示媒體資訊卡，文字也會變小。</string>
+    <string name="dpi_automatic_desc_canvas">%2$s使用 %1$d DPI，畫布為 %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">自動: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, 傳送為 %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto 需要至少 748x450 dp 的畫布，因此 %1$d DPI 會以 %2$d 傳送。</string>
     <string name="onb_conn_usb_label">USB（或轉接器）</string>
     <string name="onb_connection_self_detail">自主模式在本裝置上執行 Android Auto，不需連接手機。</string>
     <string name="connection_kind_all">全部</string>
@@ -786,7 +792,6 @@
     <string name="resolution_high_bandwidth_message">此解析度會佔用更多頻寬，需要穩定的連線：良好的 5GHz WiFi 或穩定的 USB 連線。若出現延遲，請選擇較低的解析度。</string>
     <string name="resolution_use_anyway">仍要使用</string>
     <string name="resolution_use_recommended">使用建議值</string>
-    <string name="dpi_automatic_desc_format">使用裝置密度（%1$d DPI）</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">巨大</string>
     <string name="onb_vehicle_title">你的車</string>

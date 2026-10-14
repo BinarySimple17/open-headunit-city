@@ -774,6 +774,12 @@
     <string name="onb_change_later">Toto můžete změnit později v Nastavení.</string>
     <string name="dpi_automatic">Automaticky</string>
     <string name="dpi_automatic_desc">Použít hustotu zařízení</string>
+    <string name="dpi_widescreen_hint">Při %1$d DPI nebo méně zobrazí Android Auto mapu s kartou médií vedle ní a text se zmenší.</string>
+    <string name="dpi_automatic_desc_canvas">Použije %1$d DPI pro %2$s, plocha %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Automaticky: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, odesláno jako %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto vyžaduje plochu alespoň 748x450 dp, proto se místo %1$d DPI odešle %2$d.</string>
     <string name="onb_conn_usb_label">USB (nebo adaptér)</string>
     <string name="onb_connection_self_detail">Samostatný režim spouští Android Auto v tomto zařízení bez telefonu.</string>
     <string name="connection_kind_all">Vše</string>
@@ -787,7 +793,6 @@
     <string name="resolution_high_bandwidth_message">Toto rozlišení spotřebuje mnohem více dat a vyžaduje silné připojení: kvalitní WiFi 5GHz nebo stabilní USB. Pokud zaznamenáte lagy, zvolte nižší rozlišení.</string>
     <string name="resolution_use_anyway">Přesto použít</string>
     <string name="resolution_use_recommended">Použít doporučené</string>
-    <string name="dpi_automatic_desc_format">Použije hustotu zařízení (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">Obrovský</string>
     <string name="onb_vehicle_title">Vaše auto</string>

@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:valueFrom="110"
+        android:valueFrom="80"
         android:valueTo="640"
         android:stepSize="1"
         android:value="160" />

@@ -15,7 +15,6 @@ object HeadUnitScreenConfig {
     private var screenWidthPx: Int = 0
     private var screenHeightPx: Int = 0
     private var density: Float = 1.0f
-    private var densityDpi: Int = 240
     private var scaleFactor: Float = 1.0f
     private var isSmallScreen: Boolean = true
     private var isPortraitScaled: Boolean = false
@@ -292,7 +291,6 @@ object HeadUnitScreenConfig {
         appContext = context.applicationContext
 
         density = displayMetrics.density
-        densityDpi = displayMetrics.densityDpi
 
         // Manual insets only; the bars are re-read by the insets listener right after this. Left
         // alone otherwise, or a bar already in force would be subtracted from the canvas twice.
@@ -696,12 +694,18 @@ object HeadUnitScreenConfig {
         getWidthMargin(), getHeightMargin()
     )
 
-    fun getDensityDpi(): Int {
-        return if (this::currentSettings.isInitialized && currentSettings.dpiPixelDensity != 0) {
-            currentSettings.dpiPixelDensity
-        } else {
-            densityDpi
+    /** The density decision for the geometry in force, with what was asked and why it changed. */
+    fun densityDecision(): AnnouncedDensityPolicy.Decision {
+        if (!this::currentSettings.isInitialized) {
+            return AnnouncedDensityPolicy.decide(0, SystemOptimizer.DisplaySizePreset.SMALL_7_8, 0, 0)
         }
+        val preset = OnboardingDisplayPolicy.initialPreset(
+            currentSettings.displaySizePreset, SystemOptimizer.DisplaySizePreset.SMALL_7_8
+        )
+        return AnnouncedDensityPolicy.decide(
+            currentSettings.dpiPixelDensity, preset,
+            getNegotiatedWidth() - getWidthMargin(), getNegotiatedHeight() - getHeightMargin()
+        )
     }
 
     fun getPixelAspectRatioE4(): Int {

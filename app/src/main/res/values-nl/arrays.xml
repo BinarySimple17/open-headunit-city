@@ -8,6 +8,7 @@
         <item>Schermhelderheid</item>
         <item>Koplampsignaal auto (ILL+)</item>
         <item>Locatie (op gebied)</item>
+        <item>Automatisch (Systeem)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Automatisch (Systeem)</item>

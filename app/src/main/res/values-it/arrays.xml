@@ -8,6 +8,7 @@
         <item>Luminosità dello schermo</item>
         <item>Segnale fari auto (ILL+)</item>
         <item>Posizione (per area)</item>
+        <item>Automatico (Sistema)</item>
 </string-array>
 
     <string-array name="app_theme">

@@ -8,6 +8,7 @@
         <item>Luminozitate ecran</item>
         <item>Semnal faruri auto (ILL+)</item>
         <item>Locație (după zonă)</item>
+        <item>Automat (Sistem)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Automat (Sistem)</item>

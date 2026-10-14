@@ -122,6 +122,12 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
                     logNegotiatedCodecCapability(effectiveCodec, announcedFps)
                     logNarrowBandProfile(context, settings)
                     AppLog.i("[ServiceDiscovery] Margins are: ${phoneWidthMargin}x${phoneHeightMargin}")
+                    val densityDecision = HeadUnitScreenConfig.densityDecision()
+                    AppLog.i("[ServiceDiscovery] Density is: " + com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.describe(
+                        densityDecision,
+                        HeadUnitScreenConfig.getNegotiatedWidth() - phoneWidthMargin,
+                        HeadUnitScreenConfig.getNegotiatedHeight() - phoneHeightMargin
+                    ))
                     AppLog.i("[ServiceDiscovery] PixelAspectRatioE4 is: ${HeadUnitScreenConfig.getPixelAspectRatioE4()} (10000 = square)")
 
                     val announcedFrameRateType = when (announcedFps) {
@@ -132,7 +138,7 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
                     mediaSinkServiceBuilder.addVideoConfigs(Control.Service.MediaSinkService.VideoConfiguration.newBuilder().apply {
                         codecResolution = negotiatedResolution
                         frameRate = announcedFrameRateType
-                        setDensity(HeadUnitScreenConfig.getDensityDpi()) // Use actual densityDpi
+                        setDensity(densityDecision.announced)
                         setPixelAspectRatioE4(announcedPar)
                         setMarginWidth(phoneWidthMargin)
                         setMarginHeight(phoneHeightMargin)
@@ -147,11 +153,14 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
                             primarySize.first, primarySize.second, phoneWidthMargin, phoneHeightMargin, fallback
                         )
                         HeadUnitScreenConfig.recordAnnouncedFallback(fallback, margins.width, margins.height)
-                        AppLog.i("[ServiceDiscovery] Offering a $fallback fallback, margins ${margins.width}x${margins.height}")
+                        val fallbackDensity = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.fallbackDensity(
+                            densityDecision.announced, primarySize.first, VideoFallbackPolicy.sizeOf(fallback).first
+                        )
+                        AppLog.i("[ServiceDiscovery] Offering a $fallback fallback, margins ${margins.width}x${margins.height}, density $fallbackDensity")
                         mediaSinkServiceBuilder.addVideoConfigs(Control.Service.MediaSinkService.VideoConfiguration.newBuilder().apply {
                             codecResolution = fallback
                             frameRate = announcedFrameRateType
-                            setDensity(HeadUnitScreenConfig.getDensityDpi())
+                            setDensity(fallbackDensity)
                             setPixelAspectRatioE4(announcedPar)
                             setMarginWidth(margins.width)
                             setMarginHeight(margins.height)

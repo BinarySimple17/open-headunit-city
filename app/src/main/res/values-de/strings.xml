@@ -818,6 +818,12 @@
     <string name="onb_change_later">Du kannst das später in den Einstellungen ändern.</string>
     <string name="dpi_automatic">Automatisch</string>
     <string name="dpi_automatic_desc">Gerätedichte verwenden</string>
+    <string name="dpi_widescreen_hint">Bei %1$d DPI oder weniger zeigt Android Auto die Karte mit einer Medienkarte daneben, und der Text wird kleiner.</string>
+    <string name="dpi_automatic_desc_canvas">Verwendet %1$d DPI für %2$s, eine Fläche von %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Automatisch: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, gesendet als %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto braucht eine Fläche von mindestens 748x450 dp. Deshalb werden %1$d DPI als %2$d gesendet.</string>
     <string name="onb_conn_usb_label">USB (oder Adapter)</string>
     <string name="onb_connection_self_detail">Der autonome Modus führt Android Auto auf diesem Gerät ohne verbundenes Telefon aus.</string>
     <string name="connection_kind_all">Alle</string>
@@ -831,7 +837,6 @@
     <string name="resolution_high_bandwidth_message">Diese Auflösung verbraucht viel mehr Bandbreite und braucht eine starke Verbindung: ein gutes 5GHz-WiFi oder eine stabile USB-Verbindung. Bei Rucklern wähle eine niedrigere Auflösung.</string>
     <string name="resolution_use_anyway">Trotzdem verwenden</string>
     <string name="resolution_use_recommended">Empfohlene verwenden</string>
-    <string name="dpi_automatic_desc_format">Verwendet die Gerätedichte (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">Riesig</string>
     <string name="onb_vehicle_title">Dein Auto</string>

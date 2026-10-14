@@ -8,6 +8,7 @@
         <item>Kijelző fényerő</item>
         <item>Autó fényszóró jelzés (ILL+)</item>
         <item>Hely (terület szerint)</item>
+        <item>Automatikus (Rendszer)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Automatikus (Rendszer)</item>

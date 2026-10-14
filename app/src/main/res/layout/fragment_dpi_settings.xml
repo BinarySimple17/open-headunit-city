@@ -55,6 +55,13 @@
                         android:layout_height="wrap_content"
                         android:text="@string/dpi_automatic_desc"
                         android:textAppearance="?attr/textAppearanceCaption" />
+                    <TextView
+                        android:id="@+id/dpi_widescreen_hint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textAppearance="?attr/textAppearanceCaption"
+                        android:visibility="gone" />
                 </LinearLayout>
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/dpi_auto_switch"
@@ -67,6 +74,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/dpi_clamped_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="?attr/colorError"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/dpi_over_panel_warning"

@@ -170,7 +170,12 @@
     <string name="onb_change_later">You can change this later in Settings.</string>
     <string name="dpi_automatic">Automatic</string>
     <string name="dpi_automatic_desc">Use the device density</string>
-    <string name="dpi_automatic_desc_format">Uses the device density (%1$d DPI)</string>
+    <string name="dpi_widescreen_hint">%1$d DPI or lower: Android Auto shows the map with a media card beside it; text gets smaller.</string>
+    <string name="dpi_automatic_desc_canvas">Uses %1$d DPI for %2$s, a %3$dx%4$d dp canvas</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Auto: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, sent as %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto needs a canvas of at least 748x450 dp, so %1$d DPI is sent as %2$d.</string>
     <string name="dpi_value_format">%1$d DPI</string>
     <string name="dpi_input_hint">DPI</string>
 

@@ -9,6 +9,7 @@
         <item>ეკრანის სიკაშკაშე</item>
         <item>ავტომობილის ფარების სიგნალი (ILL+)</item>
         <item>მდებარეობა (არეალის მიხედვით)</item>
+        <item>ავტომატური (სისტემური)</item>
     </string-array>
 
     <string-array name="app_theme">

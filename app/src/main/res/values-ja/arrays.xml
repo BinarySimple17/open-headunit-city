@@ -8,6 +8,7 @@
         <item>画面の明るさ</item>
         <item>車のヘッドライト信号 (ILL+)</item>
         <item>位置情報（地域別）</item>
+        <item>自動（システム）</item>
 </string-array>
 
     <string-array name="app_theme">

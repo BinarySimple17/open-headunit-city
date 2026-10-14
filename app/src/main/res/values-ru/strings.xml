@@ -774,6 +774,12 @@
     <string name="onb_change_later">Вы можете изменить это позже в настройках.</string>
     <string name="dpi_automatic">Автоматически</string>
     <string name="dpi_automatic_desc">Использовать плотность устройства</string>
+    <string name="dpi_widescreen_hint">При %1$d DPI или меньше Android Auto показывает карту с карточкой медиа рядом, а текст становится мельче.</string>
+    <string name="dpi_automatic_desc_canvas">Использует %1$d DPI для %2$s, холст %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Авто: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, отправляется как %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">Android Auto требуется холст не менее 748x450 dp, поэтому %1$d DPI отправляется как %2$d.</string>
     <string name="onb_conn_usb_label">USB (или адаптер)</string>
     <string name="onb_connection_self_detail">Автономный режим запускает Android Auto на этом устройстве без телефона.</string>
     <string name="connection_kind_all">Все</string>
@@ -787,7 +793,6 @@
     <string name="resolution_high_bandwidth_message">Это разрешение потребляет намного больше трафика и требует устойчивого соединения: хорошего WiFi 5 ГГц или стабильного USB. При задержках выберите разрешение ниже.</string>
     <string name="resolution_use_anyway">Всё равно использовать</string>
     <string name="resolution_use_recommended">Использовать рекомендуемое</string>
-    <string name="dpi_automatic_desc_format">Использует плотность устройства (%1$d DPI)</string>
     <string name="dpi_input_hint">DPI</string>
     <string name="onb_dpi_huge">Огромный</string>
     <string name="onb_vehicle_title">Ваш автомобиль</string>

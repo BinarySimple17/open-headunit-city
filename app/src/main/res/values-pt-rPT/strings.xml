@@ -165,7 +165,12 @@
     <string name="onb_change_later">Pode alterar isto mais tarde nas Definições.</string>
     <string name="dpi_automatic">Automático</string>
     <string name="dpi_automatic_desc">Utilizar densidade do dispositivo</string>
-    <string name="dpi_automatic_desc_format">Utiliza a densidade do dispositivo (%1$d DPI)</string>
+    <string name="dpi_widescreen_hint">Com %1$d DPI ou menos, o Android Auto mostra o mapa com um cartão multimédia ao lado, e o texto fica mais pequeno.</string>
+    <string name="dpi_automatic_desc_canvas">Utiliza %1$d DPI para %2$s, uma área de %3$dx%4$d dp</string>
+    <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_auto_format">Automático: %1$d (%2$dx%3$d dp)</string>
+    <string name="dpi_row_clamped_format">%1$d, enviado como %2$d (%3$dx%4$d dp)</string>
+    <string name="dpi_clamped_note">O Android Auto precisa de uma área de, pelo menos, 748x450 dp, por isso %1$d DPI é enviado como %2$d.</string>
     <string name="dpi_value_format">%1$d DPI</string>
     <string name="dpi_input_hint">DPI</string>
 

@@ -8,6 +8,7 @@
         <item>Bildschirmhelligkeit</item>
         <item>Autoscheinwerfer-Signal (ILL+)</item>
         <item>Standort (nach Gebiet)</item>
+        <item>Automatisch (System)</item>
 </string-array>
 
     <string-array name="app_theme">        <item>Automatisch (System)</item>

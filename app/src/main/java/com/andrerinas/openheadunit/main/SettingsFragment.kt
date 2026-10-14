@@ -2158,7 +2158,7 @@ class SettingsFragment : Fragment() {
         items.add(SettingItem.SettingEntry(
             stableId = "dpiPixelDensity",
             nameResId = R.string.dpi,
-            value = if (pendingDpi == 0) getString(R.string.auto) else pendingDpi.toString(),
+            value = dpiRowValue(),
             onClick = {
                 try {
                     findNavController().navigate(R.id.action_settingsFragment_to_dpiSettingsFragment)
@@ -3626,6 +3626,35 @@ class SettingsFragment : Fragment() {
         pendingResolution = id
         checkChanges()
         updateSettingsList()
+    }
+
+    /** The row shows what Android Auto receives and its dp canvas, after the margins. */
+    private fun dpiRowValue(): String {
+        val stored = pendingDpi ?: 0
+        val chosen = Settings.Resolution.fromId(pendingResolution ?: settings.resolutionId)
+        val (pw, ph) = realPanelResolution()
+        val res = if (chosen == null || chosen == Settings.Resolution.AUTO) {
+            com.andrerinas.openheadunit.utils.SystemOptimizer.recommendedResolution(pw, ph)
+        } else chosen
+        val preset = com.andrerinas.openheadunit.utils.OnboardingDisplayPolicy.initialPreset(
+            settings.displaySizePreset, com.andrerinas.openheadunit.utils.SystemOptimizer.DisplaySizePreset.SMALL_7_8
+        )
+        val portrait = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.projectsPortrait(
+            pendingScreenOrientation ?: settings.screenOrientation
+        )
+        val (ow, oh) = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.orientPanel(pw, ph, portrait)
+        val (vw, vh) = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.visibleSize(
+            pendingVideoFitMode ?: settings.videoFitMode, ow, oh, res.width, res.height
+        )
+        val d = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.decide(stored, preset, vw, vh)
+        val cw = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.canvasDp(vw, d.announced)
+        val ch = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.canvasDp(vh, d.announced)
+        return when {
+            res.width <= 0 -> if (stored == 0) getString(R.string.auto) else stored.toString()
+            stored == 0 -> getString(R.string.dpi_row_auto_format, d.announced, cw, ch)
+            d.announced != stored -> getString(R.string.dpi_row_clamped_format, stored, d.announced, cw, ch)
+            else -> getString(R.string.dpi_row_value_format, stored, cw, ch)
+        }
     }
 
     private fun realPanelResolution(): Pair<Int, Int> {
