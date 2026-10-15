@@ -8,7 +8,9 @@ import org.junit.Test
  * The auto start/off write ladder (S008): the ГУ round of 2026-10-12 rejected the
  * base|level write on the dedicated AUTO properties, so entering auto now tries the
  * candidate entrances in likelihood order — the manual property's own auto code, the TIME
- * knob, then the AUTO property in both encodings — and the first accepted write wins.
+ * knob, then the AUTO property in both encodings. The winner is the first rung the CAR
+ * confirms (round 4: a write the port accepts can be silently ignored) — the verdict rule
+ * itself is pinned by AutoConfirmationTest.
  */
 class AutoStartAttemptsTest {
 

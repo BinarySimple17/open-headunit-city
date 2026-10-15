@@ -57,6 +57,32 @@ class CarFunctionSpec(
     fun displayLevel(manualRaw: Int?, autoRaw: Int?): Int =
         Hvac.displayLevel(levelOf(manualRaw), auto?.levelOf(autoRaw) ?: 0)
 
+    /**
+     * Does this pair of raw reads mean the car answers the zone IN auto (the S008 verdict
+     * rule)? Round 4: a passenger auto-code write the car actually accepted showed up as the
+     * auto read code on BOTH properties within one poll, while the twice-silently-ignored
+     * driver write never moved either — so an auto answer on either raw is the car's yes,
+     * and so is a known auto level on the AUTO property (the entrance we would have written).
+     * A mirrored manual level (round 4: manual L1 mirrored onto the auto property as
+     * base|1) matches neither clause — never reads as auto.
+     */
+    fun readsAuto(manualRaw: Int?, autoRaw: Int?): Boolean {
+        if (autoReadCode != null && (manualRaw == autoReadCode || autoRaw == autoReadCode)) return true
+        val table = auto?.levels ?: return false
+        return autoRaw != null && table.indexOf(autoRaw) > 0
+    }
+
+    /**
+     * Positive evidence the zone LEFT auto: the linked AUTO property answers off again.
+     * Only the AUTO property counts here — after an exit the manual property may keep
+     * answering the auto code for a while (round 4: seat_auto went 0 while seat stayed on
+     * the code), and a mirrored auto code on the AUTO property means still on, not off.
+     */
+    fun readsAutoOff(autoRaw: Int?): Boolean {
+        val table = auto?.levels ?: return autoRaw == 0
+        return autoRaw != null && table.indexOf(autoRaw) == 0
+    }
+
     /** Value to write for the next tap on a leveled function, given the current display ordinal. */
     fun nextLevelValue(currentOrdinal: Int): Int {
         val table = levels ?: return offValue
@@ -67,13 +93,15 @@ class CarFunctionSpec(
     fun toggleValue(turnOn: Boolean): Int = if (turnOn) onValue else offValue
 
     /**
-     * Ordered candidate writes to ENTER auto at display [level] (1..3), first accepted wins
-     * (S008 experiment ladder). The ГУ round of 2026-10-12 rejected the base|level write on
-     * the dedicated AUTO property, so the ladder leads with the entrances the references
-     * actually point at: the manual property's own auto level code (catalog: "уровни/авто" —
-     * the same code an auto-enabled seat answers with), then the AUTO property's TIME knob
-     * (the only auto surface the voice protocol exposes), and only then the AUTO property
-     * itself in both value encodings. A function without auto has an empty ladder.
+     * Ordered candidate writes to ENTER auto at display [level] (1..3); the winner is the
+     * first rung the CAR confirms ([readsAuto]) — round 4 showed a write the port accepts
+     * can still be silently ignored, so "returned ok" is not a verdict (S008). The ГУ round
+     * of 2026-10-12 rejected the base|level write on the dedicated AUTO property, so the
+     * ladder leads with the entrances the references actually point at: the manual
+     * property's own auto level code (catalog: "уровни/авто" — the same code an auto-enabled
+     * seat answers with), then the AUTO property's TIME knob (the only auto surface the
+     * voice protocol exposes), and only then the AUTO property itself in both value
+     * encodings. A function without auto has an empty ladder.
      */
     fun autoStartAttempts(level: Int): List<CarWriteAttempt> {
         val linked = auto ?: return emptyList()
