@@ -1,4 +1,12 @@
 # Changelog
+### v.3.5.0-beta7
+- Changed: HVAC auto mode is judged by the car's answer, not by the write going out - each candidate encoding waits up to 2.5 s for the car to confirm before the next is tried, and a silent rejection ends in an honest "command rejected" toast instead of a false "on"
+- Changed: the zone button goes dim and ignores touches while the car's auto verdict is pending
+- Fixed: long-press on a zone the car answers with the auto read code could try to enter auto again instead of turning it off
+### v.3.5.0-beta6
+- Added: CAR tab - "Send HVAC logs" shares the retained HVAC log files (round-4 test build)
+- Changed: HVAC auto mode (long-press) tries a ladder of entry encodings (the manual property's auto code, the auto property's TIME knob, the auto property in both encodings) instead of a single write; connect-time probes gate what the car does not expose
+- Merged upstream main: text-dialog keyboard fixes, DPI canvas density handling, self-mode media session fix, follow-system dark theme, connection UI tweaks
 ### v.3.5.0-beta5
 - Added: climate (HVAC) panel over the projection - seat (4 zones) and wheel heating with a per-zone auto mode (long-press), front/rear/MAX defrost, recirculation; the live status is polled from the car every 2 s, external changes light the buttons themselves
 - Added: car backends - the vendor climate API with the standard android.car channel as read/fallback, and a standalone mock-car app (mockcar-debug.apk) so the panel runs and is testable on a plain emulator
