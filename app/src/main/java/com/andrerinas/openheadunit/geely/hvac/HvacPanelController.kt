@@ -1,18 +1,12 @@
 package com.andrerinas.openheadunit.geely.hvac
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.core.content.ContextCompat
-import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.R
-import com.andrerinas.openheadunit.aap.AapService
 import com.andrerinas.openheadunit.geely.panel.ActionNode
 import com.andrerinas.openheadunit.geely.panel.GroupNode
 import com.andrerinas.openheadunit.geely.panel.PanelNavState
@@ -20,8 +14,6 @@ import com.andrerinas.openheadunit.geely.panel.PanelNavigation
 import com.andrerinas.openheadunit.geely.panel.PanelNode
 import com.andrerinas.openheadunit.geely.panel.PanelSurface
 import com.andrerinas.openheadunit.geely.panel.PanelTheme
-import com.andrerinas.openheadunit.utils.NightMode
-import com.andrerinas.openheadunit.utils.Settings as AppSettings
 import java.util.concurrent.Executors
 
 /**
@@ -64,19 +56,8 @@ class HvacPanelController private constructor(
 
     private val autoCollapseRunnable = Runnable { collapse() }
 
-    /**
-     * Day/night of the projection (drives the circle colors): resolved once at attach,
-     * then tracked via the app's night-mode broadcast — the same signal that switches Android
-     * Auto itself to the dark top bar; the poller repaints, so a missed flip self-corrects.
-     */
-    private val nightModeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (theme.isNight != intent.getBooleanExtra("isNight", false)) {
-                theme.isNight = intent.getBooleanExtra("isNight", false)
-                repaint()
-            }
-        }
-    }
+    /** Day/night of the projection: initial guess at [beginAttach], then the live broadcast. */
+    private val nightMode = PanelNightMode(context, theme) { repaint() }
 
 
     /**
@@ -87,11 +68,7 @@ class HvacPanelController private constructor(
      */
     fun beginAttach(container: FrameLayout) {
         HvacLog.i("panel: attach requested (mode=${settings.panelMode}, model=${settings.carModel})")
-        theme.isNight = resolveIsNight()
-        ContextCompat.registerReceiver(
-            context, nightModeReceiver, IntentFilter(AapService.ACTION_NIGHT_MODE_CHANGED),
-            ContextCompat.RECEIVER_NOT_EXPORTED
-        )
+        nightMode.start()
         portExecutor.execute {
             val resolved = HvacPortFactory.resolve(context)
             val initialStatus = resolved?.let { Hvac.readStatus(it, settings.carModel) }
@@ -112,7 +89,7 @@ class HvacPanelController private constructor(
     fun detach() {
         detached = true
         mainHandler.removeCallbacksAndMessages(null)
-        runCatching { context.unregisterReceiver(nightModeReceiver) }
+        nightMode.stop()
         portExecutor.shutdownNow()
         createdMockPort?.disconnect()
         createdMockPort = null
@@ -146,9 +123,16 @@ class HvacPanelController private constructor(
         panelSurface.onAnchorTap = { if (navState.expanded) collapse() else expand(log = true) }
         panelSurface.onActionTap = { node ->
             renewAutoCollapseIfCollapsed()
-            commandRunner.tap(node)
+            if (!commandRunner.isPending(node.id)) commandRunner.tap(node)
         }
-        panelSurface.onActionLongPress = { node -> commandRunner.longPress(node) }
+        panelSurface.onActionLongPress = { node ->
+            if (!commandRunner.isPending(node.id)) commandRunner.longPress(node)
+        }
+        // A zone with an auto verdict in flight: dimmed and tap-dead until the car answers
+        // (confirmation or timeout) — the runner owns the state, the surface just shows it.
+        commandRunner.onPendingChanged = { id, busy ->
+            surface?.button(id)?.view?.alpha = if (busy) BUSY_BUTTON_ALPHA else 1f
+        }
         panelSurface.actionLongPressEnabled = { it.function.auto != null }
         panelSurface.onGroupTap = { group -> onGroupTap(group) }
         panelSurface.build(specRoot)
@@ -163,20 +147,6 @@ class HvacPanelController private constructor(
         statusStore.applyInitial(initialStatus)
         applyMode(initial = true)
         statusStore.startPolling()
-    }
-
-    /** Initial day/night guess from the NightModeManager's own sources; the live broadcast
-     *  corrects what it cannot see (sensor/brightness/location modes). */
-    private fun resolveIsNight(): Boolean {
-        val appSettings = App.provide(context).settings
-        return when (appSettings.nightMode) {
-            AppSettings.NightMode.NIGHT -> true
-            AppSettings.NightMode.DAY -> false
-            AppSettings.NightMode.CAR_SIGNAL -> try {
-                android.provider.Settings.System.getInt(context.contentResolver, "car_mode") != 0
-            } catch (_: Exception) { false }
-            else -> NightMode(appSettings, false).current
-        }
     }
 
     /** PiP hides all chrome; restoring re-applies the configured panel mode. */
@@ -280,6 +250,9 @@ class HvacPanelController private constructor(
 
 
     companion object {
+        /** A zone button with an auto verdict in flight: dimmed until the car answers. */
+        private const val BUSY_BUTTON_ALPHA = 0.4f
+
         /**
          * Entry point for the projection activity. Always returns a controller (so the caller
          * can detach it); whether any view appears is decided by the car bridge availability

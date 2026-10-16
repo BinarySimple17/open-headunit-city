@@ -1272,6 +1272,7 @@
     <string name="hvac_toast_off">%1$s: выкл</string>
     <string name="hvac_toast_on">%1$s: вкл</string>
     <string name="hvac_cmd_failed">Машина отклонила команду</string>
+    <string name="hvac_fn_unavailable">Недоступно на этом автомобиле</string>
     <string name="hvac_panel_mode">Видимость панели</string>
     <string name="hvac_panel_mode_description">Как климат-панель показывается во время проекции</string>
     <string name="hvac_panel_mode_collapsed">Свёрнутая (ручка)</string>
@@ -1280,6 +1281,9 @@
     <string name="hvac_car_model_description">ID обогрева лобового стекла различается между моделями</string>
     <string name="hvac_debug_log">Подробный лог HVAC</string>
     <string name="hvac_debug_log_summary">Пишет все события панели и car-сервиса в HVAC_Log_*.txt в папке Download - включите, если панель работает неправильно, и пришлите файл</string>
+    <string name="hvac_send_logs">Передать логи HVAC</string>
+    <string name="hvac_send_logs_summary">Открывает меню отправки с файлами HVAC_Log_*.txt из папки Download - выберите Bluetooth, чтобы передать их на телефон</string>
+    <string name="hvac_send_logs_none">Логов HVAC пока нет - включите подробный лог HVAC, воспроизведите проблему и передайте снова</string>
     <string name="hvac_hide_timeout">Таймаут скрытия иконок</string>
     <string name="hvac_timeout_seconds">%1$d с</string>
     <string name="hvac_seat_auto_level">Уровень автоподогрева сидений</string>

@@ -160,20 +160,27 @@ object EcarxCarPort : CarFunctionPort {
      * One-time support probe for every property the panel may touch — the adaptapi analogue
      * of AndroidCarPort's catalog dump: `isFunctionSupported` answers the firmware's own
      * FunctionStatus enum (active/notactive/notavailable/error) per property/area, so
-     * the log shows exactly which functions this car exposes on this channel.
+     * the log shows exactly which functions this car exposes on this channel. Verdicts are
+     * kept: [isFunctionSupported] replays them to the panel (the first round proved they
+     * predict the write verdict — wheel_auto answered notavailable and its write was rejected).
      */
+    private val probeVerdicts = HashMap<String, String>()
+
+    override fun isFunctionSupported(propertyId: Int, areaId: Int): Boolean =
+        synchronized(probeVerdicts) { probeVerdicts["$propertyId/$areaId"] }?.let { it == "active" } ?: true
+
     private fun probeTrackedFunctions(fn: Any, statusMethod: Method) {
         for (probe in GeelyCarFunctions.probes()) {
-            val spec = probe.spec
             val verdict = try {
-                statusMethod.invoke(fn, *adaptArgs(statusMethod, intArrayOf(spec.propertyId, spec.areaId)))
+                statusMethod.invoke(fn, *adaptArgs(statusMethod, intArrayOf(probe.propertyId, probe.areaId)))
                     ?.let { (it as? Enum<*>)?.name ?: it.toString() }
                     ?: "null"
             } catch (e: Throwable) {
                 val cause = (e as? InvocationTargetException)?.cause ?: e
                 "error: $cause"
             }
-            HvacLog.i("probe: ${probe.label} prop=${spec.propertyId} area=${spec.areaId} -> $verdict")
+            synchronized(probeVerdicts) { probeVerdicts["${probe.propertyId}/${probe.areaId}"] = verdict }
+            HvacLog.i("probe: ${probe.label} prop=${probe.propertyId} area=${probe.areaId} -> $verdict")
         }
     }
 

@@ -1350,6 +1350,7 @@
     <string name="hvac_toast_off">%1$s: off</string>
     <string name="hvac_toast_on">%1$s: on</string>
     <string name="hvac_cmd_failed">Command rejected by the car</string>
+    <string name="hvac_fn_unavailable">Not available on this car</string>
     <string name="hvac_panel_mode">Panel visibility</string>
     <string name="hvac_panel_mode_description">How the climate panel appears during projection</string>
     <string name="hvac_panel_mode_collapsed">Collapsed (handle)</string>
@@ -1358,6 +1359,9 @@
     <string name="hvac_car_model_description">Front windshield defrost property ID differs between models</string>
     <string name="hvac_debug_log">Detailed HVAC log</string>
     <string name="hvac_debug_log_summary">Writes every panel and car-service event to HVAC_Log_*.txt in the Download folder - enable this when the panel misbehaves and share the file</string>
+    <string name="hvac_send_logs">Send HVAC logs</string>
+    <string name="hvac_send_logs_summary">Opens the share sheet with the HVAC_Log_*.txt files from the Download folder - pick Bluetooth to send them to a phone</string>
+    <string name="hvac_send_logs_none">No HVAC logs yet - enable the detailed HVAC log, reproduce the issue, then send again</string>
     <string name="hvac_hide_timeout">Icon hide timeout</string>
     <string name="hvac_timeout_seconds">%1$d s</string>
     <string name="hvac_seat_auto_level">Seat auto-heat level</string>

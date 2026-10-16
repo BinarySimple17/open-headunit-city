@@ -16,12 +16,14 @@ import java.util.concurrent.Executor
  *    leaves auto and continues the cycle from the auto's effective level (the masked manual
  *    level never leaks into the display); cycling down to off leaves everything off;
  *  - a tap on a TOGGLE button flips it (defrost 0/1, recirculation with its ON/OFF codes);
- *  - a long-press toggles AUTO (F008): a zone already in auto switches off COMPLETELY
- *    (auto 0 AND manual 0, so no masked heating survives); entering auto takes the manual
- *    level when the function is on, otherwise the configured one ([autoLevelHint]).
+ *  - the AUTO long-press belongs to [CarAutoToggle] (F008/S008): the start ladder judged by
+ *    the car's own answer (round 4 caught a silently ignored write the port had reported as
+ *    ok), the busy zone button while a verdict is in flight, and the probe gate — an auto
+ *    function the port reported unsupported is not written at all.
  *
  * Taps are optimistic — a successful write is folded into the status snapshot immediately
- * (PanelStatusStore.overwrite) and the poller confirms or corrects it.
+ * (PanelStatusStore.overwrite) and the poller confirms or corrects it; the AUTO long-press is
+ * the exception (it moves only when the car confirms).
  *
  * Threading: tap/longPress on the main thread; the port runs on [executor]; results and
  * toasts hop back through [mainHandler] behind the single detached guard.
@@ -34,8 +36,18 @@ class CarCommandRunner(
     private val isDetached: () -> Boolean,
     private val store: PanelStatusStore,
     /** Configured auto-enter level per function family (the GEELY settings tab), 1..3. */
-    private val autoLevelHint: (CarFunctionSpec) -> Int,
+    autoLevelHint: (CarFunctionSpec) -> Int,
 ) {
+
+    private val autoToggle = CarAutoToggle(context, port, executor, mainHandler, isDetached, store, autoLevelHint)
+
+    /** Main-thread notice that a button's busy state changed; surfaced for the coordinator. */
+    var onPendingChanged: ((id: String, pending: Boolean) -> Unit)?
+        get() = autoToggle.onPendingChanged
+        set(value) { autoToggle.onPendingChanged = value }
+
+    /** Whether taps and long-presses on this function are ignored (its auto verdict is in flight). */
+    fun isPending(id: String): Boolean = autoToggle.isPending(id)
 
     fun tap(node: ActionNode<CarFunctionSpec>) {
         when (node.function.kind) {
@@ -44,10 +56,8 @@ class CarCommandRunner(
         }
     }
 
-    fun longPress(node: ActionNode<CarFunctionSpec>) {
-        val autoSpec = node.function.auto ?: return
-        if (autoSpec.levelOf(store.lastStatus[autoSpec.id]) > 0) autoOff(node, autoSpec) else autoOn(node, autoSpec)
-    }
+    /** Long-press toggles AUTO (F008) — the verdict-gated ladder of [CarAutoToggle]. */
+    fun longPress(node: ActionNode<CarFunctionSpec>) = autoToggle.longPress(node)
 
     /** Tap on a level button: auto-first semantics, then the plain cycle (see class doc). */
     private fun cycleLevels(node: ActionNode<CarFunctionSpec>) {
@@ -95,40 +105,6 @@ class CarCommandRunner(
                 if (isDetached()) return@post
                 if (ok) store.overwrite(spec.id, value)
                 toastToggle(node.labelRes, turnOn, ok)
-            }
-        }
-    }
-
-    /** Long-press while auto runs: auto to 0 AND the manual level to 0 — fully off. */
-    private fun autoOff(node: ActionNode<CarFunctionSpec>, autoSpec: CarFunctionSpec) {
-        val spec = node.function
-        executor.execute {
-            val okAuto = port.setInt(autoSpec.propertyId, autoSpec.areaId, 0)
-            val okManual = port.setInt(spec.propertyId, spec.areaId, 0)
-            mainHandler.post {
-                if (isDetached()) return@post
-                if (okAuto) store.overwrite(autoSpec.id, 0)
-                if (okManual) store.overwrite(spec.id, 0)
-                HvacLog.i("auto: ${autoSpec.id} -> off (heating fully off, auto=$okAuto manual=$okManual)")
-                toastToggle(node.labelRes, on = false, ok = okAuto && okManual)
-            }
-        }
-    }
-
-    /** Long-press with auto off: enter auto at the manual level, or the configured one. */
-    private fun autoOn(node: ActionNode<CarFunctionSpec>, autoSpec: CarFunctionSpec) {
-        val spec = node.function
-        val manual = spec.levelOf(store.lastStatus[spec.id])
-        val chosen = if (manual > 0) manual else autoLevelHint(spec)
-        val table = autoSpec.levels ?: return
-        val value = table[chosen.coerceIn(1, table.lastIndex)]
-        executor.execute {
-            val ok = port.setInt(autoSpec.propertyId, autoSpec.areaId, value)
-            mainHandler.post {
-                if (isDetached()) return@post
-                if (ok) store.overwrite(autoSpec.id, value)
-                HvacLog.i("auto: ${autoSpec.id} -> $value (${if (ok) "ok" else "rejected"})")
-                toastToggle(node.labelRes, on = true, ok = ok)
             }
         }
     }
