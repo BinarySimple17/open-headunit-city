@@ -25,6 +25,7 @@ import com.andrerinas.openheadunit.utils.OemAppManager
 import com.andrerinas.openheadunit.utils.CarLauncherManager
 import com.andrerinas.openheadunit.geely.hvac.Hvac
 import com.andrerinas.openheadunit.geely.hvac.HvacLog
+import com.andrerinas.openheadunit.geely.cluster.ClusterMediaSettings
 import com.andrerinas.openheadunit.geely.hvac.HvacLogShare
 import com.andrerinas.openheadunit.geely.hvac.HvacSettings
 import com.andrerinas.openheadunit.ssl.ConscryptInitializer
@@ -178,6 +179,10 @@ class SettingsFragment : Fragment() {
     private var pendingHvacHideTimeoutSec: Int? = null
     private var pendingHvacSeatAutoLevel: Int? = null
     private var pendingHvacWheelAutoLevel: Int? = null
+
+    // Geely cluster media (F013) rides the same common Save flow as the HVAC settings.
+    private var pendingClusterMedia: Boolean? = null
+
     private var pendingUseGps: Boolean? = null
     private var pendingShowNavigationNotifications: Boolean? = null
     private var pendingSyncMediaSessionAaMetadata: Boolean? = null
@@ -366,6 +371,7 @@ class SettingsFragment : Fragment() {
             pendingHvacSeatAutoLevel = hvac.seatAutoLevel
             pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
+        pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
 
         // Initialize local state with current values
         pendingAdvancedSettings = settings.isAdvancedSettingsActive
@@ -604,6 +610,7 @@ class SettingsFragment : Fragment() {
             pendingHvacSeatAutoLevel = hvac.seatAutoLevel
             pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
+        pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
     }
 
     /**
@@ -752,6 +759,11 @@ class SettingsFragment : Fragment() {
                     if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
                 }
             }
+        }
+        // Geely cluster media (F013): the bridge watches its own prefs file and reacts
+        // (publication stops and the card clears) without anyone calling into it.
+        ClusterMediaSettings(requireContext().applicationContext).also { cluster ->
+            pendingClusterMedia?.let { if (it != cluster.enabled) cluster.enabled = it }
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -920,6 +932,7 @@ class SettingsFragment : Fragment() {
             pendingHvacSeatAutoLevel = hvac.seatAutoLevel
             pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
+        pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         hasChanges = false
         requiresRestart = false
         requiresServiceRestart = false
@@ -1032,7 +1045,8 @@ class SettingsFragment : Fragment() {
                                 pendingHvacHideTimeoutSec != hvac.hideTimeoutSec ||
                                 pendingHvacSeatAutoLevel != hvac.seatAutoLevel ||
                                 pendingHvacWheelAutoLevel != hvac.wheelAutoLevel
-                        }
+                        } ||
+                        pendingClusterMedia != ClusterMediaSettings(requireContext().applicationContext).enabled
 
         hasChanges = anyChange
 
@@ -3261,6 +3275,9 @@ class SettingsFragment : Fragment() {
         val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
         val hvacSeatAutoLevel = pendingHvacSeatAutoLevel ?: hvac.seatAutoLevel
         val hvacWheelAutoLevel = pendingHvacWheelAutoLevel ?: hvac.wheelAutoLevel
+        // F013: our cluster toggle exists only on top of the native media-session switch.
+        val nativeSyncOn = pendingSyncMediaSessionAaMetadata ?: settings.syncMediaSessionWithAaMetadata
+        val clusterMediaOn = pendingClusterMedia ?: ClusterMediaSettings(requireContext().applicationContext).enabled
         val saveHvacChange: () -> Unit = {
             hasChanges = true
             updateSaveButtonState()
@@ -3387,6 +3404,20 @@ class SettingsFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     HvacLogShare.share(requireContext().applicationContext)
                 }
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterMedia",
+            nameResId = R.string.cluster_media,
+            descriptionResId = R.string.cluster_media_description,
+            isChecked = clusterMediaOn,
+            // The dependency gate: without the native switch ours redirects nothing, so it
+            // stays gray with the hint; a saved checkmark keeps waiting for it to return.
+            isEnabled = nativeSyncOn,
+            descriptionOverride = if (nativeSyncOn) null else getString(R.string.cluster_media_disabled_hint),
+            onCheckedChanged = { checked ->
+                pendingClusterMedia = checked
+                saveHvacChange()
             }
         ))
 

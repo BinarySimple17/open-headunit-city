@@ -1362,6 +1362,9 @@
     <string name="hvac_send_logs">Send HVAC logs</string>
     <string name="hvac_send_logs_summary">Opens the share sheet with the HVAC_Log_*.txt files from the Download folder - pick Bluetooth to send them to a phone</string>
     <string name="hvac_send_logs_none">No HVAC logs yet - enable the detailed HVAC log, reproduce the issue, then send again</string>
+    <string name="cluster_media">Media on instrument cluster</string>
+    <string name="cluster_media_description">Additionally shows the Android Auto track (title, artist, album, cover) on the car\'s instrument cluster. Requires \"AA now playing on media session\" - that session and notification keep working as before</string>
+    <string name="cluster_media_disabled_hint">Requires \"AA now playing on media session\" to be enabled first</string>
     <string name="hvac_hide_timeout">Icon hide timeout</string>
     <string name="hvac_timeout_seconds">%1$d s</string>
     <string name="hvac_seat_auto_level">Seat auto-heat level</string>

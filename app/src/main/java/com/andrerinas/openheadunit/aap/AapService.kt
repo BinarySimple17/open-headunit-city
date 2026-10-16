@@ -475,6 +475,8 @@ class AapService : Service() {
     private fun onAaMediaMetadataFromPhone(meta: MediaPlayback.MediaMetaData) {
         if (isDestroying) return
         lastAaMediaMetadata = meta
+        // Geely cluster card (F013): rides on the same stream; it gates on both switches itself.
+        App.provide(this).clusterMediaBridge.onAaMetadata(meta)
         if (!shouldSyncAaMediaMetadata()) return
         // Avoid showing a previous track's art with new title/artist until decode finishes.
         cachedAaAlbumArtBitmap = null
@@ -489,6 +491,9 @@ class AapService : Service() {
         val isPlayingFromStatus = resolveIsPlayingFromStatus(status)
         lastAaPlaybackIsPlaying = isPlayingFromStatus
         mediaSessionIsPlaying = isPlayingFromStatus
+
+        // Geely cluster card (F013): pause keeps the card, only the status flag flips.
+        App.provide(this).clusterMediaBridge.onAaPlaybackState(isPlayingFromStatus, lastAaPlaybackPositionMs)
 
         if (!shouldSyncAaMediaMetadata()) return
         updateMediaSessionState(isPlayingFromStatus)
@@ -1671,6 +1676,8 @@ class AapService : Service() {
         cachedAaAlbumArtBitmap = null
         mediaNotification.cancel()
         applyPlaceholderMediaMetadata()
+        // Geely cluster card (F013): the card must not outlive the projection.
+        App.provide(this).clusterMediaBridge.onProjectionStopped()
         // Keep MediaSession alive across disconnect/reconnect cycles.
         // Only deactivate it — do NOT release it. A released session can no longer
         // receive media button events, which means the keymap stops working until

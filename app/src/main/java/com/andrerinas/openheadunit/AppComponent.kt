@@ -8,6 +8,7 @@ import com.andrerinas.openheadunit.decoder.audio.AudioDecoder
 import com.andrerinas.openheadunit.decoder.video.DeviceMemoryProfile
 import com.andrerinas.openheadunit.decoder.video.VideoDecoder
 import com.andrerinas.openheadunit.connection.carkey.CarKeysManager
+import com.andrerinas.openheadunit.geely.cluster.ClusterMediaBridge
 import com.andrerinas.openheadunit.utils.SUExecutor
 import com.andrerinas.openheadunit.utils.Settings
 
@@ -31,4 +32,8 @@ class AppComponent(private val app: App) {
     val suExecutor = SUExecutor()
 
     val carKeysManager = CarKeysManager()
+
+    // Geely instrument-cluster media redirect (F013, isolated geely.cluster package): app-scoped
+    // — it watches both switches itself and is fed from the AA media seam in AapService.
+    val clusterMediaBridge: ClusterMediaBridge by lazy { ClusterMediaBridge(app) }
 }
