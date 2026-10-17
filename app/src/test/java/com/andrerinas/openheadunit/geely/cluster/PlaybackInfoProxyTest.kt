@@ -25,6 +25,7 @@ class PlaybackInfoProxyTest {
         fun getLoopMode(): Int
         fun getUUID(): String?
         fun getLyricContent(): String?
+        fun getRadioFrequency(): String?
         fun getSomethingTheFirmwareAddedLater(): Int
         fun getUnknownObject(): String?
     }
@@ -66,6 +67,14 @@ class PlaybackInfoProxyTest {
         assertNull(info.getLyricContent())
         assertEquals(0, info.getSourceType())
         assertEquals(0, info.getLoopMode())
+    }
+
+    @Test
+    fun `radio getters answer a String, not a number - the firmware casts them during the push`() {
+        // Round 5 (2026-10-17 08:20): getRadioFrequency returned Integer 0 and the firmware's
+        // MediaInteraction.updatePlaybackInfo:93 threw ClassCastException — one wrong-typed
+        // getter killed the whole card push, twice in a row.
+        assertNull(proxy().getRadioFrequency())
     }
 
     @Test

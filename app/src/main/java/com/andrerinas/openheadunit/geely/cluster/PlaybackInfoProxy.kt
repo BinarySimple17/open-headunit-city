@@ -66,23 +66,31 @@ object PlaybackInfoProxy {
         // We supply no next/previous covers, lyrics or source path — the cluster's defaults stand in.
         "getNextArtwork", "getPreviousArtwork", "getLyric", "getLyricContent",
         "getCurrentLyricSentence", "getMediaPath" -> null
+        // Radio answers are Strings (d4/e: getRadioFrequency():String) and the firmware casts
+        // them during the push — round 5: an Integer here aborted the whole card with
+        // ClassCastException at MediaInteraction.updatePlaybackInfo:93. We are not a radio.
+        "getRadioFrequency", "getRadioStationName" -> null
         "getDuration" -> snapshot.durationMs
         // The reference models playback status as a plain boolean flag (d4/I reads a Z field).
         "getPlaybackStatus" -> if (snapshot.isPlaying) 1 else 0
         // Semantics not recoverable from the reference (a Compose dialog supplies them):
         // conservative neutral values until a car round shows what the cluster makes of them.
-        "getLoopMode", "getFavoriteState", "getRadioMode", "getRadioFrequency",
+        "getLoopMode", "getFavoriteState", "getRadioMode",
         "getPlayingItemPositionInQueue", "getSourceType" -> 0
         "getUUID" -> snapshot.trackUuid
         else -> null
     }
 
-    /** Boxes [value] into whatever type this firmware's getter declares, defaulting safely. */
+    /**
+     * Boxes [value] into whatever type this firmware's getter declares. Type-strict: the
+     * firmware casts the proxy's results itself (round 5 proved a wrong type aborts the
+     * entire push), so a mismatch degrades to the type's neutral instead of leaking through.
+     */
     private fun adapt(value: Any?, type: Class<*>): Any? = when (type) {
         Uri::class.java -> (value as? String)?.let { Uri.parse(it) }
         java.lang.Integer.TYPE, java.lang.Integer::class.java -> value as? Int ?: 0
         java.lang.Long.TYPE, java.lang.Long::class.java -> value as? Long ?: 0L
         java.lang.Boolean.TYPE, java.lang.Boolean::class.java -> value as? Boolean ?: false
-        else -> value
+        else -> value as? String
     }
 }
