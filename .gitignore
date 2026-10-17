@@ -109,5 +109,6 @@ DECISIONS.md
 /Makefile
 /init.sh
 /scripts/
+/logs/
 /.github/workflows/android-ci.yml
 /.github/workflows/README.md
