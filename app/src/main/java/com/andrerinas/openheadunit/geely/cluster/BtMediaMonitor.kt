@@ -22,8 +22,10 @@ import java.io.ByteArrayOutputStream
  * from different data. Reads require this app to be the connected notification listener
  * ([BtMediaListener]); the artwork comes from the session bitmaps, the art URI, or — the
  * rung this head unit actually needs (round 9) — the session's media notification, and goes
- * through the same public catalog the AA path uses. Only PLAYING sessions win; a paused
- * Bluetooth session reports null so the card returns to the AA content or clears.
+ * through the same public catalog the AA path uses. Only PLAYING sessions win; short dropouts
+ * are held through ([SESSION_GRACE_MS], as the references do) so a jitter never flips the
+ * card to the other content, and a real stop reports null so the card returns to the AA
+ * content or clears.
  */
 class BtMediaMonitor(
     context: Context,
@@ -37,6 +39,8 @@ class BtMediaMonitor(
 
     private var stopped = true
     private var lastKey: String? = null
+    private var lastPlayingAt = 0L
+    private var gapHeld = false
 
     private val tick: Runnable = Runnable {
         if (stopped) return@Runnable
@@ -55,6 +59,8 @@ class BtMediaMonitor(
         main.removeCallbacks(tick)
         snapshots.clear()
         lastKey = null
+        lastPlayingAt = 0L
+        gapHeld = false
     }
 
     private fun tickOnce() {
@@ -69,10 +75,26 @@ class BtMediaMonitor(
             .firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
         val meta = controller?.metadata
         if (controller == null || meta == null) {
+            // References hold the card through short AVRCP dropouts (Button's grace constants
+            // 1800-2600 ms); releasing on the first bad tick made every jitter flip the card to
+            // the other content and back — round 8 caught exactly such a flip pair at 17:33.
+            if (lastPlayingAt > 0L &&
+                SystemClock.elapsedRealtime() - lastPlayingAt < SESSION_GRACE_MS
+            ) {
+                if (!gapHeld) {
+                    gapHeld = true
+                    HvacLog.d("cluster.bt: short session gap — holding the card")
+                }
+                return
+            }
+            lastPlayingAt = 0L
+            gapHeld = false
             lastKey = null
             onUpdate(null, 0L, false)
             return
         }
+        lastPlayingAt = SystemClock.elapsedRealtime()
+        gapHeld = false
         val state = controller.playbackState
         val key = trackKeyOf(meta)
         val snapshot = snapshotFor(meta, key, controller.packageName ?: "")
@@ -178,6 +200,9 @@ class BtMediaMonitor(
         internal const val TICK_MS = 1000L
         internal const val JPEG_QUALITY = 90
         private const val MAX_TRACKS = 8
+
+        /** Short AVRCP dropouts are held through instead of releasing the card (round 9). */
+        internal const val SESSION_GRACE_MS = 2000L
 
         /** Same composition as the AA side (ClusterMediaBridge.trackKeyOf) for hash-stable covers. */
         internal fun trackKeyOf(meta: MediaMetadata): String =
