@@ -40,9 +40,21 @@ class AutoConfirmationTest {
     }
 
     @Test
-    fun `wheel auto is a table answer only - it has no read code`() {
+    fun `wheel auto reads through the stock switch - on is auto, off and legacy codes are not`() {
+        // Round 5 (2026-10-17): the stock AUTO button writes AUTO_STEERING_WHEEL_HEAT_SWITCH
+        // 1/0 and PA_SWH_AutoReqSts follows — the switch read IS the verdict surface. The
+        // dedicated AUTO property (269025792, notavailable) answers 0xff, never a verdict.
+        assertTrue(wheel.readsAuto(manualRaw = 0, autoRaw = 1))
         assertFalse(wheel.readsAuto(manualRaw = Hvac.WHEEL_HEAT_LEVELS[1], autoRaw = 0))
-        assertTrue(wheel.readsAuto(manualRaw = 0, autoRaw = Hvac.AUTO_WHEEL_HEAT_LEVELS[1]))
+        assertFalse(wheel.readsAuto(manualRaw = 0, autoRaw = null))
+        assertFalse(wheel.readsAuto(manualRaw = 0, autoRaw = Hvac.AUTO_WHEEL_HEAT_LEVELS[1]))
+    }
+
+    @Test
+    fun `wheel auto off confirms on the switch answering off`() {
+        assertTrue(wheel.readsAutoOff(autoRaw = 0))
+        assertFalse(wheel.readsAutoOff(autoRaw = null))
+        assertFalse(wheel.readsAutoOff(autoRaw = 1))
     }
 
     @Test

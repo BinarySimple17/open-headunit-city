@@ -64,12 +64,23 @@ class CarFunctionSpec(
      * driver write never moved either — so an auto answer on either raw is the car's yes,
      * and so is a known auto level on the AUTO property (the entrance we would have written).
      * A mirrored manual level (round 4: manual L1 mirrored onto the auto property as
-     * base|1) matches neither clause — never reads as auto.
+     * base|1) matches neither clause — never reads as auto. A switch-style auto (the wheel
+     * control, round 5: the stock AUTO button writes the SWITCH property 0/1) reads as auto
+     * when the switch answers its on-value.
      */
     fun readsAuto(manualRaw: Int?, autoRaw: Int?): Boolean {
         if (autoReadCode != null && (manualRaw == autoReadCode || autoRaw == autoReadCode)) return true
-        val table = auto?.levels ?: return false
-        return autoRaw != null && table.indexOf(autoRaw) > 0
+        return autoIndicatorOn(autoRaw)
+    }
+
+    /** Whether the linked AUTO function's own read means auto is running: the levels table
+     *  for a leveled auto, the on-value for a switch-style one (the wheel, round 5). */
+    fun autoIndicatorOn(autoRaw: Int?): Boolean {
+        val linked = auto ?: return false
+        return when (linked.kind) {
+            FunctionKind.TOGGLE -> autoRaw != null && autoRaw == linked.onValue
+            FunctionKind.LEVELS -> linked.levelOf(autoRaw) > 0
+        }
     }
 
     /**
@@ -95,18 +106,27 @@ class CarFunctionSpec(
     /**
      * Ordered candidate writes to ENTER auto at display [level] (1..3); the winner is the
      * first rung the CAR confirms ([readsAuto]) — round 4 showed a write the port accepts
-     * can still be silently ignored, so "returned ok" is not a verdict (S008). The ГУ round
-     * of 2026-10-12 rejected the base|level write on the dedicated AUTO property, so the
-     * ladder leads with the entrances the references actually point at: the manual
-     * property's own auto level code (catalog: "уровни/авто" — the same code an auto-enabled
-     * seat answers with), then the AUTO property's TIME knob (the only auto surface the
-     * voice protocol exposes), and only then the AUTO property itself in both value
-     * encodings. A function without auto has an empty ladder.
+     * can still be silently ignored, so "returned ok" is not a verdict (S008). The ladder
+     * leads with the entrances the references and the car's own catalog point at: the manual
+     * property's auto level code (the entrance the passenger seat confirmed in rounds 4–5),
+     * then — round 5 catalog fact — the MANUAL level codes ON the AUTO property (its
+     * supported values are [0, 649, 650, 651]; the older plain and base|level encodings sit
+     * outside the catalog and were rejected on sight), then the TIME knob, then the legacy
+     * encodings. A switch-style auto (the wheel control, round 5: the stock AUTO button
+     * writes the SWITCH property 0/1) has the single switch-on rung. A function without
+     * auto has an empty ladder.
      */
     fun autoStartAttempts(level: Int): List<CarWriteAttempt> {
         val linked = auto ?: return emptyList()
         return buildList {
             autoReadCode?.let { add(CarWriteAttempt("auto-code", propertyId, areaId, it)) }
+            if (linked.kind == FunctionKind.TOGGLE) {
+                add(CarWriteAttempt("switch", linked.propertyId, linked.areaId, linked.onValue))
+                return@buildList
+            }
+            levels?.getOrNull(level)?.let {
+                add(CarWriteAttempt("auto-levels", linked.propertyId, linked.areaId, it))
+            }
             linked.autoTimePropertyId?.let { timeProperty ->
                 val timeValue = linked.autoTimeOnValue ?: 0
                 add(CarWriteAttempt("time", timeProperty, linked.areaId, timeValue))
@@ -129,7 +149,7 @@ class CarFunctionSpec(
                     add(CarWriteAttempt("time-off-global", timeProperty, Hvac.GLOBAL_AREA, 0))
                 }
             }
-            add(CarWriteAttempt("auto-off", linked.propertyId, linked.areaId, 0))
+            add(CarWriteAttempt("auto-off", linked.propertyId, linked.areaId, linked.offValue))
             add(CarWriteAttempt("manual-off", propertyId, areaId, 0))
         }
     }
@@ -158,126 +178,5 @@ class CarFunctionProbe(
         /** A probe of a companion property the panel never reads or buttons (S008 diagnostics). */
         fun bare(label: String, propertyId: Int, areaId: Int) =
             CarFunctionProbe(null, label, propertyId, areaId)
-    }
-}
-
-/**
- * The registry of every car function the panel tracks — the single source of truth (F010).
- * The per-model lists are built once (ids do not depend on the model; only the model-gated
- * front defrost property id does), so lookups are safe from any thread.
- */
-object GeelyCarFunctions {
-
-    /** Seat zones in panel order: driver, passenger, rear-left, rear-right. */
-    val SEAT_ZONES = intArrayOf(Hvac.ZONE_DRIVER, Hvac.ZONE_PASSENGER, Hvac.ZONE_REAR_LEFT, Hvac.ZONE_REAR_RIGHT)
-
-    fun seatSpec(zone: Int): CarFunctionSpec = CarFunctionSpec(
-        id = Hvac.seatKey(zone),
-        propertyId = Hvac.PROP_SEAT_HEATING, areaId = zone,
-        kind = FunctionKind.LEVELS, levels = Hvac.SEAT_HEAT_LEVELS,
-        autoReadCode = Hvac.READ_AUTO_SEAT_HEAT,
-        auto = CarFunctionSpec(
-            id = Hvac.seatAutoKey(zone),
-            propertyId = Hvac.PROP_AUTO_SEAT_HEATING, areaId = zone,
-            kind = FunctionKind.LEVELS, levels = Hvac.AUTO_SEAT_HEAT_LEVELS,
-            autoTimePropertyId = Hvac.PROP_AUTO_SEAT_HEATING_TIME,
-            autoTimeOnValue = Hvac.AUTO_SEAT_HEAT_TIME_LEVELS[2],
-        ),
-    )
-
-    val wheelSpec: CarFunctionSpec = CarFunctionSpec(
-        id = Hvac.KEY_WHEEL,
-        propertyId = Hvac.PROP_STEERING_WHEEL_HEAT, areaId = Hvac.GLOBAL_AREA,
-        kind = FunctionKind.LEVELS, levels = Hvac.WHEEL_HEAT_LEVELS,
-        auto = CarFunctionSpec(
-            id = Hvac.KEY_WHEEL_AUTO,
-            propertyId = Hvac.PROP_AUTO_STEERING_WHEEL_HEAT, areaId = Hvac.GLOBAL_AREA,
-            kind = FunctionKind.LEVELS, levels = Hvac.AUTO_WHEEL_HEAT_LEVELS,
-            autoTimePropertyId = Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME,
-            autoTimeOnValue = Hvac.AUTO_WHEEL_HEAT_TIME_LEVELS[2],
-        ),
-    )
-
-    fun defrostFrontSpec(model: Hvac.CarModel): CarFunctionSpec = CarFunctionSpec(
-        id = Hvac.KEY_DEFROST_FRONT,
-        propertyId = model.defrostFrontPropertyId, areaId = Hvac.GLOBAL_AREA,
-        kind = FunctionKind.TOGGLE, onValue = 1, offValue = 0,
-    )
-
-    val defrostRearSpec = CarFunctionSpec(
-        id = Hvac.KEY_DEFROST_REAR,
-        propertyId = Hvac.PROP_DEFROST_REAR, areaId = Hvac.GLOBAL_AREA,
-        kind = FunctionKind.TOGGLE, onValue = 1, offValue = 0,
-    )
-
-    val defrostMaxSpec = CarFunctionSpec(
-        id = Hvac.KEY_DEFROST_MAX,
-        propertyId = Hvac.PROP_DEFROST_FRONT_MAX, areaId = Hvac.GLOBAL_AREA,
-        kind = FunctionKind.TOGGLE, onValue = 1, offValue = 0,
-    )
-
-    val recirculationSpec = CarFunctionSpec(
-        id = Hvac.KEY_RECIRC,
-        propertyId = Hvac.PROP_CIRCULATION, areaId = Hvac.GLOBAL_AREA,
-        kind = FunctionKind.TOGGLE, onValue = Hvac.CIRCULATION_ON, offValue = Hvac.CIRCULATION_OFF,
-    )
-
-    /** Manual seat specs in zone order; each carries its linked AUTO spec (shared across models). */
-    private val seatSpecs: List<CarFunctionSpec> = SEAT_ZONES.map { seatSpec(it) }
-
-    /** All tracked functions for the model, in [Hvac.statusKeys] order (seat block, auto block, rest). */
-    private val byModel: Map<Hvac.CarModel, List<CarFunctionSpec>> =
-        Hvac.CarModel.values().associateWith { model ->
-            seatSpecs + seatSpecs.map { it.auto!! } +
-                listOf(
-                    wheelSpec, wheelSpec.auto!!,
-                    defrostFrontSpec(model), defrostRearSpec, defrostMaxSpec, recirculationSpec,
-                )
-        }
-
-    fun all(model: Hvac.CarModel): List<CarFunctionSpec> = byModel.getValue(model)
-
-    /** Spec by status key; ids are model-independent, so any model's list answers. */
-    fun byId(id: String): CarFunctionSpec? = byIdIndex[id]
-
-    private val byIdIndex: Map<String, CarFunctionSpec> =
-        all(Hvac.CarModel.CITYRAY).associateBy { it.id }
-
-    /** Every distinct property ID the panel may touch, plus all model front-defrost ids (catalog dump). */
-    fun trackedPropertyIds(): Set<Int> =
-        all(Hvac.CarModel.CITYRAY).map { it.propertyId }.toSet() +
-            Hvac.CarModel.values().map { it.defrostFrontPropertyId } +
-            // The auto companions: not polled, but the android.car catalog dump and the
-            // adaptapi probes should tell us whether THIS car registers them at all (S008).
-            setOf(
-                Hvac.PROP_AUTO_SEAT_HEATING_TIME,
-                Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME,
-                Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH,
-            )
-
-    /**
-     * The connect-time probe list (isFunctionSupported / catalog): every (property, area) the
-     * panel reads or writes, the front defrost of EVERY model included, with the historical
-     * log labels — EcarxCarPort's probe lines come out exactly as before F010. The auto
-     * companions follow their auto properties (bare probes: diagnostics, not buttons).
-     */
-    fun probes(): List<CarFunctionProbe> = buildList {
-        for (seat in seatSpecs) {
-            add(CarFunctionProbe(seat, "seat"))
-            add(CarFunctionProbe(seat.auto!!, "seat_auto"))
-        }
-        add(CarFunctionProbe(wheelSpec, "wheel"))
-        add(CarFunctionProbe(wheelSpec.auto!!, "wheel_auto"))
-        for (seat in seatSpecs) {
-            add(CarFunctionProbe.bare("seat_auto_time", Hvac.PROP_AUTO_SEAT_HEATING_TIME, seat.areaId))
-        }
-        add(CarFunctionProbe.bare("wheel_auto_time", Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME, Hvac.GLOBAL_AREA))
-        add(CarFunctionProbe.bare("wheel_auto_switch", Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH, Hvac.GLOBAL_AREA))
-        for (model in Hvac.CarModel.values()) {
-            add(CarFunctionProbe(defrostFrontSpec(model), "defrost_front@${model.name}"))
-        }
-        add(CarFunctionProbe(defrostRearSpec, "defrost_rear"))
-        add(CarFunctionProbe(defrostMaxSpec, "defrost_max"))
-        add(CarFunctionProbe(recirculationSpec, "recirc"))
     }
 }

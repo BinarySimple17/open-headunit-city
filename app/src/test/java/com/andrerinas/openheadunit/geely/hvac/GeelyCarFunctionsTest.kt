@@ -59,8 +59,13 @@ class GeelyCarFunctionsTest {
         val wheel = GeelyCarFunctions.wheelSpec
         assertEquals(Hvac.KEY_WHEEL, wheel.id)
         assertEquals(Hvac.KEY_WHEEL_AUTO, wheel.auto!!.id)
-        assertEquals(Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME, wheel.auto!!.autoTimePropertyId)
-        assertEquals(Hvac.AUTO_WHEEL_HEAT_TIME_LEVELS[2], wheel.auto!!.autoTimeOnValue)
+        // Round 5 (2026-10-17): the wheel auto is the stock SWITCH property (1/0) — the
+        // dedicated AUTO property (269025792) is notavailable on this car and survives only
+        // as a bare diagnostics probe.
+        assertEquals(Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH, wheel.auto!!.propertyId)
+        assertEquals(FunctionKind.TOGGLE, wheel.auto!!.kind)
+        assertEquals(1, wheel.auto!!.onValue)
+        assertEquals(0, wheel.auto!!.offValue)
         assertNull(wheel.auto!!.auto)
         assertNull(GeelyCarFunctions.defrostRearSpec.auto)
         assertNull(GeelyCarFunctions.defrostMaxSpec.auto)
@@ -113,12 +118,13 @@ class GeelyCarFunctionsTest {
     fun `tracked property ids are the distinct set plus all model defrost ids`() {
         val expected = setOf(
             Hvac.PROP_SEAT_HEATING, Hvac.PROP_AUTO_SEAT_HEATING,
-            Hvac.PROP_STEERING_WHEEL_HEAT, Hvac.PROP_AUTO_STEERING_WHEEL_HEAT,
+            Hvac.PROP_STEERING_WHEEL_HEAT, Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH,
             Hvac.PROP_DEFROST_REAR, Hvac.PROP_DEFROST_FRONT_MAX, Hvac.PROP_CIRCULATION,
-            // Auto companions (S008): not polled, but probed and catalog-dumped.
+            // Auto companions (S008): not polled, but probed and catalog-dumped. The legacy
+            // wheel AUTO property stays listed even though the spec link moved to the switch.
             Hvac.PROP_AUTO_SEAT_HEATING_TIME,
             Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_TIME,
-            Hvac.PROP_AUTO_STEERING_WHEEL_HEAT_SWITCH,
+            Hvac.PROP_AUTO_STEERING_WHEEL_HEAT,
         ) + Hvac.CarModel.values().map { it.defrostFrontPropertyId }
         assertEquals(expected, GeelyCarFunctions.trackedPropertyIds())
     }
@@ -130,9 +136,9 @@ class GeelyCarFunctionsTest {
         assertEquals(
             listOf(
                 "seat", "seat_auto", "seat", "seat_auto", "seat", "seat_auto", "seat", "seat_auto",
-                "wheel", "wheel_auto",
+                "wheel", "wheel_auto_switch", "wheel_auto_legacy",
                 "seat_auto_time", "seat_auto_time", "seat_auto_time", "seat_auto_time",
-                "wheel_auto_time", "wheel_auto_switch",
+                "wheel_auto_time",
                 "defrost_front@CITYRAY", "defrost_front@PREFACE", "defrost_front@ATLAS",
                 "defrost_rear", "defrost_max", "recirc",
             ),
@@ -143,8 +149,8 @@ class GeelyCarFunctionsTest {
         assertEquals(Hvac.ZONE_DRIVER, probes.first().areaId)
         assertEquals(Hvac.PROP_AUTO_SEAT_HEATING, probes[1].propertyId)
         assertNull(probes[10].spec)
-        assertEquals(Hvac.PROP_AUTO_SEAT_HEATING_TIME, probes[10].propertyId)
-        assertEquals(Hvac.ZONE_DRIVER, probes[10].areaId)
+        assertEquals(Hvac.PROP_AUTO_STEERING_WHEEL_HEAT, probes[10].propertyId)
+        assertEquals(Hvac.GLOBAL_AREA, probes[10].areaId)
         assertNotNull(probes[0].spec)
     }
 }

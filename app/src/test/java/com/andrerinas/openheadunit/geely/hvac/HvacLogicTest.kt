@@ -180,7 +180,9 @@ class HvacLogicTest {
     fun `auto keys fold their own encoded levels`() {
         assertEquals(1, Hvac.buttonLevel("seat_auto:${Hvac.ZONE_DRIVER}", 268764417))
         assertEquals(3, Hvac.buttonLevel("seat_auto:${Hvac.ZONE_REAR_LEFT}", 268764419))
-        assertEquals(2, Hvac.buttonLevel(Hvac.KEY_WHEEL_AUTO, 269025794))
+        // Round 5: the wheel auto key reads the stock SWITCH (0/1) — a toggle carries no badge digit.
+        assertEquals(0, Hvac.buttonLevel(Hvac.KEY_WHEEL_AUTO, 1))
+        assertEquals(0, Hvac.buttonLevel(Hvac.KEY_WHEEL_AUTO, 269025794))
         // Plain ordinals work too; garbage and null count as off.
         assertEquals(2, Hvac.buttonLevel("seat_auto:${Hvac.ZONE_PASSENGER}", 2))
         assertEquals(0, Hvac.buttonLevel("seat_auto:${Hvac.ZONE_REAR_RIGHT}", 268763651))
@@ -201,7 +203,9 @@ class HvacLogicTest {
         assertTrue(Hvac.buttonActive(Hvac.KEY_RECIRC, Hvac.CIRCULATION_ON))
         assertFalse(Hvac.buttonActive(Hvac.KEY_RECIRC, Hvac.CIRCULATION_OFF))
         assertTrue(Hvac.buttonActive("seat_auto:${Hvac.ZONE_DRIVER}", 268764418))
-        assertTrue(Hvac.buttonActive(Hvac.KEY_WHEEL_AUTO, 269025793))
+        // Round 5: the wheel auto key answers through the stock switch (on = 1).
+        assertTrue(Hvac.buttonActive(Hvac.KEY_WHEEL_AUTO, 1))
+        assertFalse(Hvac.buttonActive(Hvac.KEY_WHEEL_AUTO, 269025793))
         assertFalse(Hvac.buttonActive(Hvac.KEY_WHEEL_AUTO, 0))
     }
 

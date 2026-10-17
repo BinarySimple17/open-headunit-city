@@ -96,11 +96,15 @@ class CarAutoToggle(
     /** Long-press with auto off: run the start ladder at the manual level, or the configured one. */
     private fun autoOn(node: ActionNode<CarFunctionSpec>, autoSpec: CarFunctionSpec) {
         val spec = node.function
-        val manual = spec.levelOf(store.lastStatus[spec.id])
-        val chosen = if (manual > 0) manual else autoLevelHint(spec)
-        val table = autoSpec.levels ?: return
-        val level = chosen.coerceIn(1, table.lastIndex)
-        val attempts = spec.autoStartAttempts(level)
+        val attempts = if (autoSpec.kind == FunctionKind.TOGGLE) {
+            // A switch-style auto has no level: the single rung writes the on-value.
+            spec.autoStartAttempts(1)
+        } else {
+            val manual = spec.levelOf(store.lastStatus[spec.id])
+            val chosen = if (manual > 0) manual else autoLevelHint(spec)
+            val table = autoSpec.levels ?: return
+            spec.autoStartAttempts(chosen.coerceIn(1, table.lastIndex))
+        }
         if (attempts.isEmpty()) return
         setPending(spec.id, true)
         runEnterRung(node, autoSpec, attempts, 0)

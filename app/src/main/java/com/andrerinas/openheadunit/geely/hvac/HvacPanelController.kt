@@ -220,10 +220,11 @@ class HvacPanelController private constructor(
                 var anyAuto = false
                 for (child in node.children) {
                     val f = child.function
+                    val autoSpec = f.auto
                     val manual = f.levelOf(status[f.id])
-                    val auto = f.auto?.levelOf(status[f.auto.id]) ?: 0
-                    level = maxOf(level, Hvac.displayLevel(manual, auto))
-                    if (auto > 0) anyAuto = true
+                    val autoLevel = autoSpec?.levelOf(status[autoSpec.id]) ?: 0
+                    level = maxOf(level, Hvac.displayLevel(manual, autoLevel))
+                    if (f.autoIndicatorOn(autoSpec?.let { status[it.id] })) anyAuto = true
                     paintAction(child, status)
                 }
                 surface?.button(node.id)?.let { theme.paintButton(it, level, level > 0, anyAuto) }
@@ -236,7 +237,8 @@ class HvacPanelController private constructor(
     /**
      * Effective level (the display scheme): while a zone runs in auto, the color follows
      * the AUTO level — the main property answers the auto read code then, which must never
-     * fold into a fake manual L3 (the "configured 1, shown 3" report).
+     * fold into a fake manual L3 (the "configured 1, shown 3" report). The "A" mark follows
+     * the auto indicator, which for a switch-style auto (the wheel) is the switch's on-value.
      */
     private fun paintAction(node: ActionNode<CarFunctionSpec>, status: Map<String, Int?>) {
         val f = node.function
@@ -244,7 +246,7 @@ class HvacPanelController private constructor(
         val autoRaw = f.auto?.let { status[it.id] }
         val level = f.displayLevel(manualRaw, autoRaw)
         val active = level > 0 || f.isActive(manualRaw)
-        val autoOn = (f.auto?.levelOf(autoRaw) ?: 0) > 0
+        val autoOn = f.autoIndicatorOn(autoRaw)
         surface?.button(node.id)?.let { theme.paintButton(it, level, active, autoOn) }
     }
 
