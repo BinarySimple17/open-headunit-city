@@ -1,4 +1,6 @@
 # Changelog
+### v.3.5.0-beta10
+- Changed: cluster card artwork is re-encoded to jpeg q90 before being handed to the cluster, exactly like the working reference publisher does - round 7 proved the bytes arrive and are stored (a real png on a public path) yet the card showed no image, and a jpeg-only renderer would skip a png silently; undecodable payloads keep their raw bytes and the verdict lands in the HVAC log
 ### v.3.5.0-beta9
 - Added: the projection night theme can finally follow dark time on these units - a read-only watcher polls the car's own day/night property (the signal the stock theme switcher uses, decoded from the reference widget app) and feeds the "Car Headlight Signal (ILL+)" setting; with no signal available the previous behavior is unchanged
 - Added: the debug mock car serves the day/night property too (boots at day, adb SET flips it to night) so the whole chain is testable on an emulator
