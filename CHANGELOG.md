@@ -1,4 +1,6 @@
 # Changelog
+### v.3.5.0-beta13
+- Fixed: the cluster card's Bluetooth fallback can finally find a cover - on this head unit the Bluetooth session's metadata carries none, the cover travels in the Bluetooth app's media notification and arrives there seconds late (decoded from a second working publisher that mines exactly that rung). The listener now caches the notification's artwork, the monitor keeps retrying while the track is still coverless, and a late cover re-publishes the card mid-track; each step lands in the car log
 ### v.3.5.0-beta12
 - Changed: round-8 diagnostics only - the Bluetooth takeover line now reports whether the session carried artwork (artwork=true/false) and a track without a cover is logged once explicitly; no behavior change, the log must separate "the car's AVRCP session has no cover" from "the cover was not rendered"
 ### v.3.5.0-beta11
