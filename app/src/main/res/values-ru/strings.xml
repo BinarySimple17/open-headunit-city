@@ -1289,7 +1289,5 @@
     <string name="cluster_media_disabled_hint">Сначала включите галку \"Текущий трек AA в медиасессии\"</string>
     <string name="hvac_hide_timeout">Таймаут скрытия иконок</string>
     <string name="hvac_timeout_seconds">%1$d с</string>
-    <string name="hvac_seat_auto_level">Уровень автоподогрева сидений</string>
-    <string name="hvac_wheel_auto_level">Уровень автоподогрева руля</string>
     <string name="hvac_level_number">Уровень %1$d</string>
 </resources>

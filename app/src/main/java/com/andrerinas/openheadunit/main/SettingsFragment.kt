@@ -177,8 +177,6 @@ class SettingsFragment : Fragment() {
     private var pendingHvacCarModel: Hvac.CarModel? = null
     private var pendingHvacDebugLog: Boolean? = null
     private var pendingHvacHideTimeoutSec: Int? = null
-    private var pendingHvacSeatAutoLevel: Int? = null
-    private var pendingHvacWheelAutoLevel: Int? = null
 
     // Geely cluster media (F013) rides the same common Save flow as the HVAC settings.
     private var pendingClusterMedia: Boolean? = null
@@ -368,8 +366,6 @@ class SettingsFragment : Fragment() {
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
-            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
-            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
 
@@ -607,8 +603,6 @@ class SettingsFragment : Fragment() {
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
-            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
-            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
     }
@@ -751,8 +745,6 @@ class SettingsFragment : Fragment() {
             pendingHvacPanelMode?.let { if (it != hvac.panelMode) hvac.panelMode = it }
             pendingHvacCarModel?.let { if (it != hvac.carModel) hvac.carModel = it }
             pendingHvacHideTimeoutSec?.let { if (it != hvac.hideTimeoutSec) hvac.hideTimeoutSec = it }
-            pendingHvacSeatAutoLevel?.let { if (it != hvac.seatAutoLevel) hvac.seatAutoLevel = it }
-            pendingHvacWheelAutoLevel?.let { if (it != hvac.wheelAutoLevel) hvac.wheelAutoLevel = it }
             pendingHvacDebugLog?.let { pending ->
                 if (pending != hvac.debugLog) {
                     hvac.debugLog = pending
@@ -929,8 +921,6 @@ class SettingsFragment : Fragment() {
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
-            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
-            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         hasChanges = false
@@ -1042,9 +1032,7 @@ class SettingsFragment : Fragment() {
                             pendingHvacPanelMode != hvac.panelMode ||
                                 pendingHvacCarModel != hvac.carModel ||
                                 pendingHvacDebugLog != hvac.debugLog ||
-                                pendingHvacHideTimeoutSec != hvac.hideTimeoutSec ||
-                                pendingHvacSeatAutoLevel != hvac.seatAutoLevel ||
-                                pendingHvacWheelAutoLevel != hvac.wheelAutoLevel
+                                pendingHvacHideTimeoutSec != hvac.hideTimeoutSec
                         } ||
                         pendingClusterMedia != ClusterMediaSettings(requireContext().applicationContext).enabled
 
@@ -3273,8 +3261,6 @@ class SettingsFragment : Fragment() {
         val hvacCarModel = pendingHvacCarModel ?: hvac.carModel
         val hvacDebugLog = pendingHvacDebugLog ?: hvac.debugLog
         val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
-        val hvacSeatAutoLevel = pendingHvacSeatAutoLevel ?: hvac.seatAutoLevel
-        val hvacWheelAutoLevel = pendingHvacWheelAutoLevel ?: hvac.wheelAutoLevel
         // F013: our cluster toggle exists only on top of the native media-session switch.
         val nativeSyncOn = pendingSyncMediaSessionAaMetadata ?: settings.syncMediaSessionWithAaMetadata
         val clusterMediaOn = pendingClusterMedia ?: ClusterMediaSettings(requireContext().applicationContext).enabled
@@ -3339,42 +3325,6 @@ class SettingsFragment : Fragment() {
                     .setTitle(R.string.hvac_hide_timeout)
                     .setSingleChoiceItems(options, selected) { dialog, which ->
                         pendingHvacHideTimeoutSec = Hvac.HIDE_TIMEOUT_CHOICES[which]
-                        dialog.dismiss()
-                        saveHvacChange()
-                    }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
-            }
-        ))
-        items.add(SettingItem.SettingEntry(
-            stableId = "hvacSeatAutoLevel",
-            nameResId = R.string.hvac_seat_auto_level,
-            value = getString(R.string.hvac_level_number, hvacSeatAutoLevel),
-            searchKeywords = (1..3).joinToString(" ") { getString(R.string.hvac_level_number, it) },
-            onClick = { _ ->
-                val options = (1..3).map { getString(R.string.hvac_level_number, it) }.toTypedArray()
-                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
-                    .setTitle(R.string.hvac_seat_auto_level)
-                    .setSingleChoiceItems(options, (hvacSeatAutoLevel - 1).coerceIn(0, 2)) { dialog, which ->
-                        pendingHvacSeatAutoLevel = which + 1
-                        dialog.dismiss()
-                        saveHvacChange()
-                    }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
-            }
-        ))
-        items.add(SettingItem.SettingEntry(
-            stableId = "hvacWheelAutoLevel",
-            nameResId = R.string.hvac_wheel_auto_level,
-            value = getString(R.string.hvac_level_number, hvacWheelAutoLevel),
-            searchKeywords = (1..3).joinToString(" ") { getString(R.string.hvac_level_number, it) },
-            onClick = { _ ->
-                val options = (1..3).map { getString(R.string.hvac_level_number, it) }.toTypedArray()
-                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
-                    .setTitle(R.string.hvac_wheel_auto_level)
-                    .setSingleChoiceItems(options, (hvacWheelAutoLevel - 1).coerceIn(0, 2)) { dialog, which ->
-                        pendingHvacWheelAutoLevel = which + 1
                         dialog.dismiss()
                         saveHvacChange()
                     }
@@ -3559,7 +3509,7 @@ class SettingsFragment : Fragment() {
     // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
     private val geelyItemIds = setOf(
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
-        "hvacHideTimeout", "hvacSeatAutoLevel", "hvacWheelAutoLevel", "hvacSendLogs",
+        "hvacHideTimeout", "hvacSendLogs",
         "clusterMedia"
     )
 

@@ -161,8 +161,8 @@ object EcarxCarPort : CarFunctionPort {
      * of AndroidCarPort's catalog dump: `isFunctionSupported` answers the firmware's own
      * FunctionStatus enum (active/notactive/notavailable/error) per property/area, so
      * the log shows exactly which functions this car exposes on this channel. Verdicts are
-     * kept: [isFunctionSupported] replays them to the panel (the first round proved they
-     * predict the write verdict — wheel_auto answered notavailable and its write was rejected).
+     * kept: [isFunctionSupported] replays them to the panel (round 3 proved they predict
+     * the write verdict — a notavailable property's write came back rejected).
      */
     private val probeVerdicts = HashMap<String, String>()
 

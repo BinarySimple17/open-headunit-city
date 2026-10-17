@@ -108,9 +108,7 @@ class HvacPanelController private constructor(
         val statusStore = PanelStatusStore(port, settings.carModel, portExecutor, mainHandler) { detached }
         val commandRunner = CarCommandRunner(
             context, port, portExecutor, mainHandler, { detached }, statusStore,
-        ) { spec ->
-            if (spec.id == Hvac.KEY_WHEEL) settings.wheelAutoLevel else settings.seatAutoLevel
-        }
+        )
         store = statusStore
 
         specRoot = HvacPanelSpec.root(settings.carModel)
@@ -123,17 +121,8 @@ class HvacPanelController private constructor(
         panelSurface.onAnchorTap = { if (navState.expanded) collapse() else expand(log = true) }
         panelSurface.onActionTap = { node ->
             renewAutoCollapseIfCollapsed()
-            if (!commandRunner.isPending(node.id)) commandRunner.tap(node)
+            commandRunner.tap(node)
         }
-        panelSurface.onActionLongPress = { node ->
-            if (!commandRunner.isPending(node.id)) commandRunner.longPress(node)
-        }
-        // A zone with an auto verdict in flight: dimmed and tap-dead until the car answers
-        // (confirmation or timeout) — the runner owns the state, the surface just shows it.
-        commandRunner.onPendingChanged = { id, busy ->
-            surface?.button(id)?.view?.alpha = if (busy) BUSY_BUTTON_ALPHA else 1f
-        }
-        panelSurface.actionLongPressEnabled = { it.function.auto != null }
         panelSurface.onGroupTap = { group -> onGroupTap(group) }
         panelSurface.build(specRoot)
         container.addView(panelSurface.root)
@@ -215,46 +204,31 @@ class HvacPanelController private constructor(
     private fun paintNode(node: PanelNode<CarFunctionSpec>, status: Map<String, Int?>) {
         when (node) {
             is GroupNode -> {
-                // The group button shows the strongest of its zones (level) and any auto.
+                // The group button shows the strongest of its zones (level).
                 var level = 0
-                var anyAuto = false
                 for (child in node.children) {
-                    val f = child.function
-                    val autoSpec = f.auto
-                    val manual = f.levelOf(status[f.id])
-                    val autoLevel = autoSpec?.levelOf(status[autoSpec.id]) ?: 0
-                    level = maxOf(level, Hvac.displayLevel(manual, autoLevel))
-                    if (f.autoIndicatorOn(autoSpec?.let { status[it.id] })) anyAuto = true
+                    level = maxOf(level, child.function.levelOf(status[child.function.id]))
                     paintAction(child, status)
                 }
-                surface?.button(node.id)?.let { theme.paintButton(it, level, level > 0, anyAuto) }
+                surface?.button(node.id)?.let { theme.paintButton(it, level, level > 0) }
             }
             is ActionNode -> paintAction(node, status)
-            else -> surface?.button(node.id)?.let { theme.paintButton(it, 0, active = false, auto = false) }
+            else -> surface?.button(node.id)?.let { theme.paintButton(it, 0, active = false) }
         }
     }
 
-    /**
-     * Effective level (the display scheme): while a zone runs in auto, the color follows
-     * the AUTO level — the main property answers the auto read code then, which must never
-     * fold into a fake manual L3 (the "configured 1, shown 3" report). The "A" mark follows
-     * the auto indicator, which for a switch-style auto (the wheel) is the switch's on-value.
-     */
+    /** Recolors one action button from its zone's raw read (manual level, or the car's own
+     *  auto read code folded by the spec). */
     private fun paintAction(node: ActionNode<CarFunctionSpec>, status: Map<String, Int?>) {
         val f = node.function
         val manualRaw = status[f.id]
-        val autoRaw = f.auto?.let { status[it.id] }
-        val level = f.displayLevel(manualRaw, autoRaw)
-        val active = level > 0 || f.isActive(manualRaw)
-        val autoOn = f.autoIndicatorOn(autoRaw)
-        surface?.button(node.id)?.let { theme.paintButton(it, level, active, autoOn) }
+        val level = f.levelOf(manualRaw)
+        val active = f.isActive(manualRaw)
+        surface?.button(node.id)?.let { theme.paintButton(it, level, active) }
     }
 
 
     companion object {
-        /** A zone button with an auto verdict in flight: dimmed until the car answers. */
-        private const val BUSY_BUTTON_ALPHA = 0.4f
-
         /**
          * Entry point for the projection activity. Always returns a controller (so the caller
          * can detach it); whether any view appears is decided by the car bridge availability

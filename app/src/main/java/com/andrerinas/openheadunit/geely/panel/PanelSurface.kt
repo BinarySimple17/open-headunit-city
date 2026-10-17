@@ -35,12 +35,8 @@ class PanelSurface<T>(
 
     /** Called per node kind when its button is tapped; set before [build]. */
     var onActionTap: ((ActionNode<T>) -> Unit)? = null
-    var onActionLongPress: ((ActionNode<T>) -> Unit)? = null
     var onGroupTap: ((GroupNode<T>) -> Unit)? = null
     var onPageTap: ((PageNode<T>) -> Unit)? = null
-
-    /** Long-press is only wired where it means something (the caller decides — e.g. auto mode). */
-    var actionLongPressEnabled: (ActionNode<T>) -> Boolean = { false }
 
     var onAnchorTap: (() -> Unit)? = null
 
@@ -149,12 +145,7 @@ class PanelSurface<T>(
 
     private fun wireTaps(button: RoundButton, node: PanelNode<T>) {
         when (node) {
-            is ActionNode<T> -> {
-                button.view.setOnClickListener { onActionTap?.invoke(node) }
-                if (actionLongPressEnabled(node)) {
-                    button.view.setOnLongClickListener { onActionLongPress?.invoke(node); true }
-                }
-            }
+            is ActionNode<T> -> button.view.setOnClickListener { onActionTap?.invoke(node) }
             is GroupNode<T> -> button.view.setOnClickListener { onGroupTap?.invoke(node) }
             is PageNode<T> -> button.view.setOnClickListener { onPageTap?.invoke(node) }
         }
