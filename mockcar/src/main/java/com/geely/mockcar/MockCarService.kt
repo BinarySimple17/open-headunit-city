@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 
@@ -19,6 +20,16 @@ import android.util.Log
  *
  *   adb shell am start-foreground-service -n com.geely.mockcar/.MockCarService -a com.geely.mockcar.SET \
  *       --ei id 268763648 --ei area 1 --ei value 268763649
+ *
+ * Media-card stand-in (F014): the same service also exports [IDimMediaMock] — bound with the
+ * [ACTION_DIM_BIND] action (a plain bind without the action gets the car-function binder) —
+ * accepting the headunit fork's cluster cards, logging every call, and showing the card in
+ * the console as a fake instrument cluster. The fake Bluetooth source is driven from the
+ * console or via adb:
+ *
+ *   adb shell am start-foreground-service -n com.geely.mockcar/.MockCarService -a com.geely.mockcar.BT_PLAY \
+ *       --es title "Track" --es artist "Artist" --eil artwork_delay_ms 3000
+ *   ... -a com.geely.mockcar.BT_PAUSE   /   ... -a com.geely.mockcar.BT_STOP
  */
 class MockCarService : Service() {
 
@@ -44,6 +55,28 @@ class MockCarService : Service() {
         }
     }
 
+    private val dimBinder = object : IDimMediaMock.Stub() {
+        override fun updatePlaybackInfo(card: Bundle?): Boolean {
+            if (card == null) return false
+            DimMockStore.acceptCard(card)
+            val title = card.getString("getTitle")
+            val verdict = if (title.isNullOrEmpty()) "CLEAR" else "OK"
+            MockLog.i(
+                "dim: updatePlaybackInfo -> $verdict (title=${card.getString("getTitle")}, " +
+                    "artwork=${card.getString("getArtwork")}, status=${card.getInt("getPlaybackStatus")}, " +
+                    "duration=${card.getLong("getDuration")}, sourceType=${card.getInt("getSourceType")})"
+            )
+            return true
+        }
+
+        override fun updateCurrentProgress(positionMs: Long) {
+            DimMockStore.acceptProgress(positionMs)
+            MockLog.i("dim: updateCurrentProgress($positionMs)")
+        }
+
+        override fun isAlive(): Boolean = true
+    }
+
     override fun onCreate() {
         super.onCreate()
         MockLog.start(this)
@@ -61,6 +94,16 @@ class MockCarService : Service() {
                 binder.setFunctionValue(id, area, value)
             }
 
+            ACTION_BT_PLAY -> FakeBtSource.play(
+                this,
+                intent.getStringExtra(EXTRA_TITLE) ?: "Mock Track",
+                intent.getStringExtra(EXTRA_ARTIST) ?: "Mock Artist",
+                intent.getLongExtra(EXTRA_ARTWORK_DELAY_MS, 3_000L),
+            )
+
+            ACTION_BT_PAUSE -> FakeBtSource.pause(this)
+            ACTION_BT_STOP -> FakeBtSource.stop(this)
+
             else -> MockLog.i("started (action=${intent?.action ?: "none"})")
         }
         // Keep running until explicitly stopped; the mock is expected to just exist.
@@ -69,11 +112,16 @@ class MockCarService : Service() {
 
     override fun onBind(intent: Intent?): IBinder {
         val caller = packageManager.getNameForUid(Binder.getCallingUid()) ?: "?"
+        if (intent?.action == ACTION_DIM_BIND) {
+            MockLog.i("bound by $caller (media card stand-in)")
+            return dimBinder
+        }
         MockLog.i("bound by $caller")
         return binder
     }
 
     override fun onDestroy() {
+        FakeBtSource.stop(this)
         MockLog.i("service destroyed")
         MockLog.stop()
         super.onDestroy()
@@ -113,5 +161,12 @@ class MockCarService : Service() {
         const val EXTRA_ID = "id"
         const val EXTRA_AREA = "area"
         const val EXTRA_VALUE = "value"
+        const val ACTION_DIM_BIND = "com.geely.mockcar.DIM_BIND"
+        const val ACTION_BT_PLAY = "com.geely.mockcar.BT_PLAY"
+        const val ACTION_BT_PAUSE = "com.geely.mockcar.BT_PAUSE"
+        const val ACTION_BT_STOP = "com.geely.mockcar.BT_STOP"
+        const val EXTRA_TITLE = "title"
+        const val EXTRA_ARTIST = "artist"
+        const val EXTRA_ARTWORK_DELAY_MS = "artwork_delay_ms"
     }
 }

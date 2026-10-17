@@ -8,4 +8,13 @@
     <string name="start_service">Start service</string>
     <string name="clear_values">Clear property values</string>
     <string name="table_empty">No property values set yet</string>
+    <string name="dim_section">Instrument cluster (DIM) - received card</string>
+    <string name="dim_clear">Clear received cards</string>
+    <string name="dim_artwork_failed">Artwork not readable cross-app - see the log</string>
+    <string name="bt_section">Fake Bluetooth source</string>
+    <string name="bt_play">Play (session now, artwork in 3 s)</string>
+    <string name="bt_pause">Pause</string>
+    <string name="bt_stop">Stop</string>
+    <string name="bt_hint">adb: am start-foreground-service -n com.geely.mockcar/.MockCarService -a com.geely.mockcar.BT_PLAY --es title T --es artist A --eil artwork_delay_ms 3000</string>
+    <string name="bt_notifications_hint">Allow notifications so the media notification (the artwork carrier) is visible</string>
 </resources>
