@@ -63,20 +63,25 @@ object PlaybackInfoProxy {
         "getArtist" -> snapshot.artist
         "getAlbum" -> snapshot.album
         "getArtwork" -> snapshot.artworkUri
-        // We supply no next/previous covers, lyrics or source path — the cluster's defaults stand in.
-        "getNextArtwork", "getPreviousArtwork", "getLyric", "getLyricContent",
-        "getCurrentLyricSentence", "getMediaPath" -> null
-        // Radio answers are Strings (d4/e: getRadioFrequency():String) and the firmware casts
-        // them during the push — round 5: an Integer here aborted the whole card with
-        // ClassCastException at MediaInteraction.updatePlaybackInfo:93. We are not a radio.
-        "getRadioFrequency", "getRadioStationName" -> null
+        // d4/I literally: the next cover answers the SAME uri as the current one; previous,
+        // lyrics file and media path are null.
+        "getNextArtwork" -> snapshot.artworkUri
+        "getPreviousArtwork", "getLyric", "getMediaPath" -> null
+        // Radio answers are Strings and the firmware casts them during the push — round 5: an
+        // Integer here aborted the whole card with ClassCastException at
+        // MediaInteraction.updatePlaybackInfo:93. The reference answers "" (never null) here
+        // and for the lyric texts — d4/I const-string "".
+        "getRadioFrequency", "getRadioStationName", "getLyricContent", "getCurrentLyricSentence" -> ""
         "getDuration" -> snapshot.durationMs
         // The reference models playback status as a plain boolean flag (d4/I reads a Z field).
         "getPlaybackStatus" -> if (snapshot.isPlaying) 1 else 0
-        // Semantics not recoverable from the reference (a Compose dialog supplies them):
-        // conservative neutral values until a car round shows what the cluster makes of them.
-        "getLoopMode", "getFavoriteState", "getRadioMode",
-        "getPlayingItemPositionInQueue", "getSourceType" -> 0
+        // d4/I literally: loop 0, favorite 1, radioMode 0, queuePosition 0. sourceType falls
+        // through the reference's per-track value and user setting to constant 6 — round 6
+        // (2026-10-17): our 0 reached the firmware (sources =:0 in the car log) and the card
+        // came up without artwork; 6 is the value the working reference ships by default.
+        "getLoopMode", "getRadioMode", "getPlayingItemPositionInQueue" -> 0
+        "getFavoriteState" -> 1
+        "getSourceType" -> 6
         "getUUID" -> snapshot.trackUuid
         else -> null
     }

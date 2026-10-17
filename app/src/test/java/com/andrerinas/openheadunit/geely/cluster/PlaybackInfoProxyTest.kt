@@ -23,6 +23,7 @@ class PlaybackInfoProxyTest {
         fun getPlaybackStatus(): Int
         fun getSourceType(): Int
         fun getLoopMode(): Int
+        fun getFavoriteState(): Int
         fun getUUID(): String?
         fun getLyricContent(): String?
         fun getRadioFrequency(): String?
@@ -61,20 +62,24 @@ class PlaybackInfoProxyTest {
     }
 
     @Test
-    fun `unsupplied getters answer neutral`() {
+    fun `unsupplied getters answer the reference's literal values`() {
         val info = proxy()
-        assertNull(info.getNextArtwork())
-        assertNull(info.getLyricContent())
-        assertEquals(0, info.getSourceType())
+        // d4/I: the next cover answers the same uri as the current one; previous stays null.
+        assertEquals("file:///pictures/ohu-media/x.jpg", info.getNextArtwork())
+        assertEquals("", info.getLyricContent())
+        // Round 6 (2026-10-17): sourceType 0 left the card without artwork; the reference
+        // ships constant 6 (per-track -1 → user setting → 6). favorite is 1, not 0.
+        assertEquals(6, info.getSourceType())
+        assertEquals(1, info.getFavoriteState())
         assertEquals(0, info.getLoopMode())
     }
 
     @Test
-    fun `radio getters answer a String, not a number - the firmware casts them during the push`() {
+    fun `radio getters answer an empty String, not a number - the firmware casts them during the push`() {
         // Round 5 (2026-10-17 08:20): getRadioFrequency returned Integer 0 and the firmware's
         // MediaInteraction.updatePlaybackInfo:93 threw ClassCastException — one wrong-typed
-        // getter killed the whole card push, twice in a row.
-        assertNull(proxy().getRadioFrequency())
+        // getter killed the whole card push, twice in a row. The reference answers "".
+        assertEquals("", proxy().getRadioFrequency())
     }
 
     @Test

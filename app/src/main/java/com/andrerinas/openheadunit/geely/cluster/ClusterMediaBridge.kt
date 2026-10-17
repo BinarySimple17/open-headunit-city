@@ -116,8 +116,16 @@ class ClusterMediaBridge(context: Context) {
     )
 
     private fun artworkFor(meta: MediaPlayback.MediaMetaData, trackKey: String): String? {
-        if (!(meta.hasAlbumArt() && !meta.albumArt.isEmpty)) return null
-        return cache.store(trackKey, meta.albumArt.toByteArray())
+        if (!(meta.hasAlbumArt() && !meta.albumArt.isEmpty)) {
+            // Round 6 follow-up: "no image on the card" must be distinguishable in the car
+            // log — without this line a silent null and a failed store look the same.
+            HvacLog.d("cluster.art: metadata without album art (${meta.song})")
+            return null
+        }
+        val uri = cache.store(trackKey, meta.albumArt.toByteArray())
+        if (uri == null) HvacLog.w("cluster.art: cover NOT stored (${meta.albumArt.size()} B)")
+        else HvacLog.d("cluster.art: cover stored: $uri")
+        return uri
     }
 
     private fun publish(snapshot: TrackSnapshot): Boolean {
