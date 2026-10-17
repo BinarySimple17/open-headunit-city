@@ -1,4 +1,8 @@
 # Changelog
+### v.3.5.0-beta8
+- Fixed: instrument-cluster media card - the firmware casts the card's getters itself, and one getter answering a number instead of a string killed the whole publication; wrong-typed answers now degrade to the type's neutral (the radio getters answer "not a radio")
+- Changed: steering-wheel auto heat (long-press) drives the stock AUTO switch the car itself uses (probed available), not the unavailable dedicated property
+- Changed: seat auto heat tries the manual level codes on the AUTO property - the car's own catalog lists them as its supported values; the earlier plain and base|level encodings sit outside the catalog
 ### v.3.5.0-beta7
 - Changed: HVAC auto mode is judged by the car's answer, not by the write going out - each candidate encoding waits up to 2.5 s for the car to confirm before the next is tried, and a silent rejection ends in an honest "command rejected" toast instead of a false "on"
 - Changed: the zone button goes dim and ignores touches while the car's auto verdict is pending
