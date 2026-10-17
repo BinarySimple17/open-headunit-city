@@ -49,6 +49,7 @@ object DimMediaChannel {
     @Volatile private var updateCurrentProgress: Method? = null
     @Volatile private var playbackInfoInterface: Class<*>? = null
     @Volatile private var mock: IDimMediaMock? = null
+    @Volatile private var appContext: Context? = null
 
     private var mockConnection: ServiceConnection? = null
 
@@ -57,6 +58,7 @@ object DimMediaChannel {
     /** Blocking connect; returns false — never throws — with the reason in [HvacLog]. */
     fun connect(context: Context): Boolean {
         if (available) return true
+        appContext = context.applicationContext
         return try {
             val dimClass = Class.forName(DIM_CLASS)
             val create = dimClass.methods.firstOrNull {
@@ -151,15 +153,18 @@ object DimMediaChannel {
             }
         }
         Mode.NONE -> {
-            HvacLog.d("cluster.dim: progress skipped — channel not connected")
-            false
+            // The hot path after a stand-in restart: progress ticks every second while music
+            // plays, but a full card is only pushed on a track change — without a reconnect
+            // here the channel would stay dead until the next track. Same-thread as publish.
+            val context = appContext ?: return false
+            return connect(context) && publishProgress(positionMs)
         }
     }
 
     /** The stand-in went away (update or force-stop drops the binder): reset the mode so the
      *  next caller re-runs [connect] and rebinds — the same self-heal AidlMockCarPort needs. */
     private fun mockLost(what: String): Boolean {
-        HvacLog.w("cluster.dim: mock channel lost ($what) — will rebind on the next publish")
+        HvacLog.w("cluster.dim: mock channel lost ($what) — will rebind on the next tick")
         synchronized(this) {
             if (mode == Mode.MOCK) mode = Mode.NONE
             mock = null
