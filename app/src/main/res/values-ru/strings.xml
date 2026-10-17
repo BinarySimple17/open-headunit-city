@@ -1286,7 +1286,10 @@
     <string name="hvac_send_logs_none">Логов HVAC пока нет - включите подробный лог HVAC, воспроизведите проблему и передайте снова</string>
     <string name="cluster_media">Медиа на приборке</string>
     <string name="cluster_media_description">Дополнительно показывает текущий трек Android Auto (название, исполнителя, альбом, обложку) на приборке автомобиля. Требует включённой галки \"Текущий трек AA в медиасессии\" - та сессия и уведомление работают как раньше</string>
-    <string name="cluster_media_disabled_hint">Сначала включите галку \"Текущий трек AA в медиасессии\"</string>
+    <string name="cluster_media_disabled_hint">Сначала включите галку \"Текущий трек AA в медиасессии\"</string>
+    <string name="cluster_bt_fallback">Карточка приборки из Bluetooth-музыки</string>
+    <string name="cluster_bt_fallback_description">Кормит карточку приборки из Bluetooth-сессии самого ГУ, пока телефон играет через Bluetooth-канал машины. Один раз требует доступ к уведомлениям</string>
+    <string name="cluster_bt_fallback_grant_hint">Выдайте приложению доступ к уведомлениям</string>
     <string name="hvac_hide_timeout">Таймаут скрытия иконок</string>
     <string name="hvac_timeout_seconds">%1$d с</string>
     <string name="hvac_level_number">Уровень %1$d</string>

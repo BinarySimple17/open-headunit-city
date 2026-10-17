@@ -274,6 +274,19 @@
             android:name=".main.FloatingButtonService"
             android:exported="false" />
 
+        <!-- Cluster card Bluetooth fallback (F013): the grant-holder for reading the head
+             unit's own media sessions (the car's Bluetooth app holds the phone's AVRCP
+             metadata). Declared exactly like the reference: exported, bound by the system
+             under BIND_NOTIFICATION_LISTENER_SERVICE with the listener action. -->
+        <service
+            android:name=".geely.cluster.BtMediaListener"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <!-- AndroidX MediaButtonReceiver: Routes MEDIA_BUTTON intents to AapService
              on Android 8+ where implicit broadcasts to manifest-registered receivers
              are restricted. This is the standard Android mechanism used by HUR. -->

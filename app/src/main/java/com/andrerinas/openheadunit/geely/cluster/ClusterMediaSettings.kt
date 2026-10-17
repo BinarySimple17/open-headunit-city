@@ -20,6 +20,16 @@ class ClusterMediaSettings(context: Context) {
         get() = prefs.getBoolean(KEY_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_ENABLED, value).apply()
 
+    /**
+     * Whether the Bluetooth fallback is armed: while the phone plays through the car's
+     * A2DP/AVRCP channel, the card is fed from the head unit's own Bluetooth media session
+     * (the stock card's own data, plus artwork — the reference's trick, конспект §2c).
+     * Needs the notification-access grant to read sessions at all.
+     */
+    var btFallback: Boolean
+        get() = prefs.getBoolean(KEY_BT_FALLBACK, false)
+        set(value) = prefs.edit().putBoolean(KEY_BT_FALLBACK, value).apply()
+
     /** Watches this file — the bridge reacts to Save without anyone wiring it by hand. */
     fun addListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
@@ -28,5 +38,6 @@ class ClusterMediaSettings(context: Context) {
     private companion object {
         const val PREFS_FILE = "cluster_media_prefs"
         const val KEY_ENABLED = "cluster_media_enabled"
+        const val KEY_BT_FALLBACK = "cluster_bt_fallback"
     }
 }

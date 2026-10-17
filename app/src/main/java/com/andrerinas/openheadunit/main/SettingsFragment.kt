@@ -180,6 +180,7 @@ class SettingsFragment : Fragment() {
 
     // Geely cluster media (F013) rides the same common Save flow as the HVAC settings.
     private var pendingClusterMedia: Boolean? = null
+    private var pendingClusterBtFallback: Boolean? = null
 
     private var pendingUseGps: Boolean? = null
     private var pendingShowNavigationNotifications: Boolean? = null
@@ -368,6 +369,7 @@ class SettingsFragment : Fragment() {
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
+        pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
 
         // Initialize local state with current values
         pendingAdvancedSettings = settings.isAdvancedSettingsActive
@@ -605,6 +607,7 @@ class SettingsFragment : Fragment() {
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
+        pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
     }
 
     /**
@@ -756,6 +759,7 @@ class SettingsFragment : Fragment() {
         // (publication stops and the card clears) without anyone calling into it.
         ClusterMediaSettings(requireContext().applicationContext).also { cluster ->
             pendingClusterMedia?.let { if (it != cluster.enabled) cluster.enabled = it }
+            pendingClusterBtFallback?.let { if (it != cluster.btFallback) cluster.btFallback = it }
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -923,6 +927,7 @@ class SettingsFragment : Fragment() {
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
+        pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
         hasChanges = false
         requiresRestart = false
         requiresServiceRestart = false
@@ -1034,7 +1039,8 @@ class SettingsFragment : Fragment() {
                                 pendingHvacDebugLog != hvac.debugLog ||
                                 pendingHvacHideTimeoutSec != hvac.hideTimeoutSec
                         } ||
-                        pendingClusterMedia != ClusterMediaSettings(requireContext().applicationContext).enabled
+                        pendingClusterMedia != ClusterMediaSettings(requireContext().applicationContext).enabled ||
+                        pendingClusterBtFallback != ClusterMediaSettings(requireContext().applicationContext).btFallback
 
         hasChanges = anyChange
 
@@ -3264,6 +3270,7 @@ class SettingsFragment : Fragment() {
         // F013: our cluster toggle exists only on top of the native media-session switch.
         val nativeSyncOn = pendingSyncMediaSessionAaMetadata ?: settings.syncMediaSessionWithAaMetadata
         val clusterMediaOn = pendingClusterMedia ?: ClusterMediaSettings(requireContext().applicationContext).enabled
+        val clusterBtFallbackOn = pendingClusterBtFallback ?: ClusterMediaSettings(requireContext().applicationContext).btFallback
         val saveHvacChange: () -> Unit = {
             hasChanges = true
             updateSaveButtonState()
@@ -3367,6 +3374,24 @@ class SettingsFragment : Fragment() {
             descriptionOverride = if (nativeSyncOn) null else getString(R.string.cluster_media_disabled_hint),
             onCheckedChanged = { checked ->
                 pendingClusterMedia = checked
+                saveHvacChange()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterBtFallback",
+            nameResId = R.string.cluster_bt_fallback,
+            descriptionResId = R.string.cluster_bt_fallback_description,
+            isChecked = clusterBtFallbackOn,
+            onCheckedChanged = { checked ->
+                if (checked && !notificationAccessGranted()) {
+                    // The grant lives in a system screen; the switch stores the intent
+                    // and the card arms itself the moment the listener connects.
+                    runCatching {
+                        startActivity(Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                    }
+                    ToastUtils.showToast(requireContext(), R.string.cluster_bt_fallback_grant_hint, Toast.LENGTH_LONG)
+                }
+                pendingClusterBtFallback = checked
                 saveHvacChange()
             }
         ))
@@ -3510,10 +3535,16 @@ class SettingsFragment : Fragment() {
     private val geelyItemIds = setOf(
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
         "hvacHideTimeout", "hvacSendLogs",
-        "clusterMedia"
+        "clusterMedia", "clusterBtFallback"
     )
 
     private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds
+
+    /** The Bluetooth card fallback reads media sessions, which needs the notification-access
+     *  grant; the system exposes the granted listener packages to any caller. */
+    private fun notificationAccessGranted(): Boolean =
+        androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(requireContext())
+            .contains(requireContext().packageName)
 
     // Resolutions this wide or more (1440p, 4K) are flagged as high-bandwidth.
     private val HIGH_BANDWIDTH_WIDTH = 2560
