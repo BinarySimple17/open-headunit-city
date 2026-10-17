@@ -20,9 +20,10 @@ import java.io.ByteArrayOutputStream
  * that session once a second and hands [onUpdate] a snapshot built from ITS fields plus the
  * extracted artwork — the published card blends into the stock one instead of fighting it
  * from different data. Reads require this app to be the connected notification listener
- * ([BtMediaListener]); the artwork comes from the session bitmap or art URI and goes through
- * the same public catalog the AA path uses. Only PLAYING sessions win; a paused Bluetooth
- * session reports null so the card returns to the AA content or clears.
+ * ([BtMediaListener]); the artwork comes from the session bitmaps, the art URI, or — the
+ * rung this head unit actually needs (round 9) — the session's media notification, and goes
+ * through the same public catalog the AA path uses. Only PLAYING sessions win; a paused
+ * Bluetooth session reports null so the card returns to the AA content or clears.
  */
 class BtMediaMonitor(
     context: Context,
@@ -74,7 +75,7 @@ class BtMediaMonitor(
         }
         val state = controller.playbackState
         val key = trackKeyOf(meta)
-        val snapshot = snapshotFor(meta, key)
+        val snapshot = snapshotFor(meta, key, controller.packageName ?: "")
         val position = state?.let {
             it.position + if (it.state == PlaybackState.STATE_PLAYING) {
                 SystemClock.elapsedRealtime() - it.lastPositionUpdateTime
@@ -83,13 +84,21 @@ class BtMediaMonitor(
         onUpdate(snapshot, position, snapshot != null)
     }
 
-    /** Per-tick fast path: the track is unchanged — the stored snapshot (artwork Uri included)
-     *  is handed back without decoding or storing the artwork again. */
-    private fun snapshotFor(meta: MediaMetadata, key: String): TrackSnapshot? {
-        if (key == lastKey) return snapshots[key]
+    /** Per-tick fast path: an unchanged track WITH its cover returns the stored snapshot.
+     *  A coverless track is re-extracted every tick — on this head unit the cover reaches the
+     *  Bluetooth notification seconds after the session metadata (round 9, конспект §2c), and
+     *  both working references retry for exactly that window; the refreshed snapshot then
+     *  re-publishes the card mid-track. */
+    private fun snapshotFor(meta: MediaMetadata, key: String, pkg: String): TrackSnapshot? {
+        val known = snapshots[key]
+        if (key == lastKey && known?.artworkUri != null) return known
         lastKey = key
-        val snapshot = buildSnapshot(meta, key)
+        val firstSight = known == null
+        val snapshot = buildSnapshot(meta, key, pkg, firstSight)
         if (snapshot != null) {
+            if (known != null && known.artworkUri == null && snapshot.artworkUri != null) {
+                HvacLog.i("cluster.bt: cover arrived late (${snapshot.title}) — card re-published")
+            }
             snapshots[key] = snapshot
             val keys = snapshots.keys.iterator()
             if (snapshots.size > MAX_TRACKS && keys.hasNext()) {
@@ -100,15 +109,20 @@ class BtMediaMonitor(
         return snapshot
     }
 
-    private fun buildSnapshot(meta: MediaMetadata, key: String): TrackSnapshot? {
+    private fun buildSnapshot(
+        meta: MediaMetadata,
+        key: String,
+        pkg: String,
+        firstSight: Boolean,
+    ): TrackSnapshot? {
         val title = firstOf(meta, MediaMetadata.METADATA_KEY_DISPLAY_TITLE, MediaMetadata.METADATA_KEY_TITLE)
         val artist = firstOf(meta, MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, MediaMetadata.METADATA_KEY_ARTIST)
         val album = meta.getString(MediaMetadata.METADATA_KEY_ALBUM) ?: ""
         val durationMs = meta.getLong(MediaMetadata.METADATA_KEY_DURATION)
         if (title.isEmpty() && artist.isEmpty() && album.isEmpty()) return null
-        val artwork = artworkOf(meta)
-        if (artwork == null) {
-            // Runs once per track (the per-tick fast path skips this method) — the car log
+        val artwork = artworkOf(meta, pkg, title)
+        if (artwork == null && firstSight) {
+            // Runs once per track (retries stay silent until they succeed) — the car log
             // must separate "the session carries no cover" from "the cover was not rendered".
             HvacLog.d("cluster.bt: session metadata has no artwork ($title)")
         }
@@ -127,15 +141,16 @@ class BtMediaMonitor(
         return snapshot
     }
 
-    /** Session artwork: the AVRCP bitmap first, then the art URI (album-art content provider). */
-    private fun artworkOf(meta: MediaMetadata): ByteArray? {
+    /** Session artwork ladder: the AVRCP bitmaps first (embedded art, then the display icon
+     *  via the public description — the raw DISPLAY_ICON_BITMAP key is hidden API), then the
+     *  art URI (album-art content provider), then the cover of the session's own media
+     *  notification — on this head unit the Bluetooth cover often lives only there (round 9;
+     *  Button 2.8.3 mines the same rung). */
+    private fun artworkOf(meta: MediaMetadata, pkg: String, title: String): ByteArray? {
         val bitmap = meta.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
             ?: meta.getBitmap(MediaMetadata.METADATA_KEY_ART)
-        if (bitmap != null) {
-            val out = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
-            if (out.size() > 0) return out.toByteArray()
-        }
+            ?: meta.description?.iconBitmap
+        jpegOf(bitmap)?.let { return it }
         for (key in listOf(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, MediaMetadata.METADATA_KEY_ART_URI)) {
             val uri = meta.getString(key)
             if (uri.isNullOrEmpty()) continue
@@ -145,7 +160,15 @@ class BtMediaMonitor(
                 }
             }
         }
+        if (pkg.isNotEmpty()) jpegOf(BtMediaListener.artworkFor(pkg, title))?.let { return it }
         return null
+    }
+
+    private fun jpegOf(bitmap: Bitmap?): ByteArray? {
+        if (bitmap == null) return null
+        val out = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
+        return out.toByteArray().takeIf { it.isNotEmpty() }
     }
 
     private fun firstOf(meta: MediaMetadata, vararg keys: String): String =
