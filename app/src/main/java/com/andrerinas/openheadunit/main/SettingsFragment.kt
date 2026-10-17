@@ -3559,7 +3559,8 @@ class SettingsFragment : Fragment() {
     // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
     private val geelyItemIds = setOf(
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
-        "hvacHideTimeout", "hvacSeatAutoLevel", "hvacWheelAutoLevel", "hvacSendLogs"
+        "hvacHideTimeout", "hvacSeatAutoLevel", "hvacWheelAutoLevel", "hvacSendLogs",
+        "clusterMedia"
     )
 
     private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds
