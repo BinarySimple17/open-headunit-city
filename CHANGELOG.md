@@ -1,4 +1,7 @@
 # Changelog
+### v.3.5.0-beta9
+- Added: the projection night theme can finally follow dark time on these units - a read-only watcher polls the car's own day/night property (the signal the stock theme switcher uses, decoded from the reference widget app) and feeds the "Car Headlight Signal (ILL+)" setting; with no signal available the previous behavior is unchanged
+- Added: the debug mock car serves the day/night property too (boots at day, adb SET flips it to night) so the whole chain is testable on an emulator
 ### v.3.5.0-beta8
 - Fixed: instrument-cluster media card - the firmware casts the card's getters itself, and one getter answering a number instead of a string killed the whole publication; wrong-typed answers now degrade to the type's neutral (the radio getters answer "not a radio")
 - Changed: steering-wheel auto heat (long-press) drives the stock AUTO switch the car itself uses (probed available), not the unavailable dedicated property
