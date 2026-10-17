@@ -1,4 +1,7 @@
 # Changelog
+### v.3.5.0-beta15
+- Fixed: a notification from any app carrying an icon in an unexpected format crashed the whole app through the notification listener the cluster card's Bluetooth fallback relies on - such payloads now degrade to "no artwork" instead (found and reproduced on the emulator bench); the listener is also protected against every other malformed notification
+- Added: the mock-car stand-in gains the media-card receiver and a fake Bluetooth source (F014) - the cluster card pipeline is rehearsed on an emulator end to end, including the cover drawn from the published file exactly like the real cluster reads it
 ### v.3.5.0-beta14
 - Fixed: a transient drop in the Bluetooth session's play state no longer flips the cluster card to the other content and back - short dropouts are held through for two seconds exactly like the working references do (round 8 caught such a flip pair in the car log), and every held gap lands in the car log so the session's jitter frequency becomes visible
 ### v.3.5.0-beta13
