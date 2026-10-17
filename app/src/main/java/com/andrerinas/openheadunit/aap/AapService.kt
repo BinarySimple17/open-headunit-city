@@ -1175,7 +1175,7 @@ class AapService : Service() {
 
     /** Initialises [NightModeManager] and forwards night-mode changes to Android Auto via AAP. */
     private fun setupNightMode() {
-        nightModeManager = NightModeManager(this, App.provide(this).settings) { isNight ->
+        val manager = NightModeManager(this, App.provide(this).settings) { isNight ->
             AppLog.i("NightMode update: $isNight")
             commManager.send(NightModeEvent(isNight))
             // Also notify local components (for AA monochrome filter)
@@ -1185,6 +1185,12 @@ class AapService : Service() {
             }
             sendBroadcast(intent)
         }
+        nightModeManager = manager
+        // Geely day/night (F003): the watch answers the manager's CAR_SIGNAL mode from the
+        // car's day/night VHAL property; a null answer keeps the stock car_mode fallback.
+        val watch = App.provide(this).dayNightWatch
+        manager.carSignalSource = { watch.lastValue }
+        watch.onFlip = { manager.update(debounce = false) }
     }
 
     /**
@@ -1406,6 +1412,7 @@ class AapService : Service() {
         AppLog.i("AapService: Starting GpsLocationService and NightModeManager since connection is established")
         startService(GpsLocationService.intent(this))
         nightModeManager?.start()
+        App.provide(this).dayNightWatch.start()
 
         serviceScope.launch { commManager.startHandshake() }
     }
@@ -1657,6 +1664,7 @@ class AapService : Service() {
         AppLog.i("AapService: Stopping GpsLocationService and NightModeManager since connection is disconnected")
         stopService(GpsLocationService.intent(this))
         nightModeManager?.stop()
+        App.provide(this).dayNightWatch.stop()
 
         carKeysManager.onSessionEnded()
 
@@ -2957,6 +2965,7 @@ class AapService : Service() {
         MicRecorder.foregroundClaim = null
         commManager.destroy()
         nightModeManager?.stop()
+        App.provide(this).dayNightWatch.stop()
         stopService(GpsLocationService.intent(this))
         try {
             unregisterReceiver(nightModeUpdateReceiver)

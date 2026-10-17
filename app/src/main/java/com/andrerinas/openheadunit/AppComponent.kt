@@ -9,6 +9,7 @@ import com.andrerinas.openheadunit.decoder.video.DeviceMemoryProfile
 import com.andrerinas.openheadunit.decoder.video.VideoDecoder
 import com.andrerinas.openheadunit.connection.carkey.CarKeysManager
 import com.andrerinas.openheadunit.geely.cluster.ClusterMediaBridge
+import com.andrerinas.openheadunit.geely.daynight.GeelyDayNightWatch
 import com.andrerinas.openheadunit.utils.SUExecutor
 import com.andrerinas.openheadunit.utils.Settings
 
@@ -36,4 +37,9 @@ class AppComponent(private val app: App) {
     // Geely instrument-cluster media redirect (F013, isolated geely.cluster package): app-scoped
     // — it watches both switches itself and is fed from the AA media seam in AapService.
     val clusterMediaBridge: ClusterMediaBridge by lazy { ClusterMediaBridge(app) }
+
+    // Geely day/night watch (F003, isolated geely.daynight package): app-scoped poller of the
+    // car's day/night VHAL property; its answer feeds NightModeManager's CAR_SIGNAL mode
+    // (the projection night theme) from the seams in AapService.
+    val dayNightWatch: GeelyDayNightWatch by lazy { GeelyDayNightWatch(app) }
 }

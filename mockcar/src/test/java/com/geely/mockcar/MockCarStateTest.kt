@@ -117,4 +117,15 @@ class MockCarStateTest {
         state.set(268764416, 4, 0)
         assertEquals(268763650, state.get(268763648, 4))
     }
+
+    @Test
+    fun `day night signal is binary in the global area and starts at day`() {
+        val state = MockCarState()
+        assertEquals(1, state.get(557850011, 0))
+        assertTrue(state.set(557850011, 0, 0))
+        assertEquals(0, state.get(557850011, 0))
+        assertTrue(state.set(557850011, 0, 1))
+        assertFalse(state.set(557850011, 0, 2))
+        assertFalse(state.set(557850011, 1, 1)) // only the global area exists
+    }
 }
