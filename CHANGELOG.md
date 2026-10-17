@@ -1,4 +1,6 @@
 # Changelog
+### v.3.5.0-beta11
+- Added: the cluster card can follow the phone's Bluetooth playback - while the sound goes through the car's Bluetooth channel, the card is fed from the head unit's own Bluetooth session (the very data the stock card shows) plus the artwork that session already carries but the stock card never draws; armed with a new "Cluster card from Bluetooth music" switch in the GEELY tab (one-time notification-access grant requested on first enable)
 ### v.3.5.0-beta10
 - Changed: cluster card artwork is re-encoded to jpeg q90 before being handed to the cluster, exactly like the working reference publisher does - round 7 proved the bytes arrive and are stored (a real png on a public path) yet the card showed no image, and a jpeg-only renderer would skip a png silently; undecodable payloads keep their raw bytes and the verdict lands in the HVAC log
 ### v.3.5.0-beta9
