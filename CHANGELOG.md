@@ -1,4 +1,6 @@
 # Changelog
+### v.3.5.0-beta12
+- Changed: round-8 diagnostics only - the Bluetooth takeover line now reports whether the session carried artwork (artwork=true/false) and a track without a cover is logged once explicitly; no behavior change, the log must separate "the car's AVRCP session has no cover" from "the cover was not rendered"
 ### v.3.5.0-beta11
 - Added: the cluster card can follow the phone's Bluetooth playback - while the sound goes through the car's Bluetooth channel, the card is fed from the head unit's own Bluetooth session (the very data the stock card shows) plus the artwork that session already carries but the stock card never draws; armed with a new "Cluster card from Bluetooth music" switch in the GEELY tab (one-time notification-access grant requested on first enable)
 ### v.3.5.0-beta10
