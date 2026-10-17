@@ -107,6 +107,11 @@ class BtMediaMonitor(
         val durationMs = meta.getLong(MediaMetadata.METADATA_KEY_DURATION)
         if (title.isEmpty() && artist.isEmpty() && album.isEmpty()) return null
         val artwork = artworkOf(meta)
+        if (artwork == null) {
+            // Runs once per track (the per-tick fast path skips this method) — the car log
+            // must separate "the session carries no cover" from "the cover was not rendered".
+            HvacLog.d("cluster.bt: session metadata has no artwork ($title)")
+        }
         val snapshot = TrackSnapshot(
             title = title.takeIf { it.isNotEmpty() },
             artist = artist.takeIf { it.isNotEmpty() },

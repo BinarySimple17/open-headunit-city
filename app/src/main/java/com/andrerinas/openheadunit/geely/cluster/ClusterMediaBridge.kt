@@ -153,7 +153,10 @@ class ClusterMediaBridge(context: Context) {
         }
         if (!btOwner) {
             btOwner = true
-            HvacLog.i("cluster.bt: bluetooth session owns the card (${snapshot.title})")
+            // artwork verdict is the round-8 open question: does the car's AVRCP session even
+            // carry a cover (silent null looks identical to a rejected render in the log).
+            HvacLog.i("cluster.bt: bluetooth session owns the card " +
+                "(${snapshot.title}, artwork=${snapshot.artworkUri != null})")
         }
         if (snapshot != lastSnapshot) {
             if (publish(snapshot)) lastSnapshot = snapshot
