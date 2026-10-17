@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import androidx.core.os.BundleCompat
 import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.geely.hvac.HvacLog
 
@@ -46,6 +47,14 @@ class BtMediaListener : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
+        // A foreign notification must never kill this process: anything from any app arrives
+        // here, and one hostile payload crashed the whole headunit (Icon in extras read as
+        // Bitmap, round 9 rehearsal). Everything below degrades to "no artwork".
+        runCatching { captureArtwork(sbn) }
+            .onFailure { HvacLog.w("cluster.bt: notification scan failed: ${it.message}") }
+    }
+
+    private fun captureArtwork(sbn: StatusBarNotification?) {
         val n = sbn?.notification ?: return
         val pkg = sbn.packageName ?: return
         if (pkg == packageName) return
@@ -63,15 +72,15 @@ class BtMediaListener : NotificationListenerService() {
     }
 
     /** The reference ladder (Button MusicNotificationListener): the notification's large
-     *  icon first, then the extras Bitmaps the media style puts there. NB: `getLargeIcon()`
-     *  is called by name — the synthetic `n.largeIcon` would hit the deprecated Bitmap FIELD. */
+     *  icon first, then the extras Bitmaps the media style puts there. Extras are read
+     *  type-safely — they carry Icon wrappers as often as raw Bitmaps. */
     private fun artworkOf(n: Notification): Bitmap? {
         val drawable = runCatching {
             n.getLargeIcon()?.loadDrawable(applicationContext)
         }.getOrNull()
         bitmapOf(drawable)?.let { return it }
-        n.extras.getParcelable<Bitmap>(Notification.EXTRA_LARGE_ICON)?.let { return it }
-        n.extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE)?.let { return it }
+        BundleCompat.getParcelable(n.extras, Notification.EXTRA_LARGE_ICON, Bitmap::class.java)?.let { return it }
+        BundleCompat.getParcelable(n.extras, Notification.EXTRA_PICTURE, Bitmap::class.java)?.let { return it }
         return null
     }
 

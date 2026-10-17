@@ -138,10 +138,19 @@ class MainActivity : Activity() {
     }
 
     private fun ensureNotifications() {
-        if (Build.VERSION.SDK_INT >= 33 &&
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        val wanted = ArrayList<String>()
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                wanted.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            // The cover lives in another app's MediaStore contribution — same as the real
+            // cluster's privileged read, granted to this dev tool at runtime.
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                wanted.add(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+        }
+        if (wanted.isNotEmpty()) {
+            requestPermissions(wanted.toTypedArray(), 1)
             Toast.makeText(this, R.string.bt_notifications_hint, Toast.LENGTH_LONG).show()
         }
     }

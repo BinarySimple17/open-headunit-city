@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import com.andrerinas.openheadunit.BuildConfig
@@ -114,14 +113,20 @@ object DimMediaChannel {
             }
         }
         Mode.MOCK -> {
-            val stub = mock ?: return fail("publish before connect")
+            val stub = mock ?: return mockLost("publish")
             try {
                 stub.updatePlaybackInfo(cardBundle(info))
             } catch (e: Throwable) {
                 fail("mock updatePlaybackInfo threw", e)
+                mockLost("publish")
             }
         }
-        Mode.NONE -> fail("publish before connect")
+        Mode.NONE -> {
+            // A caller without a connected channel: the AA stop path ticks progress even when
+            // nothing was ever published — routine on non-Geely builds, so debug-level only.
+            HvacLog.d("cluster.dim: publish/progress skipped — channel not connected")
+            false
+        }
     }
 
     /** Position bar only — same-track ticks use this, never a full re-publish (reference dedup). */
@@ -136,15 +141,30 @@ object DimMediaChannel {
             }
         }
         Mode.MOCK -> {
-            val stub = mock ?: return fail("progress before connect")
+            val stub = mock ?: return mockLost("progress")
             try {
                 stub.updateCurrentProgress(positionMs)
                 true
             } catch (e: Throwable) {
                 fail("mock updateCurrentProgress threw", e)
+                mockLost("progress")
             }
         }
-        Mode.NONE -> fail("progress before connect")
+        Mode.NONE -> {
+            HvacLog.d("cluster.dim: progress skipped — channel not connected")
+            false
+        }
+    }
+
+    /** The stand-in went away (update or force-stop drops the binder): reset the mode so the
+     *  next caller re-runs [connect] and rebinds — the same self-heal AidlMockCarPort needs. */
+    private fun mockLost(what: String): Boolean {
+        HvacLog.w("cluster.dim: mock channel lost ($what) — will rebind on the next publish")
+        synchronized(this) {
+            if (mode == Mode.MOCK) mode = Mode.NONE
+            mock = null
+        }
+        return false
     }
 
     /** Blocking bind of the mock-car service, timed retries like AidlMockCarPort. */

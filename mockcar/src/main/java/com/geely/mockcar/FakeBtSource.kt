@@ -113,6 +113,7 @@ object FakeBtSource {
             )
         }
         val builder = notification(context)
+            .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle(title)
             .setContentText("mock bluetooth media")
             .setOngoing(false)
