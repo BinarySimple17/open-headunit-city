@@ -3,6 +3,8 @@ package com.andrerinas.openheadunit.geely.cluster
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -10,6 +12,7 @@ import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.andrerinas.openheadunit.geely.hvac.HvacLog
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
@@ -32,14 +35,44 @@ class ClusterArtworkCache(private val context: Context) {
     /** Returns a file:// uri string for the bytes, or null when nothing could be stored. */
     fun store(trackKey: String, bytes: ByteArray): String? {
         if (bytes.isEmpty()) return null
-        val name = fileNameFor(trackKey, sniffImageType(bytes))
+        val normalized = normalizeArtwork(bytes)
+        val name = fileNameFor(trackKey, normalized.second)
+        val payload = normalized.first
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) storeViaMediaStore(name, bytes)
-            else storeDirect(name, bytes)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) storeViaMediaStore(name, payload)
+            else storeDirect(name, payload)
         } catch (e: Throwable) {
             HvacLog.e("cluster.art: store failed for $name", e)
             null
         }
+    }
+
+    /**
+     * The reference never hands the cluster raw bytes: every cover is decoded and re-encoded
+     * to JPEG quality 90 (конспект §2c — its d4/H), so the renderer sees exactly the format
+     * the working publisher emits. A failed decode keeps the raw bytes (extension follows the
+     * magic sniff) rather than dropping the cover.
+     */
+    private fun normalizeArtwork(bytes: ByteArray): Pair<ByteArray, String> {
+        val decoded = try { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) } catch (_: Throwable) { null }
+        if (decoded == null) {
+            val type = sniffImageType(bytes)
+            HvacLog.d("cluster.art: decode failed; raw bytes kept (${bytes.size} B, sniff=$type)")
+            return bytes to type
+        }
+        val out = ByteArrayOutputStream()
+        decoded.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        val w = decoded.width
+        val h = decoded.height
+        decoded.recycle()
+        val jpeg = out.toByteArray()
+        if (jpeg.isEmpty()) {
+            val type = sniffImageType(bytes)
+            HvacLog.d("cluster.art: jpeg encode produced nothing; raw bytes kept (${bytes.size} B, sniff=$type)")
+            return bytes to type
+        }
+        HvacLog.d("cluster.art: normalized to jpeg q90 (${bytes.size} B, ${w}x$h → ${jpeg.size} B)")
+        return jpeg to "jpg"
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
