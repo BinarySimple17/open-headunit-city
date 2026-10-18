@@ -1,5 +1,7 @@
 # Changelog
 ### v.3.5.0-beta18
+- (fill in before release)
+### v.3.5.0-beta18
 - Added: the Bluetooth cover hunt goes fully in-app, no adb on the unit needed. The app now probes the head unit's AVRCP stack directly (the hidden controller profile) and logs what the stack itself holds for the phone - if cover art was ever fetched over AVRCP it lives there even when the media session strips it. The car log also gains the playback-state extras, the session's now-playing queue with its per-item icons, the track description (art uri and extras) and an overview of every active media session; each line lands once per track change. Enabling the cluster card switch now also asks for the Bluetooth connect permission the probe needs
 ### v.3.5.0-beta17
 - (fill in before release)
