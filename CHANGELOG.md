@@ -1,5 +1,7 @@
 # Changelog
 ### v.3.5.0-beta17
+- (fill in before release)
+### v.3.5.0-beta17
 - Added: the car log now records everything the Bluetooth session actually carries - every metadata key with its value kind and bitmap size, plus the session controller's extras bundle, once per track. The search for where this firmware keeps the AVRCP cover art needs that full picture from the car log alone, without adb on the unit; no behavior change otherwise
 ### v.3.5.0-beta16
 - (fill in before release)
