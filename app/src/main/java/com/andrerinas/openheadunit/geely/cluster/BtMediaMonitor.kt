@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadata
+import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.net.Uri
@@ -94,6 +95,7 @@ class BtMediaMonitor(
         gapHeld = false
         val state = controller.playbackState
         val key = trackKeyOf(meta)
+        if (key != lastKey) describeExtras(controller)
         val snapshot = snapshotFor(meta, key, controller.packageName ?: "")
         val position = state?.let {
             it.position + if (it.state == PlaybackState.STATE_PLAYING) {
@@ -140,6 +142,12 @@ class BtMediaMonitor(
         val album = meta.getString(MediaMetadata.METADATA_KEY_ALBUM) ?: ""
         val durationMs = meta.getLong(MediaMetadata.METADATA_KEY_DURATION)
         if (title.isEmpty() && artist.isEmpty() && album.isEmpty()) return null
+        if (firstSight) {
+            // The AVRCP cover quest (round 10): the car log must show EVERYTHING the session
+            // actually carries — every key and its value kind — so "the firmware keeps the
+            // cover somewhere else" becomes provable without adb on the unit. Once per track.
+            HvacLog.d("cluster.bt: session keys ($title): ${describeKeys(meta)}")
+        }
         val artwork = artworkOf(meta, pkg, title)
         if (artwork == null && firstSight) {
             // Runs once per track (retries stay silent until they succeed) — the car log
@@ -189,6 +197,37 @@ class BtMediaMonitor(
         val out = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
         return out.toByteArray().takeIf { it.isNotEmpty() }
+    }
+
+    /** Every metadata key with a compact value kind: b=WxH bitmap, s=len string, n=number,
+     *  -=none of those. The cover quest needs the FULL key list, not just the rungs we read. */
+    private fun describeKeys(meta: MediaMetadata): String = runCatching {
+        val parts = meta.keySet().sorted().map { key ->
+            val kind = meta.getBitmap(key)?.let { "b${it.width}x${it.height}" }
+                ?: meta.getString(key)?.takeIf { it.isNotEmpty() }?.let { "s${it.length}" }
+                ?: meta.getLong(key).takeIf { it != 0L }?.let { "n" }
+                ?: "-"
+            "$key=$kind"
+        }
+        if (parts.isEmpty()) "(none)" else parts.joinToString(" ")
+    }.getOrDefault("(unreadable)")
+
+    /** The controller's extras bundle — some stacks surface AVRCP-side data (folder data,
+     *  cover-art handles) exactly there, never in the metadata. Keys plus short strings. */
+    private fun describeExtras(controller: MediaController) {
+        val extras = runCatching { controller.extras }.getOrNull() ?: return
+        val line = runCatching {
+            extras.keySet().sorted().joinToString(" ") { key ->
+                val value = when (val v = extras.get(key)) {
+                    is String -> "s${v.length}:${v.take(40)}"
+                    is CharSequence -> "s${v.length}"
+                    is Number -> "n"
+                    else -> "-"
+                }
+                "$key=$value"
+            }
+        }.getOrNull().orEmpty()
+        if (line.isNotEmpty()) HvacLog.d("cluster.bt: session extras: $line")
     }
 
     private fun firstOf(meta: MediaMetadata, vararg keys: String): String =
