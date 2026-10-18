@@ -18,14 +18,11 @@ import java.io.ByteArrayOutputStream
  * phone plays through the car's A2DP/AVRCP channel, the car's Bluetooth app holds a local
  * session with the very track the stock card shows, but without artwork. This monitor re-reads
  * that session once a second and hands [onUpdate] a snapshot built from ITS fields plus the
- * extracted artwork — the published card blends into the stock one instead of fighting it
- * from different data. Reads require this app to be the connected notification listener
- * ([BtMediaListener]); the artwork comes from the session bitmaps, the art URI, or — the
- * rung this head unit actually needs (round 9) — the session's media notification, and goes
- * through the same public catalog the AA path uses. Only PLAYING sessions win; short dropouts
+ * extracted artwork. Reads require this app to be the connected notification listener
+ * ([BtMediaListener]); the artwork comes from the session bitmaps, the art URI, or the
+ * session's media notification. Only PLAYING sessions win; short dropouts
  * are held through ([SESSION_GRACE_MS], as the references do) so a jitter never flips the
- * card to the other content, and a real stop reports null so the card returns to the AA
- * content or clears.
+ * card, and a real stop reports null so the card clears.
  */
 class BtMediaMonitor(
     context: Context,
@@ -107,10 +104,11 @@ class BtMediaMonitor(
     }
 
     /** Per-tick fast path: an unchanged track WITH its cover returns the stored snapshot.
-     *  A coverless track is re-extracted every tick — on this head unit the cover reaches the
-     *  Bluetooth notification seconds after the session metadata (round 9, конспект §2c), and
-     *  both working references retry for exactly that window; the refreshed snapshot then
-     *  re-publishes the card mid-track. */
+     *  A coverless track is re-extracted every tick — the cover can reach the session's media
+     *  notification seconds after the metadata (the rung Button 2.8.3 mines; not observed on
+     *  this head unit's own Bluetooth session so far — car log 2026-10-18), and both working
+     *  references retry for exactly that window; the refreshed snapshot then re-publishes the
+     *  card mid-track. */
     private fun snapshotFor(meta: MediaMetadata, key: String, pkg: String): TrackSnapshot? {
         val known = snapshots[key]
         if (key == lastKey && known?.artworkUri != null) return known
@@ -166,8 +164,8 @@ class BtMediaMonitor(
     /** Session artwork ladder: the AVRCP bitmaps first (embedded art, then the display icon
      *  via the public description — the raw DISPLAY_ICON_BITMAP key is hidden API), then the
      *  art URI (album-art content provider), then the cover of the session's own media
-     *  notification — on this head unit the Bluetooth cover often lives only there (round 9;
-     *  Button 2.8.3 mines the same rung). */
+     *  notification (the rung Button 2.8.3 mines; so far silent on this head unit — car log
+     *  2026-10-18). */
     private fun artworkOf(meta: MediaMetadata, pkg: String, title: String): ByteArray? {
         val bitmap = meta.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
             ?: meta.getBitmap(MediaMetadata.METADATA_KEY_ART)
@@ -204,7 +202,8 @@ class BtMediaMonitor(
         /** Short AVRCP dropouts are held through instead of releasing the card (round 9). */
         internal const val SESSION_GRACE_MS = 2000L
 
-        /** Same composition as the AA side (ClusterMediaBridge.trackKeyOf) for hash-stable covers. */
+        /** Title|artist|album|duration — its sha256 doubles as the cover file name and the
+         *  card uuid, so the same track keeps its identity across re-reads. */
         internal fun trackKeyOf(meta: MediaMetadata): String =
             listOf(
                 meta.getString(MediaMetadata.METADATA_KEY_TITLE) ?: "",

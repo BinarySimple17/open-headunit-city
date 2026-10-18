@@ -1363,8 +1363,7 @@
     <string name="hvac_send_logs_summary">Opens the share sheet with the HVAC_Log_*.txt files from the Download folder - pick Bluetooth to send them to a phone</string>
     <string name="hvac_send_logs_none">No HVAC logs yet - enable the detailed HVAC log, reproduce the issue, then send again</string>
     <string name="cluster_media">Media on instrument cluster</string>
-    <string name="cluster_media_description">Additionally shows the Android Auto track (title, artist, album, cover) on the car\'s instrument cluster. Requires \"AA now playing on media session\" - that session and notification keep working as before</string>
-    <string name="cluster_media_disabled_hint">Requires \"AA now playing on media session\" to be enabled first</string>
+    <string name="cluster_media_description">Shows the track playing on the phone (title, artist, album, cover) on the car\'s instrument cluster over the Bluetooth channel - works for both plain Bluetooth audio and Android Auto playback</string>
     <string name="cluster_bt_fallback">Cluster card from Bluetooth music</string>
     <string name="cluster_bt_fallback_description">Feeds the cluster card from the head units own Bluetooth session while the phone plays over the car Bluetooth channel. Needs notification access once</string>
     <string name="cluster_bt_fallback_grant_hint">Grant notification access to this app</string>

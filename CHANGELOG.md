@@ -1,5 +1,7 @@
 # Changelog
-### v.3.5.0-beta15
+### v.3.5.0-beta16
+- Changed: the instrument-cluster card now has a single publisher - the head unit's own Bluetooth session. The Android Auto track card is retired completely: car round 9 caught our own AA card (with its cover) being displaced by our own Bluetooth card one second after publication, so the "card fight" was between our two channels, and one channel means no arbitration by construction. The Bluetooth session mirrors the phone's track over both plain Bluetooth audio and Android Auto playback, the card no longer depends on the "AA now playing on media session" switch, and a stopped or paused session clears the card after its two-second grace window
+
 - Fixed: a notification from any app carrying an icon in an unexpected format crashed the whole app through the notification listener the cluster card's Bluetooth fallback relies on - such payloads now degrade to "no artwork" instead (found and reproduced on the emulator bench); the listener is also protected against every other malformed notification
 - Added: the mock-car stand-in gains the media-card receiver and a fake Bluetooth source (F014) - the cluster card pipeline is rehearsed on an emulator end to end, including the cover drawn from the published file exactly like the real cluster reads it
 ### v.3.5.0-beta14

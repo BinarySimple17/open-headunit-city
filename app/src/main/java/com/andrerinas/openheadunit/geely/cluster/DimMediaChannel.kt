@@ -124,8 +124,8 @@ object DimMediaChannel {
             }
         }
         Mode.NONE -> {
-            // A caller without a connected channel: the AA stop path ticks progress even when
-            // nothing was ever published — routine on non-Geely builds, so debug-level only.
+            // A caller without a connected channel: the clear path pushes an empty card even
+            // when nothing was ever published — routine, so debug-level only.
             HvacLog.d("cluster.dim: publish/progress skipped — channel not connected")
             false
         }

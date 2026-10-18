@@ -3267,8 +3267,6 @@ class SettingsFragment : Fragment() {
         val hvacCarModel = pendingHvacCarModel ?: hvac.carModel
         val hvacDebugLog = pendingHvacDebugLog ?: hvac.debugLog
         val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
-        // F013: our cluster toggle exists only on top of the native media-session switch.
-        val nativeSyncOn = pendingSyncMediaSessionAaMetadata ?: settings.syncMediaSessionWithAaMetadata
         val clusterMediaOn = pendingClusterMedia ?: ClusterMediaSettings(requireContext().applicationContext).enabled
         val clusterBtFallbackOn = pendingClusterBtFallback ?: ClusterMediaSettings(requireContext().applicationContext).btFallback
         val saveHvacChange: () -> Unit = {
@@ -3368,10 +3366,6 @@ class SettingsFragment : Fragment() {
             nameResId = R.string.cluster_media,
             descriptionResId = R.string.cluster_media_description,
             isChecked = clusterMediaOn,
-            // The dependency gate: without the native switch ours redirects nothing, so it
-            // stays gray with the hint; a saved checkmark keeps waiting for it to return.
-            isEnabled = nativeSyncOn,
-            descriptionOverride = if (nativeSyncOn) null else getString(R.string.cluster_media_disabled_hint),
             onCheckedChanged = { checked ->
                 pendingClusterMedia = checked
                 saveHvacChange()
