@@ -8,6 +8,7 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.net.Uri
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -39,6 +40,7 @@ class BtMediaMonitor(
     private var lastKey: String? = null
     private var lastPlayingAt = 0L
     private var gapHeld = false
+    private var lastOverview: String? = null
 
     private val tick: Runnable = Runnable {
         if (stopped) return@Runnable
@@ -59,6 +61,7 @@ class BtMediaMonitor(
         lastKey = null
         lastPlayingAt = 0L
         gapHeld = false
+        lastOverview = null
     }
 
     private fun tickOnce() {
@@ -71,6 +74,11 @@ class BtMediaMonitor(
         val controller = controllers
             .filter { it.packageName != selfPackage }
             .firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+        val overview = controllers.joinToString(" ") { "${it.packageName}:${it.playbackState?.state}" }
+        if (overview != lastOverview) {
+            lastOverview = overview
+            HvacLog.d("cluster.bt: sessions: $overview")
+        }
         val meta = controller?.metadata
         if (controller == null || meta == null) {
             // References hold the card through short AVRCP dropouts (Button's grace constants
@@ -95,7 +103,16 @@ class BtMediaMonitor(
         gapHeld = false
         val state = controller.playbackState
         val key = trackKeyOf(meta)
-        if (key != lastKey) describeExtras(controller)
+        if (key != lastKey) {
+            // Once per track: the full surface the public API exposes plus the direct AVRCP
+            // stack probe (round-10 cover quest — the firmware may hold art it never
+            // publishes into the session).
+            AvrcpArtProbe.ensureBound(app)
+            describeBundle("session extras", runCatching { controller.extras }.getOrNull())
+            describeBundle("state extras", runCatching { state?.extras }.getOrNull())
+            describeQueue(controller)
+            AvrcpArtProbe.dump()
+        }
         val snapshot = snapshotFor(meta, key, controller.packageName ?: "")
         val position = state?.let {
             it.position + if (it.state == PlaybackState.STATE_PLAYING) {
@@ -147,6 +164,12 @@ class BtMediaMonitor(
             // actually carries — every key and its value kind — so "the firmware keeps the
             // cover somewhere else" becomes provable without adb on the unit. Once per track.
             HvacLog.d("cluster.bt: session keys ($title): ${describeKeys(meta)}")
+            val desc = runCatching { meta.description }.getOrNull()
+            if (desc != null) {
+                val descExtras = desc.extras?.keySet()?.sorted()?.joinToString(" ").orEmpty()
+                HvacLog.d("cluster.bt: session description: iconUri=${desc.iconUri ?: "none"}, " +
+                    "iconBitmap=${if (desc.iconBitmap != null) "yes" else "no"}, extras=[$descExtras]")
+            }
         }
         val artwork = artworkOf(meta, pkg, title)
         if (artwork == null && firstSight) {
@@ -199,23 +222,10 @@ class BtMediaMonitor(
         return out.toByteArray().takeIf { it.isNotEmpty() }
     }
 
-    /** Every metadata key with a compact value kind: b=WxH bitmap, s=len string, n=number,
-     *  -=none of those. The cover quest needs the FULL key list, not just the rungs we read. */
-    private fun describeKeys(meta: MediaMetadata): String = runCatching {
-        val parts = meta.keySet().sorted().map { key ->
-            val kind = meta.getBitmap(key)?.let { "b${it.width}x${it.height}" }
-                ?: meta.getString(key)?.takeIf { it.isNotEmpty() }?.let { "s${it.length}" }
-                ?: meta.getLong(key).takeIf { it != 0L }?.let { "n" }
-                ?: "-"
-            "$key=$kind"
-        }
-        if (parts.isEmpty()) "(none)" else parts.joinToString(" ")
-    }.getOrDefault("(unreadable)")
-
-    /** The controller's extras bundle — some stacks surface AVRCP-side data (folder data,
-     *  cover-art handles) exactly there, never in the metadata. Keys plus short strings. */
-    private fun describeExtras(controller: MediaController) {
-        val extras = runCatching { controller.extras }.getOrNull() ?: return
+    /** A bundle's keys with short values — the controller and playbackState extras are two
+     *  different bundles, and some stacks surface AVRCP-side data in one of them only. */
+    private fun describeBundle(label: String, extras: Bundle?) {
+        if (extras == null) return
         val line = runCatching {
             extras.keySet().sorted().joinToString(" ") { key ->
                 val value = when (val v = extras.get(key)) {
@@ -227,7 +237,27 @@ class BtMediaMonitor(
                 "$key=$value"
             }
         }.getOrNull().orEmpty()
-        if (line.isNotEmpty()) HvacLog.d("cluster.bt: session extras: $line")
+        if (line.isNotEmpty()) HvacLog.d("cluster.bt: $label: $line")
+    }
+
+    /** The session's now-playing queue — queue items carry their own MediaDescription, and
+     *  some stacks expose per-track art (uri or bitmap) only there. */
+    private fun describeQueue(controller: MediaController) {
+        runCatching {
+            val items = controller.queue.orEmpty()
+            if (items.isEmpty()) {
+                HvacLog.d("cluster.bt: session queue: empty")
+                return
+            }
+            val withIcon = items.count {
+                it.description?.iconUri != null || it.description?.iconBitmap != null
+            }
+            val first = items.first().description
+            val firstIcon = first?.iconUri?.toString()
+                ?: if (first?.iconBitmap != null) "bitmap" else "none"
+            HvacLog.d("cluster.bt: session queue: ${items.size} items, " +
+                "icons=$withIcon/${items.size}, first=$firstIcon")
+        }.onFailure { HvacLog.d("cluster.bt: session queue: unreadable (${it.message})") }
     }
 
     private fun firstOf(meta: MediaMetadata, vararg keys: String): String =
@@ -240,6 +270,20 @@ class BtMediaMonitor(
 
         /** Short AVRCP dropouts are held through instead of releasing the card (round 9). */
         internal const val SESSION_GRACE_MS = 2000L
+
+        /** Every metadata key with a compact value kind: b=WxH bitmap, s=len string, n=number,
+         *  -=none of those. The cover quest needs the FULL key list, not just the rungs we
+         *  read; [AvrcpArtProbe] describes the stack's own metadata with the same helper. */
+        internal fun describeKeys(meta: MediaMetadata): String = runCatching {
+            val parts = meta.keySet().sorted().map { key ->
+                val kind = meta.getBitmap(key)?.let { "b${it.width}x${it.height}" }
+                    ?: meta.getString(key)?.takeIf { it.isNotEmpty() }?.let { "s${it.length}" }
+                    ?: meta.getLong(key).takeIf { it != 0L }?.let { "n" }
+                    ?: "-"
+                "$key=$kind"
+            }
+            if (parts.isEmpty()) "(none)" else parts.joinToString(" ")
+        }.getOrDefault("(unreadable)")
 
         /** Title|artist|album|duration — its sha256 doubles as the cover file name and the
          *  card uuid, so the same track keeps its identity across re-reads. */

@@ -3376,18 +3376,27 @@ class SettingsFragment : Fragment() {
             nameResId = R.string.cluster_bt_fallback,
             descriptionResId = R.string.cluster_bt_fallback_description,
             isChecked = clusterBtFallbackOn,
-            onCheckedChanged = { checked ->
-                if (checked && !notificationAccessGranted()) {
-                    // The grant lives in a system screen; the switch stores the intent
-                    // and the card arms itself the moment the listener connects.
-                    runCatching {
-                        startActivity(Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                onCheckedChanged = { checked ->
+                    if (checked) {
+                        // The grant lives in a system screen; the switch stores the intent
+                        // and the card arms itself the moment the listener connects.
+                        if (!notificationAccessGranted()) {
+                            runCatching {
+                                startActivity(Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                            }
+                            ToastUtils.showToast(requireContext(), R.string.cluster_bt_fallback_grant_hint, Toast.LENGTH_LONG)
+                        }
+                        // The AVRCP stack probe (round-10 cover quest) talks to the Bluetooth
+                        // profile directly - the runtime connect grant gates it on API 31+.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                            ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            bluetoothPermissionLauncher.launch(android.Manifest.permission.BLUETOOTH_CONNECT)
+                        }
                     }
-                    ToastUtils.showToast(requireContext(), R.string.cluster_bt_fallback_grant_hint, Toast.LENGTH_LONG)
+                    pendingClusterBtFallback = checked
+                    saveHvacChange()
                 }
-                pendingClusterBtFallback = checked
-                saveHvacChange()
-            }
         ))
 
         // No bottom save button: the toolbar Save is the single save
