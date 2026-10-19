@@ -475,6 +475,12 @@ class AapService : Service() {
     private fun onAaMediaMetadataFromPhone(meta: MediaPlayback.MediaMetaData) {
         if (isDestroying) return
         lastAaMediaMetadata = meta
+        // Geely cluster card (S014, model A): the AA stream's art bytes FEED the Bluetooth
+        // card as a donor — the bridge publishes nothing here (single publisher, D-010).
+        App.provide(this).clusterMediaBridge.onAaCover(
+            meta.song, meta.artist,
+            if (meta.hasAlbumArt() && !meta.albumArt.isEmpty) meta.albumArt.toByteArray() else null,
+        )
         if (!shouldSyncAaMediaMetadata()) return
         // Avoid showing a previous track's art with new title/artist until decode finishes.
         cachedAaAlbumArtBitmap = null

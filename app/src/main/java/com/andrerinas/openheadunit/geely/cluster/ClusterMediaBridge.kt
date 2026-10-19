@@ -13,7 +13,9 @@ import java.util.concurrent.Executors
  * through the car — plain A2DP and Android Auto alike (round 9: while AA projected, the
  * AVRCP session carried the very same track) — and one publisher means one card with no
  * arbitration: round 9 caught our AA card (with its cover) being displaced by our own
- * Bluetooth card one second after publication. The gate is our two switches plus the
+ * Bluetooth card one second after publication. The AA stream's art bytes arrive as a DONOR
+ * ([AaCoverDonor], D-011): they feed the card's last ladder rung and never publish. The
+ * gate is our two switches plus the
  * notification listener ([BtMediaListener]) that both the session read and the artwork
  * rungs need; flipping any of them off stops the publication immediately and clears the
  * card — it must not hang around stale until the next track.
@@ -27,6 +29,10 @@ class ClusterMediaBridge(context: Context) {
 
     private val app = context.applicationContext
     private val settings = ClusterMediaSettings(app)
+    private val cache = ClusterArtworkCache(app)
+
+    /** AA-stream art bytes for the Bluetooth card's ladder — a donor, never a publisher. */
+    private val aaDonor = AaCoverDonor()
     private val worker: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "cluster-media").apply { isDaemon = true }
     }
@@ -44,6 +50,11 @@ class ClusterMediaBridge(context: Context) {
 
     init {
         settings.addListener(prefListener)
+    }
+
+    /** AA metadata carries album art: remember it under the track key (model A donor). */
+    fun onAaCover(title: String, artist: String, bytes: ByteArray?) {
+        worker.execute { aaDonor.offer(title, artist, bytes) }
     }
 
     /** The notification listener connected or died — the Bluetooth card may arm/disarm. */
@@ -118,7 +129,7 @@ class ClusterMediaBridge(context: Context) {
                 return
             }
             HvacLog.i("cluster.bt: fallback armed (notification listener connected)")
-            val created = BtMediaMonitor(app, app.packageName) { s, p, playing ->
+            val created = BtMediaMonitor(app, app.packageName, cache, aaDonor::coverFor) { s, p, playing ->
                 onBtUpdate(s, p, playing)
             }
             btMonitor = created

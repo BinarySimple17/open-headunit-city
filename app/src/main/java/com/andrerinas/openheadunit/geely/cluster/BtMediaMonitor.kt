@@ -4,11 +4,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadata
-import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.net.Uri
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -21,18 +19,20 @@ import java.io.ByteArrayOutputStream
  * session with the very track the stock card shows, but without artwork. This monitor re-reads
  * that session once a second and hands [onUpdate] a snapshot built from ITS fields plus the
  * extracted artwork. Reads require this app to be the connected notification listener
- * ([BtMediaListener]); the artwork comes from the session bitmaps, the art URI, or the
- * session's media notification. Only PLAYING sessions win; short dropouts
+ * ([BtMediaListener]); the artwork comes from the session bitmaps, the art URIs, the
+ * session's media notification, or — last rung (D-011) — the AA stream's own bytes for the
+ * very same track. Only PLAYING sessions win; short dropouts
  * are held through ([SESSION_GRACE_MS], as the references do) so a jitter never flips the
  * card, and a real stop reports null so the card clears.
  */
 class BtMediaMonitor(
     context: Context,
     private val selfPackage: String,
+    private val cache: ClusterArtworkCache,
+    private val aaCover: (title: String?, artist: String?) -> ByteArray?,
     private val onUpdate: (snapshot: TrackSnapshot?, positionMs: Long, isPlaying: Boolean) -> Unit,
 ) {
     private val app = context.applicationContext
-    private val cache = ClusterArtworkCache(app)
     private val main = Handler(Looper.getMainLooper())
     private val snapshots = HashMap<String, TrackSnapshot>()
 
@@ -108,9 +108,9 @@ class BtMediaMonitor(
             // stack probe (round-10 cover quest — the firmware may hold art it never
             // publishes into the session).
             AvrcpArtProbe.ensureBound(app)
-            describeBundle("session extras", runCatching { controller.extras }.getOrNull())
-            describeBundle("state extras", runCatching { state?.extras }.getOrNull())
-            describeQueue(controller)
+            BtSessionDiagnostics.describeBundle("session extras", runCatching { controller.extras }.getOrNull())
+            BtSessionDiagnostics.describeBundle("state extras", runCatching { state?.extras }.getOrNull())
+            BtSessionDiagnostics.describeQueue(controller)
             AvrcpArtProbe.dump()
         }
         val snapshot = snapshotFor(meta, key, controller.packageName ?: "")
@@ -163,7 +163,7 @@ class BtMediaMonitor(
             // The AVRCP cover quest (round 10): the car log must show EVERYTHING the session
             // actually carries — every key and its value kind — so "the firmware keeps the
             // cover somewhere else" becomes provable without adb on the unit. Once per track.
-            HvacLog.d("cluster.bt: session keys ($title): ${describeKeys(meta)}")
+            HvacLog.d("cluster.bt: session keys ($title): ${BtSessionDiagnostics.describeKeys(meta)}")
             val desc = runCatching { meta.description }.getOrNull()
             if (desc != null) {
                 val descExtras = desc.extras?.keySet()?.sorted()?.joinToString(" ").orEmpty()
@@ -171,7 +171,7 @@ class BtMediaMonitor(
                     "iconBitmap=${if (desc.iconBitmap != null) "yes" else "no"}, extras=[$descExtras]")
             }
         }
-        val artwork = artworkOf(meta, pkg, title)
+        val artwork = artworkOf(meta, pkg, title, artist)
         if (artwork == null && firstSight) {
             // Runs once per track (retries stay silent until they succeed) — the car log
             // must separate "the session carries no cover" from "the cover was not rendered".
@@ -192,27 +192,55 @@ class BtMediaMonitor(
         return snapshot
     }
 
-    /** Session artwork ladder: the AVRCP bitmaps first (embedded art, then the display icon
-     *  via the public description — the raw DISPLAY_ICON_BITMAP key is hidden API), then the
-     *  art URI (album-art content provider), then the cover of the session's own media
-     *  notification (the rung Button 2.8.3 mines; so far silent on this head unit — car log
-     *  2026-10-18). */
-    private fun artworkOf(meta: MediaMetadata, pkg: String, title: String): ByteArray? {
+    /** Session artwork ladder — the first rung with bytes wins, its verdict lands in the
+     *  car log so "no cover anywhere" and "the cover was not rendered" never blur:
+     *  the AVRCP bitmaps (album art, art, display icon, the description's bitmap — the raw
+     *  DISPLAY_ICON_BITMAP key is hidden API), the art URIs (album-art content provider),
+     *  the public icon URIs (display-icon uri, description uri), the session's media
+     *  notification (the rung Button 2.8.3 mines; silent on this head unit — 2026-10-18),
+     *  and last the AA-stream DONOR (D-011): the same track's bytes the projection already
+     *  delivered into this process. */
+    private fun artworkOf(meta: MediaMetadata, pkg: String, title: String, artist: String): ByteArray? {
         val bitmap = meta.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
             ?: meta.getBitmap(MediaMetadata.METADATA_KEY_ART)
+            ?: meta.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
             ?: meta.description?.iconBitmap
-        jpegOf(bitmap)?.let { return it }
+        jpegOf(bitmap)?.let { return rung("session bitmap", title, it) }
         for (key in listOf(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, MediaMetadata.METADATA_KEY_ART_URI)) {
             val uri = meta.getString(key)
             if (uri.isNullOrEmpty()) continue
             runCatching {
                 app.contentResolver.openInputStream(Uri.parse(uri))?.use { stream ->
-                    return stream.readBytes()
+                    return rung("art uri", title, stream.readBytes())
                 }
             }
         }
-        if (pkg.isNotEmpty()) jpegOf(BtMediaListener.artworkFor(pkg, title))?.let { return it }
+        for (uri in listOf(
+            meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),
+            meta.description?.iconUri?.toString(),
+        )) {
+            if (uri.isNullOrEmpty()) continue
+            runCatching {
+                app.contentResolver.openInputStream(Uri.parse(uri))?.use { stream ->
+                    return rung("icon uri", title, stream.readBytes())
+                }
+            }
+        }
+        if (pkg.isNotEmpty()) jpegOf(BtMediaListener.artworkFor(pkg, title))?.let {
+            return rung("notification", title, it)
+        }
+        // The donor's bytes are already an encoded image (the AA stream's albumArt) —
+        // no re-encode, store as they came.
+        aaCover(title, artist)?.takeIf { it.isNotEmpty() }?.let {
+            HvacLog.i("cluster.bt: cover from the AA stream ($title)")
+            return it
+        }
         return null
+    }
+
+    private fun rung(name: String, title: String, bytes: ByteArray): ByteArray {
+        HvacLog.i("cluster.bt: cover rung: $name ($title)")
+        return bytes
     }
 
     private fun jpegOf(bitmap: Bitmap?): ByteArray? {
@@ -220,44 +248,6 @@ class BtMediaMonitor(
         val out = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
         return out.toByteArray().takeIf { it.isNotEmpty() }
-    }
-
-    /** A bundle's keys with short values — the controller and playbackState extras are two
-     *  different bundles, and some stacks surface AVRCP-side data in one of them only. */
-    private fun describeBundle(label: String, extras: Bundle?) {
-        if (extras == null) return
-        val line = runCatching {
-            extras.keySet().sorted().joinToString(" ") { key ->
-                val value = when (val v = extras.get(key)) {
-                    is String -> "s${v.length}:${v.take(40)}"
-                    is CharSequence -> "s${v.length}"
-                    is Number -> "n"
-                    else -> "-"
-                }
-                "$key=$value"
-            }
-        }.getOrNull().orEmpty()
-        if (line.isNotEmpty()) HvacLog.d("cluster.bt: $label: $line")
-    }
-
-    /** The session's now-playing queue — queue items carry their own MediaDescription, and
-     *  some stacks expose per-track art (uri or bitmap) only there. */
-    private fun describeQueue(controller: MediaController) {
-        runCatching {
-            val items = controller.queue.orEmpty()
-            if (items.isEmpty()) {
-                HvacLog.d("cluster.bt: session queue: empty")
-                return
-            }
-            val withIcon = items.count {
-                it.description?.iconUri != null || it.description?.iconBitmap != null
-            }
-            val first = items.first().description
-            val firstIcon = first?.iconUri?.toString()
-                ?: if (first?.iconBitmap != null) "bitmap" else "none"
-            HvacLog.d("cluster.bt: session queue: ${items.size} items, " +
-                "icons=$withIcon/${items.size}, first=$firstIcon")
-        }.onFailure { HvacLog.d("cluster.bt: session queue: unreadable (${it.message})") }
     }
 
     private fun firstOf(meta: MediaMetadata, vararg keys: String): String =
@@ -270,20 +260,6 @@ class BtMediaMonitor(
 
         /** Short AVRCP dropouts are held through instead of releasing the card (round 9). */
         internal const val SESSION_GRACE_MS = 2000L
-
-        /** Every metadata key with a compact value kind: b=WxH bitmap, s=len string, n=number,
-         *  -=none of those. The cover quest needs the FULL key list, not just the rungs we
-         *  read; [AvrcpArtProbe] describes the stack's own metadata with the same helper. */
-        internal fun describeKeys(meta: MediaMetadata): String = runCatching {
-            val parts = meta.keySet().sorted().map { key ->
-                val kind = meta.getBitmap(key)?.let { "b${it.width}x${it.height}" }
-                    ?: meta.getString(key)?.takeIf { it.isNotEmpty() }?.let { "s${it.length}" }
-                    ?: meta.getLong(key).takeIf { it != 0L }?.let { "n" }
-                    ?: "-"
-                "$key=$kind"
-            }
-            if (parts.isEmpty()) "(none)" else parts.joinToString(" ")
-        }.getOrDefault("(unreadable)")
 
         /** Title|artist|album|duration — its sha256 doubles as the cover file name and the
          *  card uuid, so the same track keeps its identity across re-reads. */

@@ -28,7 +28,7 @@ import android.util.Log
  * console or via adb:
  *
  *   adb shell am start-foreground-service -n com.geely.mockcar/.MockCarService -a com.geely.mockcar.BT_PLAY \
- *       --es title "Track" --es artist "Artist" --eil artwork_delay_ms 3000
+ *       --es title "Track" --es artist "Artist" --el artwork_delay_ms 3000
  *   ... -a com.geely.mockcar.BT_PAUSE   /   ... -a com.geely.mockcar.BT_STOP
  */
 class MockCarService : Service() {

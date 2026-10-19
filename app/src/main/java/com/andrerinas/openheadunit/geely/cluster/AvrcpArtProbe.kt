@@ -69,7 +69,7 @@ object AvrcpArtProbe {
             val meta = bound.javaClass.methods
                 .firstOrNull { it.name == "getMetadata" }
                 ?.invoke(bound, device) as? MediaMetadata
-            val keys = meta?.let { BtMediaMonitor.describeKeys(it) } ?: "(null)"
+            val keys = meta?.let { BtSessionDiagnostics.describeKeys(it) } ?: "(null)"
             HvacLog.d("cluster.bt: avrcp probe (${"device ${devices.size}"}): $keys")
         }.onFailure {
             HvacLog.d("cluster.bt: avrcp probe failed: ${it.message}")
