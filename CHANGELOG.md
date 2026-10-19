@@ -1,5 +1,7 @@
 # Changelog
 ### v.3.5.0-beta19
+- (fill in before release)
+### v.3.5.0-beta19
 - Added: the Bluetooth card can finally carry a cover - the Android Auto stream donates its album art bytes to the very same card. The publisher stays single (the head unit's own Bluetooth session, no card fights): when the projection delivers artwork for a track, the card's ladder picks those bytes up for exactly that title and artist, a mismatch means no cover rather than a foreign one, and every rung of the ladder prints its verdict to the car log
 - Changed: the artwork ladder also tries the session's public display-icon keys and uris
 ### v.3.5.0-beta18
