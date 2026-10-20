@@ -64,8 +64,11 @@ internal object DimSourceProbe {
                 armed = true
                 HvacLog.i("cluster.source: callback armed via ${method.name} (${callbackInterface.name})")
             } catch (e: Throwable) {
-                // Staying unarmed is safe: the events simply stay unseen, the card lives on.
-                HvacLog.e("cluster.source: register via ${method.name} failed", e.cause ?: e)
+                // One verdict per channel: a rejecting firmware would answer the same way
+                // every publish, so stay unarmed WITHOUT re-asking (events stay unseen, the
+                // card lives on); release() re-arms on the next gate cycle.
+                armed = true
+                HvacLog.e("cluster.source: register via ${method.name} failed — no retry this channel", e.cause ?: e)
             }
         }
     }
@@ -92,17 +95,27 @@ internal object DimSourceProbe {
     }
 
     /**
-     * The registration call, chosen exactly as Button does: one argument that is an
-     * interface, name contains set/register/add and none of unset/remove.
+     * The registration call, chosen exactly as Button does: the decoded name first
+     * (media-interaction callback, set/register/add family, none of unset/remove), the
+     * shape scan only as fallback — the scan alone races the unspecified Class.methods
+     * order and can arm a foreign listener while claiming ours.
      */
-    internal fun findRegistrationMethod(mediaClass: Class<*>): Method? =
-        mediaClass.methods.firstOrNull { method ->
+    internal fun findRegistrationMethod(mediaClass: Class<*>): Method? {
+        val byName = mediaClass.methods.firstOrNull { method ->
+            val name = method.name.lowercase()
+            method.parameterTypes.size == 1 && method.parameterTypes[0].isInterface &&
+                name.contains("mediainteraction") && name.contains("callback") &&
+                !name.contains("unset") && !name.contains("remove")
+        }
+        if (byName != null) return byName
+        return mediaClass.methods.firstOrNull { method ->
             val name = method.name.lowercase()
             method.parameterTypes.size == 1 &&
                 method.parameterTypes[0].isInterface &&
                 (name.contains("set") || name.contains("register") || name.contains("add")) &&
                 !name.contains("unset") && !name.contains("remove")
         }
+    }
 
     /**
      * One firmware event name + arguments -> one log line. The known names get the exact
@@ -209,14 +222,14 @@ internal object DimSourceProbe {
         if (descriptor == lastAnnounced) return
         lastAnnounced = descriptor
         lastFailure = ""
-        HvacLog.i("cluster source: $descriptor")
+        HvacLog.i("cluster.source: $descriptor")
     }
 
     private fun noteFailure(reason: String) {
         if (reason == lastFailure) return
         lastFailure = reason
         // Past failures repeat every tick until fixed — dedup them to once per reason.
-        HvacLog.d("cluster source: read-back unavailable ($reason)")
+        HvacLog.d("cluster.source: read-back unavailable ($reason)")
     }
 
     /** A getter by name on ANY object (never a cast — trap #2: our own proxy may come back

@@ -46,10 +46,37 @@ class DimSourceProbeTest {
         fun setVolume(level: Int)
     }
 
+    private interface ForeignListener {
+        fun onForeign(x: Int)
+    }
+
+    /** A foreign interface setter declared BEFORE the media callback: the shape scan alone
+     *  would take whichever comes first in the unspecified Class.methods order. */
+    private class TestForeignFirst {
+        fun setForeignListener(listener: ForeignListener) {}
+        fun setMediaInteractionCallback(callback: TestCallback) {}
+    }
+
+    private class TestScanOnly {
+        fun setForeignListener(listener: ForeignListener) {}
+    }
+
     @Test
     fun `the registration method is picked by the Button signature`() {
         val method = DimSourceProbe.findRegistrationMethod(TestMedia::class.java)
         assertEquals("setMediaInteractionCallback", method?.name)
+    }
+
+    @Test
+    fun `the decoded name wins over a foreign setter regardless of method order`() {
+        val method = DimSourceProbe.findRegistrationMethod(TestForeignFirst::class.java)
+        assertEquals("setMediaInteractionCallback", method?.name)
+    }
+
+    @Test
+    fun `without the decoded name the shape scan still finds a setter`() {
+        val method = DimSourceProbe.findRegistrationMethod(TestScanOnly::class.java)
+        assertEquals("setForeignListener", method?.name)
     }
 
     @Test
