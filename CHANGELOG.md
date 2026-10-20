@@ -1,4 +1,6 @@
 # Changelog
+### v.3.5.0-beta21
+- Fixed: the pre-round review of the cluster source probe - the callback registration is now found by its decoded name first (a shape scan alone could arm a foreign listener and the flicker hunt would see no events at all), a failed registration is reported exactly once per channel instead of retrying every publish, and the read-back lines share the events' log prefix; no behavior change for the card itself
 ### v.3.5.0-beta20
 - Added: round-10 diagnostics only - the app now registers the instrument cluster's own diminteraction media callback (source-selected, source-changed and status-refresh events) and reads back the card the cluster is currently holding (uuid, source type, title) once every track tick. Every observation lands in the detailed HVAC log, so the card flicker hunt sees who and when switches the slot; nothing is published and the card itself is never touched
 ### v.3.5.0-beta19
