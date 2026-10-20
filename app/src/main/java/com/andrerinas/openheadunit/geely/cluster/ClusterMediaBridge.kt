@@ -48,6 +48,10 @@ class ClusterMediaBridge(context: Context) {
         worker.execute { handleGateChanged() }
     }
 
+    /** S015 source-probe lines come from the firmware's binder threads: marshal them onto
+     *  the worker (the log write must never run on the binder side). */
+    private val sourceEventSink: (String) -> Unit = { line -> worker.execute { HvacLog.i(line) } }
+
     init {
         settings.addListener(prefListener)
     }
@@ -109,6 +113,11 @@ class ClusterMediaBridge(context: Context) {
             if (publish(snapshot)) lastSnapshot = snapshot
         }
         DimMediaChannel.publishProgress(positionMs)
+        // S015 diagnostics: which card does the cluster hold RIGHT NOW (uuid/sourceType)?
+        // Read-back only — the publication model stays frozen this session (Task 2).
+        if (DimMediaChannel.firmwareChannel) {
+            DimMediaChannel.firmwareMediaInteraction()?.let { DimSourceProbe.readBack(it) }
+        }
     }
 
     private fun releaseBt(reason: String) {
@@ -138,6 +147,7 @@ class ClusterMediaBridge(context: Context) {
             HvacLog.i("cluster.bt: fallback disarmed")
             monitor.stop()
             btMonitor = null
+            DimSourceProbe.release()
             releaseBt("fallback disarmed")
         }
     }
@@ -145,6 +155,11 @@ class ClusterMediaBridge(context: Context) {
     private fun publish(snapshot: TrackSnapshot): Boolean {
         if (!DimMediaChannel.available && !DimMediaChannel.connect(app)) return false
         val infoInterface = DimMediaChannel.playbackInfoInterface() ?: return false
+        // The source probe arms itself after the first successful connect (once per
+        // channel; the bridge worker thread is the caller — publish's own thread).
+        if (DimMediaChannel.firmwareChannel) {
+            DimMediaChannel.firmwareMediaInteraction()?.let { DimSourceProbe.armOnce(it, sourceEventSink) }
+        }
         return DimMediaChannel.publish(PlaybackInfoProxy.create(infoInterface, snapshot))
     }
 

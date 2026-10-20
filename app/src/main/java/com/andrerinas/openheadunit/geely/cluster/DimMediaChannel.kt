@@ -55,6 +55,14 @@ object DimMediaChannel {
 
     val available: Boolean get() = mode != Mode.NONE
 
+    /** True when the firmware's mediaInteraction (not the debug mock) owns the channel —
+     *  the S015 source probe arms and reads back only here; the mock stand stays untouched. */
+    internal val firmwareChannel: Boolean get() = mode == Mode.FIRMWARE
+
+    /** The connected firmware mediaInteraction, or null (mock / none) — the bridge's worker
+     *  feeds it to [DimSourceProbe.readBack] once per tick. */
+    internal fun firmwareMediaInteraction(): Any? = if (mode == Mode.FIRMWARE) mediaInteraction else null
+
     /** Blocking connect; returns false — never throws — with the reason in [HvacLog]. */
     fun connect(context: Context): Boolean {
         if (available) return true
