@@ -1,4 +1,6 @@
 # Changelog
+### v.3.5.0-beta20
+- Added: round-10 diagnostics only - the app now registers the instrument cluster's own diminteraction media callback (source-selected, source-changed and status-refresh events) and reads back the card the cluster is currently holding (uuid, source type, title) once every track tick. Every observation lands in the detailed HVAC log, so the card flicker hunt sees who and when switches the slot; nothing is published and the card itself is never touched
 ### v.3.5.0-beta19
 - (fill in before release)
 ### v.3.5.0-beta19
