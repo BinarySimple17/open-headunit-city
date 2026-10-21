@@ -1,4 +1,6 @@
 # Changelog
+### v.3.5.0-beta22
+- Fixed: the slow half of the instrument-cluster card flicker - when the head unit's own media session drops out, the card is now held for up to 60 s (position frozen) instead of being cleared once the short 2 s grace runs out, which stopped the card from alternating with the stock Bluetooth card every few seconds; the track key no longer includes the duration the unit changes every tick, so the card identity stops being reissued and the cover pipeline stops re-running at 1 Hz; the car log now prints numeric metadata values and the name of the session that owns the card
 ### v.3.5.0-beta21
 - Fixed: the pre-round review of the cluster source probe - the callback registration is now found by its decoded name first (a shape scan alone could arm a foreign listener and the flicker hunt would see no events at all), a failed registration is reported exactly once per channel instead of retrying every publish, and the read-back lines share the events' log prefix; no behavior change for the card itself
 ### v.3.5.0-beta20
