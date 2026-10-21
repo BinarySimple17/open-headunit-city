@@ -72,8 +72,8 @@ class ClusterMediaBridge(context: Context) {
     }
 
     /** One read of the head unit's Bluetooth session ([BtMediaMonitor] tick). */
-    fun onBtUpdate(snapshot: TrackSnapshot?, positionMs: Long, isPlaying: Boolean) {
-        worker.execute { handleBtUpdate(snapshot, positionMs, isPlaying) }
+    fun onBtUpdate(snapshot: TrackSnapshot?, positionMs: Long, isPlaying: Boolean, sourcePackage: String) {
+        worker.execute { handleBtUpdate(snapshot, positionMs, isPlaying, sourcePackage) }
     }
 
     private fun handleClear(reason: String) {
@@ -93,7 +93,12 @@ class ClusterMediaBridge(context: Context) {
 
     /** The head unit's Bluetooth session is the single data source: while it plays, its
      *  content — the stock card's own data, plus any artwork the rungs find — owns the card. */
-    private fun handleBtUpdate(snapshot: TrackSnapshot?, positionMs: Long, isPlaying: Boolean) {
+    private fun handleBtUpdate(
+        snapshot: TrackSnapshot?,
+        positionMs: Long,
+        isPlaying: Boolean,
+        sourcePackage: String,
+    ) {
         if (!btFallbackArmed()) {
             releaseBt("fallback disarmed")
             return
@@ -105,9 +110,11 @@ class ClusterMediaBridge(context: Context) {
         if (!btOwner) {
             btOwner = true
             // artwork verdict is the round-9 open question: on the real head unit the AVRCP
-            // session carried no cover and no notification rung fired either.
-            HvacLog.i("cluster.bt: bluetooth session owns the card " +
-                "(${snapshot.title}, artwork=${snapshot.artworkUri != null})")
+            // session carried no cover and no notification rung fired either. The package is
+            // printed because the session choice (firstOrNull PLAYING, S015 fact 9) was
+            // invisible in the log — planner asked to see WHICH session wins.
+            HvacLog.i("cluster.bt: bluetooth session owns the card ($sourcePackage: " +
+                "${snapshot.title}, artwork=${snapshot.artworkUri != null})")
         }
         if (snapshot != lastSnapshot) {
             if (publish(snapshot)) lastSnapshot = snapshot
@@ -138,8 +145,8 @@ class ClusterMediaBridge(context: Context) {
                 return
             }
             HvacLog.i("cluster.bt: fallback armed (notification listener connected)")
-            val created = BtMediaMonitor(app, app.packageName, cache, aaDonor::coverFor) { s, p, playing ->
-                onBtUpdate(s, p, playing)
+            val created = BtMediaMonitor(app, app.packageName, cache, aaDonor::coverFor) { s, p, playing, pkg ->
+                onBtUpdate(s, p, playing, pkg)
             }
             btMonitor = created
             created.start()

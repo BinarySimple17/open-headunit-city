@@ -14,14 +14,16 @@ import com.andrerinas.openheadunit.geely.hvac.HvacLog
  */
 internal object BtSessionDiagnostics {
 
-    /** Every metadata key with a compact value kind: b=WxH bitmap, s=len string, n=number,
+    /** Every metadata key with a compact value kind: b=WxH bitmap, s=len string, n=value
+     *  for numbers (printed since the line-showing round 2026-10-21 — a numeric field the
+     *  unit jitters every tick proved the cleanup case; only kinds left it invisible),
      *  -=none of those. The cover quest needs the FULL key list, not just the rungs we
      *  read; [AvrcpArtProbe] describes the stack's own metadata with the same helper. */
     internal fun describeKeys(meta: MediaMetadata): String = runCatching {
         val parts = meta.keySet().sorted().map { key ->
             val kind = meta.getBitmap(key)?.let { "b${it.width}x${it.height}" }
                 ?: meta.getString(key)?.takeIf { it.isNotEmpty() }?.let { "s${it.length}" }
-                ?: meta.getLong(key).takeIf { it != 0L }?.let { "n" }
+                ?: meta.getLong(key).takeIf { it != 0L }?.let { "n$it" }
                 ?: "-"
             "$key=$kind"
         }

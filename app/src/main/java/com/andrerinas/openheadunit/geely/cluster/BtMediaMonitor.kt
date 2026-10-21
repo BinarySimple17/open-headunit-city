@@ -21,16 +21,23 @@ import java.io.ByteArrayOutputStream
  * extracted artwork. Reads require this app to be the connected notification listener
  * ([BtMediaListener]); the artwork comes from the session bitmaps, the art URIs, the
  * session's media notification, or — last rung (D-011) — the AA stream's own bytes for the
- * very same track. Only PLAYING sessions win; short dropouts
- * are held through ([SESSION_GRACE_MS], as the references do) so a jitter never flips the
- * card, and a real stop reports null so the card clears.
+ * very same track. Only PLAYING sessions win; short dropouts are held through
+ * ([SESSION_GRACE_MS], as the references do) so a jitter never flips the card, and the long
+ * PLAYING⇄STOPPED pauses this unit produces (round 2026-10-21 — the slow half of the
+ * flicker) hold the last card through ([CARD_HOLD_MS], S015 candidate A1) instead of
+ * clearing at the grace's end; only a stop older than the hold reports null.
  */
 class BtMediaMonitor(
     context: Context,
     private val selfPackage: String,
     private val cache: ClusterArtworkCache,
     private val aaCover: (title: String?, artist: String?) -> ByteArray?,
-    private val onUpdate: (snapshot: TrackSnapshot?, positionMs: Long, isPlaying: Boolean) -> Unit,
+    private val onUpdate: (
+        snapshot: TrackSnapshot?,
+        positionMs: Long,
+        isPlaying: Boolean,
+        sourcePackage: String,
+    ) -> Unit,
 ) {
     private val app = context.applicationContext
     private val main = Handler(Looper.getMainLooper())
@@ -38,8 +45,7 @@ class BtMediaMonitor(
 
     private var stopped = true
     private var lastKey: String? = null
-    private var lastPlayingAt = 0L
-    private var gapHeld = false
+    private val holdPolicy = CardHoldPolicy(SESSION_GRACE_MS, CARD_HOLD_MS)
     private var lastOverview: String? = null
 
     private val tick: Runnable = Runnable {
@@ -59,8 +65,7 @@ class BtMediaMonitor(
         main.removeCallbacks(tick)
         snapshots.clear()
         lastKey = null
-        lastPlayingAt = 0L
-        gapHeld = false
+        holdPolicy.reset()
         lastOverview = null
     }
 
@@ -81,26 +86,19 @@ class BtMediaMonitor(
         }
         val meta = controller?.metadata
         if (controller == null || meta == null) {
-            // References hold the card through short AVRCP dropouts (Button's grace constants
-            // 1800-2600 ms); releasing on the first bad tick made every jitter flip the card to
-            // the other content and back — round 8 caught exactly such a flip pair at 17:33.
-            if (lastPlayingAt > 0L &&
-                SystemClock.elapsedRealtime() - lastPlayingAt < SESSION_GRACE_MS
-            ) {
-                if (!gapHeld) {
-                    gapHeld = true
-                    HvacLog.d("cluster.bt: short session gap — holding the card")
-                }
-                return
-            }
-            lastPlayingAt = 0L
-            gapHeld = false
+            // Short dropouts stay silent through the grace (Button's constants); the round-8
+            // flip pair at 17:33 caught what clearing on the first bad tick costs. But this
+            // unit's pauses run LONG (round 2026-10-21: our own clear/re-own showed the stock
+            // card repeatedly), so the card is now held through the bounded hold window;
+            // while the read is down nothing is republished — the position stays frozen.
+            if (holdPolicy.missingTick(SystemClock.elapsedRealtime())
+                == CardHoldPolicy.Decision.HOLD
+            ) return
             lastKey = null
-            onUpdate(null, 0L, false)
+            onUpdate(null, 0L, false, "")
             return
         }
-        lastPlayingAt = SystemClock.elapsedRealtime()
-        gapHeld = false
+        holdPolicy.validTick(SystemClock.elapsedRealtime())
         val state = controller.playbackState
         val key = trackKeyOf(meta)
         if (key != lastKey) {
@@ -119,7 +117,7 @@ class BtMediaMonitor(
                 SystemClock.elapsedRealtime() - it.lastPositionUpdateTime
             } else 0L
         } ?: 0L
-        onUpdate(snapshot, position, snapshot != null)
+        onUpdate(snapshot, position, snapshot != null, controller.packageName ?: "")
     }
 
     /** Per-tick fast path: an unchanged track WITH its cover returns the stored snapshot.
@@ -261,14 +259,24 @@ class BtMediaMonitor(
         /** Short AVRCP dropouts are held through instead of releasing the card (round 9). */
         internal const val SESSION_GRACE_MS = 2000L
 
-        /** Title|artist|album|duration — its sha256 doubles as the cover file name and the
-         *  card uuid, so the same track keeps its identity across re-reads. */
-        internal fun trackKeyOf(meta: MediaMetadata): String =
-            listOf(
-                meta.getString(MediaMetadata.METADATA_KEY_TITLE) ?: "",
-                meta.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: "",
-                meta.getString(MediaMetadata.METADATA_KEY_ALBUM) ?: "",
-                meta.getLong(MediaMetadata.METADATA_KEY_DURATION).toString(),
-            ).joinToString("|")
+        /** The round-2026-10-21 pauses run far beyond the grace (10-90 s), and each clear
+         *  flashed the stock Bluetooth card: the last card is held for this long since the
+         *  last valid read (planner window 30-60 s, S015 candidate A1), then clears. */
+        internal const val CARD_HOLD_MS = 60_000L
+
+        /** Title|artist|album — its sha256 doubles as the cover file name and the card uuid,
+         *  so the same track keeps its identity across re-reads. DURATION is deliberately
+         *  NOT part of the key: this unit jitters a numeric field every tick (BL-004 fact
+         *  10), which re-issued uuid and duplicated donor+jpeg work at 1 Hz. Stale cover
+         *  files keyed with the old duration survive until the cache rotates them away. */
+        internal fun trackKeyOf(meta: MediaMetadata): String = trackKeyOf(
+            title = meta.getString(MediaMetadata.METADATA_KEY_TITLE) ?: "",
+            artist = meta.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: "",
+            album = meta.getString(MediaMetadata.METADATA_KEY_ALBUM) ?: "",
+        )
+
+        /** Pure core of [trackKeyOf] — JVM-testable. */
+        internal fun trackKeyOf(title: String, artist: String, album: String): String =
+            listOf(title, artist, album).joinToString("|")
     }
 }
