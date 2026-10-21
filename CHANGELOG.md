@@ -1,4 +1,8 @@
 # Changelog
+### v.3.5.0-beta23
+- (fill in before release)
+### v.3.5.0-beta23
+- Fixed: the pre-release review of the sticky card - a playing session whose metadata carries no title, artist or album (a placeholder session can win the playing race) now reaches the same hold as a vanished session instead of clearing the card instantly past it, and the hold clock is no longer restarted by such empty reads; no other behavior change
 ### v.3.5.0-beta22
 - Fixed: the slow half of the instrument-cluster card flicker - when the head unit's own media session drops out, the card is now held for up to 60 s (position frozen) instead of being cleared once the short 2 s grace runs out, which stopped the card from alternating with the stock Bluetooth card every few seconds; the track key no longer includes the duration the unit changes every tick, so the card identity stops being reissued and the cover pipeline stops re-running at 1 Hz; the car log now prints numeric metadata values and the name of the session that owns the card
 ### v.3.5.0-beta21
