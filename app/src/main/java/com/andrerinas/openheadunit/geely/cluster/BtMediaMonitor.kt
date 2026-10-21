@@ -86,19 +86,9 @@ class BtMediaMonitor(
         }
         val meta = controller?.metadata
         if (controller == null || meta == null) {
-            // Short dropouts stay silent through the grace (Button's constants); the round-8
-            // flip pair at 17:33 caught what clearing on the first bad tick costs. But this
-            // unit's pauses run LONG (round 2026-10-21: our own clear/re-own showed the stock
-            // card repeatedly), so the card is now held through the bounded hold window;
-            // while the read is down nothing is republished — the position stays frozen.
-            if (holdPolicy.missingTick(SystemClock.elapsedRealtime())
-                == CardHoldPolicy.Decision.HOLD
-            ) return
-            lastKey = null
-            onUpdate(null, 0L, false, "")
+            missingRead()
             return
         }
-        holdPolicy.validTick(SystemClock.elapsedRealtime())
         val state = controller.playbackState
         val key = trackKeyOf(meta)
         if (key != lastKey) {
@@ -117,7 +107,26 @@ class BtMediaMonitor(
                 SystemClock.elapsedRealtime() - it.lastPositionUpdateTime
             } else 0L
         } ?: 0L
-        onUpdate(snapshot, position, snapshot != null, controller.packageName ?: "")
+        if (snapshot == null) {
+            // A PLAYING session whose bundle carries no title/artist/album (fact 9: junk
+            // sessions win the race) is no read at all — it reaches the same hold as a dead
+            // session instead of clearing instantly past it (beta22 review).
+            missingRead()
+            return
+        }
+        holdPolicy.validTick(SystemClock.elapsedRealtime())
+        onUpdate(snapshot, position, true, controller.packageName ?: "")
+    }
+
+    /** Every read without a playable snapshot goes through ONE hold decision (beta22
+     *  review): clearing on the first bad tick cost a flip pair at 17:33 (round 8), and
+     *  this unit's pauses run 10-90 s (round 2026-10-21) — so short dropouts stay silent
+     *  (grace), long ones hold the card as published (position frozen, nothing republished),
+     *  and only a hold run out since the last valid read clears as before. */
+    private fun missingRead() {
+        if (holdPolicy.missingTick(SystemClock.elapsedRealtime()) == CardHoldPolicy.Decision.HOLD) return
+        lastKey = null
+        onUpdate(null, 0L, false, "")
     }
 
     /** Per-tick fast path: an unchanged track WITH its cover returns the stored snapshot.
