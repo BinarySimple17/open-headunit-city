@@ -29,6 +29,17 @@ class ClusterMediaSettings(context: Context) {
         get() = prefs.getBoolean(KEY_BT_FALLBACK, false)
         set(value) = prefs.edit().putBoolean(KEY_BT_FALLBACK, value).apply()
 
+    /**
+     * The D2 experiment switch (S015 round 2026-10-22, BL-004 fact 20): whether the 1 Hz
+     * position ticks go to the cluster at all. The card itself (uuid, cover, title) is
+     * unaffected — the planner flips this MID-DRIVE the moment the flicker starts; if the
+     * slot calms, the progress stream feeds the source arbitration and a low rate becomes
+     * the fix; if nothing changes, the flicker is firmware-internal (candidate B verdict).
+     */
+    var progressEnabled: Boolean
+        get() = prefs.getBoolean(KEY_PROGRESS, true)
+        set(value) = prefs.edit().putBoolean(KEY_PROGRESS, value).apply()
+
     /** Watches this file — the bridge reacts to Save without anyone wiring it by hand. */
     fun addListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
@@ -38,5 +49,6 @@ class ClusterMediaSettings(context: Context) {
         const val PREFS_FILE = "cluster_media_prefs"
         const val KEY_ENABLED = "cluster_media_enabled"
         const val KEY_BT_FALLBACK = "cluster_bt_fallback"
+        const val KEY_PROGRESS = "cluster_progress_enabled"
     }
 }

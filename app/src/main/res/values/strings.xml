@@ -1367,6 +1367,8 @@
     <string name="cluster_bt_fallback">Cluster card from Bluetooth music</string>
     <string name="cluster_bt_fallback_description">Feeds the cluster card from the head units own Bluetooth session while the phone plays over the car Bluetooth channel. Needs notification access once</string>
     <string name="cluster_bt_fallback_grant_hint">Grant notification access to this app</string>
+    <string name="cluster_progress">Cluster card position updates</string>
+    <string name="cluster_progress_description">Diagnostic switch (flicker hunt): sends the track position to the instrument cluster every second. The card itself (cover, title) is unaffected - turn OFF when the card starts flickering and watch whether the flicker stops</string>
     <string name="hvac_hide_timeout">Icon hide timeout</string>
     <string name="hvac_timeout_seconds">%1$d s</string>
     <string name="hvac_level_number">Level %1$d</string>

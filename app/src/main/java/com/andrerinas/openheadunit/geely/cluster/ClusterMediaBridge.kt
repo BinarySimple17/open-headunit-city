@@ -119,7 +119,10 @@ class ClusterMediaBridge(context: Context) {
         if (snapshot != lastSnapshot) {
             if (publish(snapshot)) lastSnapshot = snapshot
         }
-        DimMediaChannel.publishProgress(positionMs)
+        // D2 experiment (fact 20): the 1 Hz progress stream is a suspect feed of the
+        // cluster's source arbitration — the settings switch cuts it without touching
+        // the standing card (uuid/cover stay as published).
+        if (settings.progressEnabled) DimMediaChannel.publishProgress(positionMs)
         // S015 diagnostics: which card does the cluster hold RIGHT NOW (uuid/sourceType)?
         // Read-back only — the publication model stays frozen this session (Task 2).
         if (DimMediaChannel.firmwareChannel) {

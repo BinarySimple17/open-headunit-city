@@ -181,6 +181,7 @@ class SettingsFragment : Fragment() {
     // Geely cluster media (F013) rides the same common Save flow as the HVAC settings.
     private var pendingClusterMedia: Boolean? = null
     private var pendingClusterBtFallback: Boolean? = null
+    private var pendingClusterProgress: Boolean? = null
 
     private var pendingUseGps: Boolean? = null
     private var pendingShowNavigationNotifications: Boolean? = null
@@ -370,6 +371,7 @@ class SettingsFragment : Fragment() {
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
+        pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
 
         // Initialize local state with current values
         pendingAdvancedSettings = settings.isAdvancedSettingsActive
@@ -608,6 +610,7 @@ class SettingsFragment : Fragment() {
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
+        pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
     }
 
     /**
@@ -760,6 +763,7 @@ class SettingsFragment : Fragment() {
         ClusterMediaSettings(requireContext().applicationContext).also { cluster ->
             pendingClusterMedia?.let { if (it != cluster.enabled) cluster.enabled = it }
             pendingClusterBtFallback?.let { if (it != cluster.btFallback) cluster.btFallback = it }
+            pendingClusterProgress?.let { if (it != cluster.progressEnabled) cluster.progressEnabled = it }
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -928,6 +932,7 @@ class SettingsFragment : Fragment() {
         }
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
+        pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
         hasChanges = false
         requiresRestart = false
         requiresServiceRestart = false
@@ -1040,7 +1045,8 @@ class SettingsFragment : Fragment() {
                                 pendingHvacHideTimeoutSec != hvac.hideTimeoutSec
                         } ||
                         pendingClusterMedia != ClusterMediaSettings(requireContext().applicationContext).enabled ||
-                        pendingClusterBtFallback != ClusterMediaSettings(requireContext().applicationContext).btFallback
+                        pendingClusterBtFallback != ClusterMediaSettings(requireContext().applicationContext).btFallback ||
+                        pendingClusterProgress != ClusterMediaSettings(requireContext().applicationContext).progressEnabled
 
         hasChanges = anyChange
 
@@ -3269,6 +3275,7 @@ class SettingsFragment : Fragment() {
         val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
         val clusterMediaOn = pendingClusterMedia ?: ClusterMediaSettings(requireContext().applicationContext).enabled
         val clusterBtFallbackOn = pendingClusterBtFallback ?: ClusterMediaSettings(requireContext().applicationContext).btFallback
+        val clusterProgressOn = pendingClusterProgress ?: ClusterMediaSettings(requireContext().applicationContext).progressEnabled
         val saveHvacChange: () -> Unit = {
             hasChanges = true
             updateSaveButtonState()
@@ -3397,6 +3404,16 @@ class SettingsFragment : Fragment() {
                     pendingClusterBtFallback = checked
                     saveHvacChange()
                 }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterProgress",
+            nameResId = R.string.cluster_progress,
+            descriptionResId = R.string.cluster_progress_description,
+            isChecked = clusterProgressOn,
+            onCheckedChanged = { checked ->
+                pendingClusterProgress = checked
+                saveHvacChange()
+            }
         ))
 
         // No bottom save button: the toolbar Save is the single save

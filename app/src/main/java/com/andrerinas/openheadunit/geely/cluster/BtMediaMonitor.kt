@@ -41,7 +41,7 @@ class BtMediaMonitor(
 ) {
     private val app = context.applicationContext
     private val main = Handler(Looper.getMainLooper())
-    private val snapshots = HashMap<String, TrackSnapshot>()
+    private val snapshots = TrackSnapshotPolicy.newSnapshotCache<TrackSnapshot>()
 
     private var stopped = true
     private var lastKey: String? = null
@@ -91,6 +91,13 @@ class BtMediaMonitor(
         }
         val state = controller.playbackState
         val key = trackKeyOf(meta)
+        // The stripped next-track pre-announcement is a NON-EVENT (TrackSnapshotPolicy E):
+        // the standing card stays, the hold clock is untouched, no second uuid is pushed.
+        if (TrackSnapshotPolicy.isDegradedPreAnnouncement(
+                meta.getString(MediaMetadata.METADATA_KEY_ALBUM),
+                meta.getLong(MediaMetadata.METADATA_KEY_DURATION),
+            )
+        ) return
         if (key != lastKey) {
             // Once per track: the full surface the public API exposes plus the direct AVRCP
             // stack probe (round-10 cover quest — the firmware may hold art it never
@@ -145,12 +152,9 @@ class BtMediaMonitor(
             if (known != null && known.artworkUri == null && snapshot.artworkUri != null) {
                 HvacLog.i("cluster.bt: cover arrived late (${snapshot.title}) — card re-published")
             }
+            // Access-order cache: this put makes the key the newest, so the auto-eviction
+            // past MAX_TRACKS drops the least recently used OTHER track (TrackSnapshotPolicy D).
             snapshots[key] = snapshot
-            val keys = snapshots.keys.iterator()
-            if (snapshots.size > MAX_TRACKS && keys.hasNext()) {
-                keys.next()
-                keys.remove()
-            }
         }
         return snapshot
     }
@@ -263,7 +267,6 @@ class BtMediaMonitor(
     internal companion object {
         internal const val TICK_MS = 1000L
         internal const val JPEG_QUALITY = 90
-        private const val MAX_TRACKS = 8
 
         /** Short AVRCP dropouts are held through instead of releasing the card (round 9). */
         internal const val SESSION_GRACE_MS = 2000L
