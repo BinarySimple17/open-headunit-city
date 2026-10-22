@@ -1,6 +1,8 @@
 # Changelog
-### v.3.5.0-beta23
-- (fill in before release)
+### v.3.5.0-beta24
+- Fixed: the snapshot cache of the Bluetooth card dropped the track it had just stored once it filled up - the eviction took an arbitrary key, ate the current track's entry, and the app rebuilt the whole card (donor lookup, cover re-encode, diagnostics dump) every second of a drive; the cache is now access-ordered, so the current track is never its own eviction victim
+- Fixed: the ~1 second stripped next-track announcement the Bluetooth session makes before every track change (album and duration removed) was published as its own card identity, pushing a second uuid - a double card update per track change; such reads are now skipped without touching the standing card
+- Added: a diagnostic switch "Cluster card position updates" for the flicker hunt - the second-long position stream to the cluster can be cut mid-drive without touching the card itself, to test whether that stream feeds the cluster's source switching; the cover and title stay as published
 ### v.3.5.0-beta23
 - Fixed: the pre-release review of the sticky card - a playing session whose metadata carries no title, artist or album (a placeholder session can win the playing race) now reaches the same hold as a vanished session instead of clearing the card instantly past it, and the hold clock is no longer restarted by such empty reads; no other behavior change
 ### v.3.5.0-beta22
