@@ -1,3 +1,5 @@
+.vscode/
+logs/
 .reference/*
 
 # Built application files
