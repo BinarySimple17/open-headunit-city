@@ -472,6 +472,7 @@
     <string name="ui_scale_description">يغير حجم النصوص والقوائم وعناصر الواجهة في التطبيق بالكامل. يُوصى به للشاشات عالية الدقة ذات النصوص الصغيرة.</string>
     <string name="ui_scale_home">الشاشة الرئيسية</string>
     <string name="ui_scale_settings">شاشة الإعدادات</string>
+    <string name="ui_scale_exit_dialog">مربع حوار الخروج</string>
     <string name="category_vehicle">المركبة</string>
     <string name="category_head_unit">وحدة الوسائط</string>
     <string name="vehicle_display_name_label">الاسم المعروض</string>
@@ -1162,6 +1163,15 @@
     <string name="debug_video_feed_hold">محاكاة مفكك تشفير بطيء</string>
 
     <string name="category_more_features">ميزات إضافية</string>
+    <string name="device_specific_settings">إعدادات خاصة بالجهاز</string>
+    <string name="device_specific_settings_description">إعدادات طرازات وحدات السيارة المدعومة</string>
+    <string name="device_specific_mcu_checking">جارٍ التحقق من الوصول إلى MCU…</string>
+    <string name="device_specific_mcu_unavailable">الوصول إلى MCU غير متاح. وظيفة الإيقاف المؤقت للعرض عند تعشيق الرجوع إلى الخلف معطّلة على هذا الجهاز.</string>
+    <string name="device_specific_head_unit_model">طراز وحدة السيارة</string>
+    <string name="device_specific_model_none">لم يتم التحديد</string>
+    <string name="device_specific_model_adayo_haval">Adayo (Haval)</string>
+    <string name="device_specific_pause_projection_reverse">إيقاف عرض Android Auto مؤقتًا عند الرجوع إلى الخلف</string>
+    <string name="device_specific_pause_projection_reverse_description">تحرير تركيز الفيديو في Android Auto أثناء تشغيل الكاميرا الخلفية، ثم استعادة العرض عند إلغاء تعشيق الرجوع إلى الخلف.</string>
     <string name="pref_enable_floating_button_title">زر التشغيل العائم</string>
     <string name="pref_enable_floating_button_summary">عرض زر عائم فوق المشغل الأصلي والتطبيقات الأخرى للعودة سريعًا إلى Open Headunit.</string>
     <string name="pref_floating_button_connection_status_title">مؤشر حالة الاتصال</string>
