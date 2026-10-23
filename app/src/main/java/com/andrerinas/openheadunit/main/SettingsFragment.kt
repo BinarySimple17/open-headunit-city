@@ -25,7 +25,6 @@ import com.andrerinas.openheadunit.aap.protocol.messages.BluetoothAnnouncePolicy
 import com.andrerinas.openheadunit.connection.wifi.modes.nativeaa.zbt.ZbtDiscovery
 import com.andrerinas.openheadunit.utils.OemAppManager
 import com.andrerinas.openheadunit.utils.CarLauncherManager
-<<<<<<< HEAD
 import com.andrerinas.openheadunit.geely.hvac.Hvac
 import com.andrerinas.openheadunit.geely.hvac.HvacLog
 import com.andrerinas.openheadunit.geely.hvac.HvacLogShare
