@@ -303,12 +303,13 @@
     <string name="checking_for_updates">Güncellemeler denetleniyor…</string>
     <string name="update_available_title">Güncelleme Mevcut</string>
     <string name="update_available_playstore_message">Daha yeni bir sürüm (%1$s) mevcut. Uygulamanızı güncellemek için lütfen Google Play Store\'u ziyaret edin.</string>
-    <string name="update_available_github_message">Daha yeni bir sürüm (%1$s) mevcut. En son sürümü indirmek için GitHub\'ı ziyaret edin.</string>
+    <string name="update_available_github_message">Daha yeni bir sürüm (%1$s) mevcut. APK\'yı indirin veya nelerin değiştiğini görmek için GitHub Releases\'ı açın.</string>
     <string name="update_not_available_title">Güncel</string>
     <string name="update_not_available_message">Zaten en son sürümü (%1$s) kullanıyorsunuz.</string>
     <string name="update_check_failed">Güncellemeler denetlenemedi. Lütfen internet bağlantınızı kontrol edin.</string>
     <string name="open_play_store">Play Store\'u Aç</string>
     <string name="open_github_releases">GitHub Releases\'ı Aç</string>
+    <string name="download_apk">APK\'yı İndir</string>
     <string name="about_title">Open Headunit Hakkında</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -432,6 +433,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">Sıcaklık</string>
     <string name="overlay_field_frame_age">Kare yaşı</string>
+    <string name="overlay_field_battery">Pil</string>
+    <string name="overlay_field_memory">Boş bellek</string>
+    <string name="overlay_field_wifi_signal">Wi-Fi sinyali</string>
     <string name="performance_overlay_no_lines">Satır yok</string>
     <string name="show_performance_overlay">Performans katmanını göster</string>
     <string name="overlay_position">Performans katmanının konumu</string>
@@ -1324,4 +1328,6 @@
     <string name="home_pages_hint_got_it">Anladım</string>
     <string name="home_pages_hint_body_anywhere">Ana ekranın herhangi bir boş yeri olur. Widget\'larınız için sayfa eklemek ya da kaldırmak böyle yapılır.</string>
     <string name="audio_settings_reconnect">Ses ayarları kaydedildi. Uygulamak için Android Auto\'yu yeniden bağlayın.</string>
+    <string name="native_aa_candidate_android_radio_description">Ünitenin Bluetooth modülünü otomatik seçmek yerine Android Bluetooth kullanın. Otomatik seçim için kapalı bırakın. Modül üzerinden bağlantı seçeneği açıksa önce onu kapatın.</string>
+    <string name="external_bt_candidate_transport_description">Otomatik seçim yerine ünitenin Bluetooth modülü üzerinden bağlantıyı zorlayın. Uyumlu bir modül hizmeti gerektirir. Hizmet yanıt vermediğinde Android Bluetooth kullanılabilmesi için kapalı bırakın; açılması bu yedek yolu engeller.</string>
 </resources>

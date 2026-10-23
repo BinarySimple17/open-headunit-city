@@ -667,12 +667,13 @@
     <string name="checking_for_updates">Memeriksa pembaruan…</string>
     <string name="update_available_title">Pembaruan Tersedia</string>
     <string name="update_available_playstore_message">Versi yang lebih baru (%1$s) telah tersedia. Silakan kunjungi Google Play Store untuk memperbarui aplikasi Anda.</string>
-    <string name="update_available_github_message">Versi yang lebih baru (%1$s) telah tersedia. Kunjungi GitHub untuk mengunduh rilis terbaru.</string>
+    <string name="update_available_github_message">Versi yang lebih baru (%1$s) telah tersedia. Unduh APK atau buka GitHub Releases untuk melihat perubahannya.</string>
     <string name="update_not_available_title">Sudah Terbaru</string>
     <string name="update_not_available_message">Anda sudah menggunakan versi terbaru (%1$s).</string>
     <string name="update_check_failed">Gagal memeriksa pembaruan. Silakan periksa koneksi internet Anda.</string>
     <string name="open_play_store">Buka Play Store</string>
     <string name="open_github_releases">Buka GitHub Releases</string>
+    <string name="download_apk">Unduh APK</string>
     <string name="about_title">Tentang Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -856,6 +857,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">Suhu</string>
     <string name="overlay_field_frame_age">Usia frame</string>
+    <string name="overlay_field_battery">Baterai</string>
+    <string name="overlay_field_memory">Memori kosong</string>
+    <string name="overlay_field_wifi_signal">Sinyal Wi-Fi</string>
     <string name="performance_overlay_no_lines">Tanpa baris</string>
     <string name="show_performance_overlay">Tampilkan Overlay Performa</string>
     <string name="overlay_position">Posisi overlay performa</string>
@@ -1378,4 +1382,6 @@
     <string name="home_pages_hint_got_it">Mengerti</string>
     <string name="home_pages_hint_body_anywhere">Bagian kosong mana pun di beranda bisa dipakai. Begitulah cara menambahkan halaman untuk widget, atau menghapusnya.</string>
     <string name="audio_settings_reconnect">Pengaturan audio disimpan. Hubungkan ulang Android Auto untuk menerapkannya.</string>
+    <string name="native_aa_candidate_android_radio_description">Gunakan Bluetooth Android alih-alih memilih modul Bluetooth head unit secara otomatis. Biarkan nonaktif untuk pemilihan otomatis. Jika opsi koneksi melalui modul aktif, nonaktifkan terlebih dahulu.</string>
+    <string name="external_bt_candidate_transport_description">Paksa koneksi melalui modul Bluetooth head unit alih-alih pemilihan otomatis. Memerlukan layanan modul yang kompatibel. Biarkan nonaktif agar Bluetooth Android dapat digunakan saat layanan tidak merespons; mengaktifkannya mencegah jalur cadangan ini.</string>
 </resources>

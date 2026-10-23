@@ -284,12 +284,13 @@
     <string name="checking_for_updates">Kontrola aktualizací…</string>
     <string name="update_available_title">Dostupná aktualizace</string>
     <string name="update_available_playstore_message">Je k dispozici novější verze (%1$s). Navštivte prosím Google Play Store a aplikaci aktualizujte.</string>
-    <string name="update_available_github_message">Je k dispozici novější verze (%1$s). Přejděte na GitHub a stáhněte si nejnovější verzi.</string>
+    <string name="update_available_github_message">Je k dispozici novější verze (%1$s). Stáhněte si APK, nebo přejděte na GitHub Releases a zjistěte, co se změnilo.</string>
     <string name="update_not_available_title">Aplikace je aktuální</string>
     <string name="update_not_available_message">Již používáte nejnovější verzi (%1$s).</string>
     <string name="update_check_failed">Kontrola aktualizací se nezdařila. Zkontrolujte připojení k internetu.</string>
     <string name="open_play_store">Otevřít Play Store</string>
     <string name="open_github_releases">Přejít na GitHub Releases</string>
+    <string name="download_apk">Stáhnout APK</string>
     <string name="about_title">O aplikaci Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -436,6 +437,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">Teplota</string>
     <string name="overlay_field_frame_age">Stáří snímku</string>
+    <string name="overlay_field_battery">Baterie</string>
+    <string name="overlay_field_memory">Volná paměť</string>
+    <string name="overlay_field_wifi_signal">Signál Wi-Fi</string>
     <string name="performance_overlay_no_lines">Žádné řádky</string>
     <string name="show_performance_overlay">Zobrazit výkonnostní překryv</string>
     <string name="overlay_position">Umístění výkonnostního překryvu</string>
@@ -1331,4 +1335,6 @@
     <string name="home_pages_hint_got_it">Rozumím</string>
     <string name="home_pages_hint_body_anywhere">Funguje jakákoli prázdná část domovské obrazovky. Takto přidáte stránku pro widgety, nebo ji odeberete.</string>
     <string name="audio_settings_reconnect">Nastavení zvuku uloženo. Pro jeho použití znovu připojte Android Auto.</string>
+    <string name="native_aa_candidate_android_radio_description">Použít Bluetooth Androidu místo automatického výběru modulu Bluetooth jednotky. Pro automatický výběr ponechte vypnuté. Pokud je zapnutá některá možnost připojení přes modul, nejprve ji vypněte.</string>
+    <string name="external_bt_candidate_transport_description">Vynutit připojení přes modul Bluetooth jednotky místo automatického výběru. Vyžaduje kompatibilní službu modulu. Ponechte vypnuté, aby se při neodpovídající službě mohlo použít Bluetooth Androidu; zapnutí tuto náhradní cestu zakáže.</string>
 </resources>

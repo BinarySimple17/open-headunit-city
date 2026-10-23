@@ -284,12 +284,13 @@
     <string name="checking_for_updates">Перевірка оновлень…</string>
     <string name="update_available_title">Доступне оновлення</string>
     <string name="update_available_playstore_message">Доступна новіша версія (%1$s). Перейдіть у Google Play Store, щоб оновити застосунок.</string>
-    <string name="update_available_github_message">Доступна новіша версія (%1$s). Перейдіть на GitHub, щоб завантажити найновіший реліз.</string>
+    <string name="update_available_github_message">Доступна новіша версія (%1$s). Завантажте APK або відкрийте GitHub Releases, щоб побачити зміни.</string>
     <string name="update_not_available_title">Оновлено</string>
     <string name="update_not_available_message">Ви вже використовуєте найновішу версію (%1$s).</string>
     <string name="update_check_failed">Не вдалося перевірити оновлення. Перевірте з\'єднання з інтернетом.</string>
     <string name="open_play_store">Відкрити Play Store</string>
     <string name="open_github_releases">Відкрити GitHub Releases</string>
+    <string name="download_apk">Завантажити APK</string>
     <string name="about_title">Про Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -434,6 +435,9 @@
     <string name="overlay_field_cpu">Процесор</string>
     <string name="overlay_field_temperature">Температура</string>
     <string name="overlay_field_frame_age">Вік кадру</string>
+    <string name="overlay_field_battery">Акумулятор</string>
+    <string name="overlay_field_memory">Вільна пам\'ять</string>
+    <string name="overlay_field_wifi_signal">Сигнал Wi-Fi</string>
     <string name="performance_overlay_no_lines">Немає рядків</string>
     <string name="show_performance_overlay">Показувати панель продуктивності</string>
     <string name="overlay_position">Положення панелі продуктивності</string>
@@ -1332,4 +1336,6 @@
     <string name="home_pages_hint_got_it">Зрозуміло</string>
     <string name="home_pages_hint_body_anywhere">Підійде будь-яка порожня частина головного екрана. Так можна додати сторінку для віджетів або видалити її.</string>
     <string name="audio_settings_reconnect">Налаштування звуку збережено. Щоб застосувати їх, повторно підключіть Android Auto.</string>
+    <string name="native_aa_candidate_android_radio_description">Використовувати Bluetooth Android замість автоматичного вибору Bluetooth-модуля головного пристрою. Для автоматичного вибору залиште вимкненим. Якщо ввімкнено опцію з’єднання через модуль, спочатку вимкніть її.</string>
+    <string name="external_bt_candidate_transport_description">Примусово з’єднуватися через Bluetooth-модуль головного пристрою замість автоматичного вибору. Потрібна сумісна служба модуля. Залиште вимкненим, щоб використовувати Bluetooth Android, коли служба не відповідає; увімкнення блокує цей запасний шлях.</string>
 </resources>

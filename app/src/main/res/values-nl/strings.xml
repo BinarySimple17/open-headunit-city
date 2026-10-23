@@ -283,12 +283,13 @@
     <string name="checking_for_updates">Controleren op updates…</string>
     <string name="update_available_title">Update beschikbaar</string>
     <string name="update_available_playstore_message">Er is een nieuwere versie (%1$s) beschikbaar. Ga naar de Google Play Store om je app bij te werken.</string>
-    <string name="update_available_github_message">Er is een nieuwere versie (%1$s) beschikbaar. Ga naar GitHub om de nieuwste versie te downloaden.</string>
+    <string name="update_available_github_message">Er is een nieuwere versie (%1$s) beschikbaar. Download de APK of open GitHub Releases om te zien wat er is gewijzigd.</string>
     <string name="update_not_available_title">Up-to-date</string>
     <string name="update_not_available_message">Je gebruikt al de nieuwste versie (%1$s).</string>
     <string name="update_check_failed">Kan niet op updates controleren. Controleer je internetverbinding.</string>
     <string name="open_play_store">Play Store openen</string>
     <string name="open_github_releases">GitHub Releases openen</string>
+    <string name="download_apk">APK downloaden</string>
     <string name="about_title">Over Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -433,6 +434,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">Temperatuur</string>
     <string name="overlay_field_frame_age">Frameleeftijd</string>
+    <string name="overlay_field_battery">Accu</string>
+    <string name="overlay_field_memory">Vrij geheugen</string>
+    <string name="overlay_field_wifi_signal">Wifi-signaal</string>
     <string name="performance_overlay_no_lines">Geen regels</string>
     <string name="show_performance_overlay">Prestatie-overlay tonen</string>
     <string name="overlay_position">Positie van prestatie-overlay</string>
@@ -1335,4 +1339,6 @@
     <string name="home_pages_hint_got_it">Begrepen</string>
     <string name="home_pages_hint_body_anywhere">Elk leeg deel van het startscherm werkt. Zo voeg je een pagina voor je widgets toe, of verwijder je er een.</string>
     <string name="audio_settings_reconnect">Audio-instellingen opgeslagen. Verbind Android Auto opnieuw om ze toe te passen.</string>
+    <string name="native_aa_candidate_android_radio_description">Gebruik Android-Bluetooth in plaats van automatisch de Bluetooth-module van de headunit te kiezen. Laat uitgeschakeld voor automatische selectie. Schakel een ingeschakelde optie voor verbinding via de module eerst uit.</string>
+    <string name="external_bt_candidate_transport_description">Forceer verbinding via de Bluetooth-module van de headunit in plaats van automatische selectie. Vereist een compatibele moduleservice. Laat uitgeschakeld om Android-Bluetooth te kunnen gebruiken als de service niet reageert; inschakelen voorkomt deze terugval.</string>
 </resources>

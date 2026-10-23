@@ -667,12 +667,13 @@
     <string name="checking_for_updates">กำลังตรวจหาการอัปเดต…</string>
     <string name="update_available_title">มีรุ่นใหม่</string>
     <string name="update_available_playstore_message">มีรุ่นใหม่กว่า (%1$s) โปรดไปที่ Google Play Store เพื่ออัปเดตแอป</string>
-    <string name="update_available_github_message">มีรุ่นใหม่กว่า (%1$s) ไปที่ GitHub เพื่อดาวน์โหลดรุ่นล่าสุด</string>
+    <string name="update_available_github_message">มีเวอร์ชันใหม่กว่า (%1$s) พร้อมใช้งาน ดาวน์โหลด APK หรือเปิด GitHub Releases เพื่อดูว่ามีอะไรเปลี่ยนแปลง</string>
     <string name="update_not_available_title">เป็นรุ่นล่าสุดแล้ว</string>
     <string name="update_not_available_message">คุณใช้รุ่นล่าสุด (%1$s) อยู่แล้ว</string>
     <string name="update_check_failed">ไม่สามารถตรวจหาการอัปเดตได้ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ</string>
     <string name="open_play_store">เปิด Play Store</string>
     <string name="open_github_releases">เปิด GitHub Releases</string>
+    <string name="download_apk">ดาวน์โหลด APK</string>
     <string name="about_title">เกี่ยวกับ Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -856,6 +857,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">อุณหภูมิ</string>
     <string name="overlay_field_frame_age">อายุเฟรม</string>
+    <string name="overlay_field_battery">แบตเตอรี่</string>
+    <string name="overlay_field_memory">หน่วยความจำว่าง</string>
+    <string name="overlay_field_wifi_signal">สัญญาณ Wi-Fi</string>
     <string name="performance_overlay_no_lines">ไม่มีบรรทัด</string>
     <string name="show_performance_overlay">แสดงข้อมูลประสิทธิภาพ</string>
     <string name="overlay_position">ตำแหน่งข้อมูลประสิทธิภาพ</string>
@@ -1382,4 +1386,6 @@
     <string name="home_pages_hint_got_it">เข้าใจแล้ว</string>
     <string name="home_pages_hint_body_anywhere">ส่วนว่างใดก็ได้บนหน้าจอหลัก นี่คือวิธีเพิ่มหน้าสำหรับวิดเจ็ตของคุณ หรือลบหน้าออก</string>
     <string name="audio_settings_reconnect">บันทึกการตั้งค่าเสียงแล้ว เชื่อมต่อ Android Auto ใหม่เพื่อใช้การตั้งค่า</string>
+    <string name="native_aa_candidate_android_radio_description">ใช้ Bluetooth ของ Android แทนการเลือกโมดูล Bluetooth ของเครื่องโดยอัตโนมัติ ปิดไว้เพื่อใช้การเลือกอัตโนมัติ หากเปิดตัวเลือกการเชื่อมต่อผ่านโมดูลอยู่ ให้ปิดตัวเลือกนั้นก่อน</string>
+    <string name="external_bt_candidate_transport_description">บังคับเชื่อมต่อผ่านโมดูล Bluetooth ของเครื่องแทนการเลือกอัตโนมัติ ต้องมีบริการโมดูลที่เข้ากันได้ ปิดไว้เพื่อให้ใช้ Bluetooth ของ Android ได้เมื่อบริการไม่ตอบสนอง การเปิดตัวเลือกนี้จะปิดทางเลือกสำรองดังกล่าว</string>
 </resources>

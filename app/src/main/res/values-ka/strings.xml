@@ -324,12 +324,13 @@
     <string name="checking_for_updates">მოწმდება განახლებები…</string>
     <string name="update_available_title">განახლება ხელმისაწვდომია</string>
     <string name="update_available_playstore_message">ხელმისაწვდომია უფრო ახალი ვერსია (%1$s). გთხოვთ, ეწვიოთ Google Play Store-ს აპლიკაციის განსაახლებლად.</string>
-    <string name="update_available_github_message">ხელმისაწვდომია უფრო ახალი ვერსია (%1$s). ეწვიეთ GitHub-ს უახლესი ვერსიის ჩამოსატვირთად.</string>
+    <string name="update_available_github_message">ხელმისაწვდომია უფრო ახალი ვერსია (%1$s). ჩამოტვირთეთ APK ან ცვლილებების სანახავად გახსენით GitHub Releases.</string>
     <string name="update_not_available_title">განახლებულია</string>
     <string name="update_not_available_message">თქვენ უკვე იყენებთ უახლეს ვერსიას (%1$s).</string>
     <string name="update_check_failed">განახლებების შემოწმება ვერ მოხერხდა. გთხოვთ, შეამოწმოთ ინტერნეტთან კავშირი.</string>
     <string name="open_play_store">Play Store-ის გახსნა</string>
     <string name="open_github_releases">GitHub Releases-ის გახსნა</string>
+    <string name="download_apk">APK-ის ჩამოტვირთვა</string>
     <string name="about_title">Open Headunit-ის შესახებ</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -482,6 +483,9 @@
     <string name="overlay_field_temperature">ტემპერატურა</string>
     <string name="overlay_field_frame_age">კადრის ასაკი</string>
     <string name="performance_overlay_no_lines">ხაზების გარეშე</string>
+    <string name="overlay_field_battery">ბატარეა</string>
+    <string name="overlay_field_memory">თავისუფალი მეხსიერება</string>
+    <string name="overlay_field_wifi_signal">Wi-Fi სიგნალი</string>
     <string name="show_performance_overlay">წარმადობის ინდიკატორის ჩვენება</string>
     <string name="overlay_position">წარმადობის ინდიკატორის მდებარეობა</string>
     <string name="show_performance_overlay_description">პროექციის ზემოთ აჩვენებს FPS-ს, პროცესორის დატვირთვას, ტემპერატურას და კადრის ასაკს.</string>
@@ -1316,4 +1320,6 @@
     <string name="home_pages_hint_got_it">გასაგებია</string>
     <string name="home_pages_hint_body_anywhere">მთავარი ეკრანის ნებისმიერი ცარიელი ნაწილი გამოდგება. ასე დაამატებ გვერდს ვიჯეტებისთვის, ან წაშლი მას.</string>
     <string name="audio_settings_reconnect">აუდიოს პარამეტრები შენახულია. გასააქტიურებლად Android Auto-ს ხელახლა დაუკავშირდით.</string>
+    <string name="native_aa_candidate_android_radio_description">მოწყობილობის Bluetooth მოდულის ავტომატური არჩევის ნაცვლად გამოიყენეთ Android-ის Bluetooth. ავტომატური არჩევისთვის დატოვეთ გამორთული. თუ მოდულით დაკავშირების რომელიმე ვარიანტი ჩართულია, ჯერ ის გამორთეთ.</string>
+    <string name="external_bt_candidate_transport_description">ავტომატური არჩევის ნაცვლად იძულებით გამოიყენეთ მოწყობილობის Bluetooth მოდულით კავშირი. საჭიროა მოდულის თავსებადი სერვისი. დატოვეთ გამორთული, რათა სერვისის უპასუხოდ დარჩენისას Android-ის Bluetooth გამოიყენოთ; ჩართვა ამ სათადარიგო გზას გამორიცხავს.</string>
 </resources>

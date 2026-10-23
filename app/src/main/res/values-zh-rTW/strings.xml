@@ -283,12 +283,13 @@
     <string name="checking_for_updates">正在檢查更新…</string>
     <string name="update_available_title">發現新版本</string>
     <string name="update_available_playstore_message">有新版本 (%1$s) 可用。請前往 Google Play 商店更新您的應用程式。</string>
-    <string name="update_available_github_message">有新版本 (%1$s) 可用。請前往 GitHub 下載最新版本。</string>
+    <string name="update_available_github_message">有新版本 (%1$s) 可用。請下載 APK，或開啟 GitHub Releases 查看更新內容。</string>
     <string name="update_not_available_title">已是最新版本</string>
     <string name="update_not_available_message">您已在使用最新版本 (%1$s)。</string>
     <string name="update_check_failed">檢查更新失敗，請檢查網路連線。</string>
     <string name="open_play_store">開啟 Play 商店</string>
     <string name="open_github_releases">開啟 GitHub Releases</string>
+    <string name="download_apk">下載 APK</string>
     <string name="about_title">關於 Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -433,6 +434,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">溫度</string>
     <string name="overlay_field_frame_age">影格時間</string>
+    <string name="overlay_field_battery">電池</string>
+    <string name="overlay_field_memory">可用記憶體</string>
+    <string name="overlay_field_wifi_signal">Wi-Fi 訊號</string>
     <string name="performance_overlay_no_lines">不顯示項目</string>
     <string name="show_performance_overlay">顯示效能浮層</string>
     <string name="overlay_position">效能浮層位置</string>
@@ -1327,4 +1331,6 @@
     <string name="home_pages_hint_got_it">知道了</string>
     <string name="home_pages_hint_body_anywhere">主畫面的任何空白處都可以。這樣就能為小工具新增頁面，或移除頁面。</string>
     <string name="audio_settings_reconnect">音訊設定已儲存。重新連線 Android Auto 後生效。</string>
+    <string name="native_aa_candidate_android_radio_description">使用 Android 藍牙，而不是自動選擇車機的藍牙模組。保持關閉以使用自動選擇。如果已開啟透過模組連線的選項，請先將其關閉。</string>
+    <string name="external_bt_candidate_transport_description">強制透過車機的藍牙模組連線，而不是自動選擇。需要相容的模組服務。保持關閉可在服務無回應時使用 Android 藍牙；開啟此選項將禁止這個備用連線方式。</string>
 </resources>

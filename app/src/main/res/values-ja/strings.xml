@@ -310,12 +310,13 @@
     <string name="checking_for_updates">アップデートを確認中…</string>
     <string name="update_available_title">アップデート利用可能</string>
     <string name="update_available_playstore_message">新しいバージョン (%1$s) が利用可能です。Google Play ストアにアクセスしてアプリを更新してください。</string>
-    <string name="update_available_github_message">新しいバージョン (%1$s) が利用可能です。GitHub から最新版をダウンロードしてください。</string>
+    <string name="update_available_github_message">新しいバージョン (%1$s) が利用可能です。APK をダウンロードするか、GitHub Releases を開いて変更内容を確認してください。</string>
     <string name="update_not_available_title">最新です</string>
     <string name="update_not_available_message">すでに最新バージョン (%1$s) を使用しています。</string>
     <string name="update_check_failed">アップデートの確認に失敗しました。インターネット接続を確認してください。</string>
     <string name="open_play_store">Play ストアを開く</string>
     <string name="open_github_releases">GitHub Releases を開く</string>
+    <string name="download_apk">APK をダウンロード</string>
     <string name="about_title">Open Headunitについて</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -437,6 +438,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">温度</string>
     <string name="overlay_field_frame_age">フレーム経過時間</string>
+    <string name="overlay_field_battery">バッテリー</string>
+    <string name="overlay_field_memory">空きメモリ</string>
+    <string name="overlay_field_wifi_signal">Wi-Fi信号</string>
     <string name="performance_overlay_no_lines">行なし</string>
     <string name="show_performance_overlay">パフォーマンス表示を有効にする</string>
     <string name="overlay_position">パフォーマンス表示の位置</string>
@@ -1333,4 +1337,6 @@
     <string name="home_pages_hint_got_it">OK</string>
     <string name="home_pages_hint_body_anywhere">ホームの空いている部分ならどこでも使えます。ウィジェット用のページを追加したり、削除したりできます。</string>
     <string name="audio_settings_reconnect">オーディオ設定を保存しました。適用するにはAndroid Autoを再接続してください。</string>
+    <string name="native_aa_candidate_android_radio_description">ヘッドユニットの Bluetooth モジュールを自動選択する代わりに、Android の Bluetooth を使用します。自動選択する場合はオフにしてください。モジュール経由の接続オプションがオンの場合は、先にオフにしてください。</string>
+    <string name="external_bt_candidate_transport_description">自動選択の代わりに、ヘッドユニットの Bluetooth モジュール経由の接続を強制します。対応するモジュールサービスが必要です。サービスが応答しないときに Android の Bluetooth を使用できるようにするには、オフにしてください。オンにすると、この代替経路は使えなくなります。</string>
 </resources>

@@ -287,13 +287,14 @@
     <string name="checking_for_updates">Проверка обновлений…</string>
     <string name="update_available_title">Доступно обновление</string>
     <string name="update_available_playstore_message">Доступна новая версия (%1$s). Перейдите в Google Play Store, чтобы обновить приложение.</string>
-    <string name="update_available_github_message">Доступна новая версия (%1$s). Перейдите на GitHub, чтобы загрузить последнюю версию.</string>
+    <string name="update_available_github_message">Доступна новая версия (%1$s). Скачайте APK или откройте GitHub Releases, чтобы узнать, что изменилось.</string>
     <string name="update_not_available_title">Установлена последняя версия</string>
     <string name="update_not_available_message">Вы уже используете последнюю версию (%1$s).</string>
     <string name="update_check_failed">Не удалось проверить обновления. Проверьте подключение к интернету.</string>
     <string name="open_play_store">Открыть Play Store</string>
     <string name="open_github_releases">Открыть GitHub Releases</string>
     <string name="about_title">О приложении Open Headunit</string>
+    <string name="download_apk">Скачать APK</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
     <!-- Safety Disclaimer -->
@@ -440,6 +441,9 @@ Open Headunit предоставляется «как есть» без каки
     <string name="overlay_field_cpu">ЦП</string>
     <string name="overlay_field_temperature">Температура</string>
     <string name="overlay_field_frame_age">Возраст кадра</string>
+    <string name="overlay_field_battery">Батарея</string>
+    <string name="overlay_field_memory">Свободная память</string>
+    <string name="overlay_field_wifi_signal">Сигнал Wi-Fi</string>
     <string name="performance_overlay_no_lines">Нет строк</string>
     <string name="show_performance_overlay">Показывать панель производительности</string>
     <string name="overlay_position">Положение панели производительности</string>
@@ -1364,4 +1368,6 @@ Open Headunit предоставляется «как есть» без каки
     <string name="home_pages_hint_got_it">Понятно</string>
     <string name="home_pages_hint_body_anywhere">Подойдёт любая пустая часть главного экрана. Так можно добавить страницу для виджетов или удалить её.</string>
     <string name="audio_settings_reconnect">Настройки звука сохранены. Чтобы применить их, переподключите Android Auto.</string>
+    <string name="native_aa_candidate_android_radio_description">Использовать Bluetooth Android вместо автоматического выбора Bluetooth-модуля головного устройства. Для автоматического выбора оставьте выключенным. Если включена опция подключения через модуль, сначала выключите её.</string>
+    <string name="external_bt_candidate_transport_description">Принудительно подключаться через Bluetooth-модуль головного устройства вместо автоматического выбора. Нужна совместимая служба модуля. Оставьте выключенным, чтобы использовать Bluetooth Android, если служба не отвечает; включение блокирует этот запасной путь.</string>
 </resources>

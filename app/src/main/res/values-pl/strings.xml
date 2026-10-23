@@ -284,12 +284,13 @@
     <string name="checking_for_updates">Sprawdzanie aktualizacji…</string>
     <string name="update_available_title">Dostępna aktualizacja</string>
     <string name="update_available_playstore_message">Dostępna jest nowsza wersja (%1$s). Odwiedź sklep Google Play, aby zaktualizować aplikację.</string>
-    <string name="update_available_github_message">Dostępna jest nowsza wersja (%1$s). Przejdź do serwisu GitHub, aby pobrać najnowszą wersję.</string>
+    <string name="update_available_github_message">Dostępna jest nowsza wersja (%1$s). Pobierz plik APK lub otwórz GitHub Releases, aby zobaczyć zmiany.</string>
     <string name="update_not_available_title">Aktualna wersja</string>
     <string name="update_not_available_message">Używasz już najnowszej wersji (%1$s).</string>
     <string name="update_check_failed">Nie udało się sprawdzić aktualizacji. Sprawdź połączenie z internetem.</string>
     <string name="open_play_store">Otwórz Sklep Play</string>
     <string name="open_github_releases">Otwórz GitHub Releases</string>
+    <string name="download_apk">Pobierz APK</string>
     <string name="about_title">O Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -434,6 +435,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">Temperatura</string>
     <string name="overlay_field_frame_age">Wiek klatki</string>
+    <string name="overlay_field_battery">Bateria</string>
+    <string name="overlay_field_memory">Wolna pamięć</string>
+    <string name="overlay_field_wifi_signal">Sygnał Wi-Fi</string>
     <string name="performance_overlay_no_lines">Brak wierszy</string>
     <string name="show_performance_overlay">Pokaż nakładkę wydajności</string>
     <string name="overlay_position">Pozycja nakładki wydajności</string>
@@ -1336,4 +1340,6 @@
     <string name="home_pages_hint_got_it">Rozumiem</string>
     <string name="home_pages_hint_body_anywhere">Działa każde puste miejsce ekranu głównego. Tak dodasz stronę na widżety albo ją usuniesz.</string>
     <string name="audio_settings_reconnect">Ustawienia dźwięku zapisane. Połącz ponownie Android Auto, aby je zastosować.</string>
+    <string name="native_aa_candidate_android_radio_description">Używaj Bluetooth Androida zamiast automatycznie wybierać moduł Bluetooth jednostki. Pozostaw wyłączone, aby wybierać automatycznie. Jeśli włączono opcję połączenia przez moduł, najpierw ją wyłącz.</string>
+    <string name="external_bt_candidate_transport_description">Wymuś połączenie przez moduł Bluetooth jednostki zamiast automatycznego wyboru. Wymaga zgodnej usługi modułu. Pozostaw wyłączone, aby umożliwić użycie Bluetooth Androida, gdy usługa nie odpowiada; włączenie blokuje tę drogę zastępczą.</string>
 </resources>

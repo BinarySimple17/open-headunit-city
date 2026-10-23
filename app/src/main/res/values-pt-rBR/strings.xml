@@ -284,12 +284,13 @@
     <string name="checking_for_updates">Verificando atualizações…</string>
     <string name="update_available_title">Atualização disponível</string>
     <string name="update_available_playstore_message">Uma versão mais recente (%1$s) está disponível. Acesse a Google Play Store para atualizar seu aplicativo.</string>
-    <string name="update_available_github_message">Uma versão mais recente (%1$s) está disponível. Acesse o GitHub para baixar a versão mais recente.</string>
+    <string name="update_available_github_message">Uma versão mais recente (%1$s) está disponível. Baixe o APK ou abra GitHub Releases para ver o que mudou.</string>
     <string name="update_not_available_title">Atualizado</string>
     <string name="update_not_available_message">Você já está usando a versão mais recente (%1$s).</string>
     <string name="update_check_failed">Falha ao verificar atualizações. Verifique sua conexão com a internet.</string>
     <string name="open_play_store">Abrir Play Store</string>
     <string name="open_github_releases">Abrir GitHub Releases</string>
+    <string name="download_apk">Baixar APK</string>
     <string name="about_title">Sobre o Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -434,6 +435,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">Temperatura</string>
     <string name="overlay_field_frame_age">Latência do quadro</string>
+    <string name="overlay_field_battery">Bateria</string>
+    <string name="overlay_field_memory">Memória livre</string>
+    <string name="overlay_field_wifi_signal">Sinal Wi-Fi</string>
     <string name="performance_overlay_no_lines">Sem linhas</string>
     <string name="show_performance_overlay">Mostrar sobreposição de desempenho</string>
     <string name="overlay_position">Posição da sobreposição de desempenho</string>
@@ -1331,4 +1335,6 @@
     <string name="home_pages_hint_got_it">Entendi</string>
     <string name="home_pages_hint_body_anywhere">Qualquer parte vazia da tela inicial serve. É assim que você adiciona uma página para seus widgets, ou remove uma.</string>
     <string name="audio_settings_reconnect">Configurações de áudio salvas. Reconecte o Android Auto para aplicá-las.</string>
+    <string name="native_aa_candidate_android_radio_description">Usar o Bluetooth do Android em vez de selecionar automaticamente o módulo Bluetooth da central. Deixe desativado para seleção automática. Se alguma opção de conexão pelo módulo estiver ativada, desative-a primeiro.</string>
+    <string name="external_bt_candidate_transport_description">Forçar a conexão pelo módulo Bluetooth da central em vez da seleção automática. Requer um serviço de módulo compatível. Deixe desativado para permitir o Bluetooth do Android quando o serviço não responder; ativar impede essa alternativa.</string>
 </resources>

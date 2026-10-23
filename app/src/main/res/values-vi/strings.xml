@@ -315,12 +315,13 @@
     <string name="checking_for_updates">Đang kiểm tra bản cập nhật…</string>
     <string name="update_available_title">Có bản cập nhật mới</string>
     <string name="update_available_playstore_message">Đã có phiên bản mới hơn (%1$s). Vui lòng truy cập Google Play Store để cập nhật ứng dụng của bạn.</string>
-    <string name="update_available_github_message">Đã có phiên bản mới hơn (%1$s). Truy cập GitHub để tải xuống bản phát hành mới nhất.</string>
+    <string name="update_available_github_message">Đã có phiên bản mới hơn (%1$s). Hãy tải xuống APK hoặc mở GitHub Releases để xem nội dung thay đổi.</string>
     <string name="update_not_available_title">Đã là bản mới nhất</string>
     <string name="update_not_available_message">Bạn đang sử dụng phiên bản mới nhất (%1$s).</string>
     <string name="update_check_failed">Không thể kiểm tra bản cập nhật. Vui lòng kiểm tra kết nối internet của bạn.</string>
     <string name="open_play_store">Mở Play Store</string>
     <string name="open_github_releases">Mở GitHub Releases</string>
+    <string name="download_apk">Tải xuống APK</string>
     <string name="about_title">Giới thiệu Open Headunit</string>
     <string name="copyright">© 2025-%d André Rinas</string>
 
@@ -447,6 +448,9 @@
     <string name="overlay_field_cpu">CPU</string>
     <string name="overlay_field_temperature">Nhiệt độ</string>
     <string name="overlay_field_frame_age">Độ trễ khung hình</string>
+    <string name="overlay_field_battery">Pin</string>
+    <string name="overlay_field_memory">Bộ nhớ trống</string>
+    <string name="overlay_field_wifi_signal">Tín hiệu Wi-Fi</string>
     <string name="performance_overlay_no_lines">Không có dòng</string>
     <string name="show_performance_overlay">Hiển thị lớp phủ hiệu suất</string>
     <string name="overlay_position">Vị trí lớp phủ hiệu suất</string>
@@ -1331,4 +1335,6 @@
     <string name="home_pages_hint_got_it">Đã hiểu</string>
     <string name="home_pages_hint_body_anywhere">Phần trống nào của màn hình chính cũng được. Đó là cách thêm trang cho tiện ích, hoặc xóa một trang.</string>
     <string name="audio_settings_reconnect">Đã lưu cài đặt âm thanh. Hãy kết nối lại Android Auto để áp dụng.</string>
+    <string name="native_aa_candidate_android_radio_description">Dùng Bluetooth của Android thay vì tự động chọn mô-đun Bluetooth của đầu màn hình. Để tắt nếu muốn chọn tự động. Nếu tùy chọn kết nối qua mô-đun đang bật, hãy tắt tùy chọn đó trước.</string>
+    <string name="external_bt_candidate_transport_description">Buộc kết nối qua mô-đun Bluetooth của đầu màn hình thay vì chọn tự động. Cần dịch vụ mô-đun tương thích. Để tắt để cho phép dùng Bluetooth của Android khi dịch vụ không phản hồi; bật tùy chọn này sẽ chặn đường kết nối dự phòng đó.</string>
 </resources>
