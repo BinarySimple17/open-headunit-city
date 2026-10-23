@@ -516,6 +516,7 @@
     <string name="ui_scale_description">ცვლის ტექსტის, მენიუებისა და ინტერფეისის ელემენტების მასშტაბს მთელ აპლიკაციაში. რეკომენდებულია მაღალი გარჩევადობის ეკრანებისთვის პატარა ტექსტით.</string>
     <string name="ui_scale_home">მთავარი ეკრანი</string>
     <string name="ui_scale_settings">პარამეტრების ეკრანი</string>
+    <string name="ui_scale_exit_dialog">გასვლის დიალოგი</string>
     <string name="category_vehicle">ავტომობილი</string>
     <string name="category_head_unit">მაგნიტოლა</string>
     <string name="vehicle_display_name_label">საჩვენებელი სახელი</string>
@@ -1147,6 +1148,15 @@
     <string name="debug_video_feed_hold">ნელი დეკოდერის სიმულაცია</string>
 
     <string name="category_more_features">მეტი ფუნქცია</string>
+    <string name="device_specific_settings">მოწყობილობის სპეციფიკური პარამეტრები</string>
+    <string name="device_specific_settings_description">მხარდაჭერილი სათავო მოწყობილობების მოდელების პარამეტრები</string>
+    <string name="device_specific_mcu_checking">MCU-ზე წვდომის შემოწმება...</string>
+    <string name="device_specific_mcu_unavailable">MCU-ზე წვდომა მიუწვდომელია. ამ მოწყობილობაზე უკუსვლისას პროექციის შეჩერების ფუნქცია გამორთულია.</string>
+    <string name="device_specific_head_unit_model">სათავო მოწყობილობის მოდელი</string>
+    <string name="device_specific_model_none">არჩეული არ არის</string>
+    <string name="device_specific_model_adayo_haval">Adayo (Haval)</string>
+    <string name="device_specific_pause_projection_reverse">Android Auto-ს პროექციის შეჩერება უკუსვლისას</string>
+    <string name="device_specific_pause_projection_reverse_description">Android Auto-ს ვიდეოფოკუსის გათავისუფლება, სანამ უკანა ხედვის კამერა აქტიურია, და პროექციის აღდგენა უკუსვლის გამორთვის შემდეგ.</string>
     <string name="pref_enable_floating_button_title">მცურავი ღილაკი</string>
     <string name="pref_enable_floating_button_summary">აჩვენებს მცურავ ღილაკს სისტემურ ლაუნჩერსა და აპებზე Open Headunit-ში სწრაფად დასაბრუნებლად.</string>
     <string name="pref_floating_button_connection_status_title">კავშირის სტატუსის ინდიკატორი</string>

@@ -527,6 +527,7 @@
     <string name="ui_scale_description">Skaliert Schriften, Menüs und Abstände der gesamten App. Empfohlen für hochauflösende Displays mit kleiner Schrift.</string>
     <string name="ui_scale_home">Startbildschirm</string>
     <string name="ui_scale_settings">Einstellungsbildschirm</string>
+    <string name="ui_scale_exit_dialog">Beenden-Dialog</string>
     <string name="category_vehicle">Fahrzeug</string>
     <string name="category_head_unit">Autoradio</string>
     <string name="vehicle_display_name_label">Anzeigename</string>
@@ -1187,6 +1188,15 @@
 
     <!-- More Features & Floating Button -->
     <string name="category_more_features">Weitere Funktionen</string>
+    <string name="device_specific_settings">Gerätespezifische Einstellungen</string>
+    <string name="device_specific_settings_description">Einstellungen für unterstützte Headunit-Modelle</string>
+    <string name="device_specific_mcu_checking">MCU-Zugriff wird geprüft...</string>
+    <string name="device_specific_mcu_unavailable">Kein MCU-Zugriff verfügbar. Die Projektionspause beim Einlegen des Rückwärtsgangs ist auf diesem Gerät deaktiviert.</string>
+    <string name="device_specific_head_unit_model">Headunit-Modell</string>
+    <string name="device_specific_model_none">Nicht ausgewählt</string>
+    <string name="device_specific_model_adayo_haval">Adayo (Haval)</string>
+    <string name="device_specific_pause_projection_reverse">Android Auto-Projektion im Rückwärtsgang pausieren</string>
+    <string name="device_specific_pause_projection_reverse_description">Den Videofokus von Android Auto freigeben, solange die Rückfahrkamera aktiv ist, und die Projektion nach dem Herausnehmen des Rückwärtsgangs wiederherstellen.</string>
     <string name="pref_enable_floating_button_title">Schwebender Launcher-Button</string>
     <string name="pref_enable_floating_button_summary">Zeigt einen schwebenden Button über dem OEM-Launcher und anderen Apps an, um schnell zu Open Headunit zurückzukehren.</string>
     <string name="pref_floating_button_connection_status_title">Verbindungsstatus-Anzeige</string>
