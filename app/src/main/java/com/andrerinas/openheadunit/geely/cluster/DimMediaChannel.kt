@@ -47,6 +47,11 @@ object DimMediaChannel {
     @Volatile private var mediaInteraction: Any? = null
     @Volatile private var updatePlaybackInfo: Method? = null
     @Volatile private var updateCurrentProgress: Method? = null
+
+    /** Candidate З (BL-004 fact 25): the firmware's own source announcer, present in the
+     *  reference interface but never used by us before 2026-10-23. Optional on purpose — an
+     *  older firmware without it only means the switch stays silent, the card lives on. */
+    @Volatile private var updateCurrentSourceType: Method? = null
     @Volatile private var playbackInfoInterface: Class<*>? = null
     @Volatile private var mock: IDimMediaMock? = null
     @Volatile private var appContext: Context? = null
@@ -90,13 +95,21 @@ object DimMediaChannel {
                 it.name == "updateCurrentProgress" && it.parameterTypes.size == 1 &&
                     it.parameterTypes[0] == Long::class.javaPrimitiveType
             } ?: return fail("updateCurrentProgress(J) not found")
+            // The announcer is probed, not required: a firmware without it keeps publishing,
+            // only candidate З has nothing to call.
+            val announce = media.javaClass.methods.firstOrNull {
+                it.name == "updateCurrentSourceType" && it.parameterTypes.size == 1 &&
+                    it.parameterTypes[0] == Int::class.javaPrimitiveType
+            }
 
             updatePlaybackInfo = publish
             updateCurrentProgress = progress
+            updateCurrentSourceType = announce
             playbackInfoInterface = info
             mediaInteraction = media
             mode = Mode.FIRMWARE
-            HvacLog.i("cluster.dim: media interaction ready (publish=${publish.parameterTypes[0].name})")
+            HvacLog.i("cluster.dim: media interaction ready (publish=${publish.parameterTypes[0].name}" +
+                ", announce=${announce != null})")
             true
         } catch (_: ClassNotFoundException) {
             if (BuildConfig.DEBUG) connectMock(context)
@@ -166,6 +179,33 @@ object DimMediaChannel {
             // here the channel would stay dead until the next track. Same-thread as publish.
             val context = appContext ?: return false
             return connect(context) && publishProgress(positionMs)
+        }
+    }
+
+    /**
+     * Candidate З (BL-004 fact 25): declare the cluster's current media source. Fires on
+     * card publications only (track changes are rare); true also when the firmware turned
+     * out to have no such setter — silence, not failure.
+     */
+    fun publishSourceType(sourceType: Int): Boolean = when (mode) {
+        Mode.FIRMWARE -> {
+            val method = updateCurrentSourceType
+            if (method == null) {
+                HvacLog.d("cluster.dim: no updateCurrentSourceType on this firmware — announce skipped")
+                true
+            } else {
+                try {
+                    method.invoke(mediaInteraction, sourceType)
+                    true
+                } catch (e: Throwable) {
+                    fail("updateCurrentSourceType($sourceType) threw", e.cause ?: e)
+                }
+            }
+        }
+        Mode.MOCK -> true
+        Mode.NONE -> {
+            val context = appContext ?: return false
+            return connect(context) && publishSourceType(sourceType)
         }
     }
 

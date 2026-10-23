@@ -75,6 +75,18 @@ class PlaybackInfoProxyTest {
     }
 
     @Test
+    fun `candidate Ж - the switch moves the card into the Bluetooth slot`() {
+        // BL-004 fact 25 (2026-10-23): sourceType=2 (SOURCE_TYPE_BT) feeds the same slot the
+        // stock Bluetooth card occupies; the default stays the reference's ONLINE=6.
+        val bt = proxy(snapshot.copy(sourceType = TrackSnapshot.SOURCE_TYPE_BT))
+        assertEquals(2, bt.getSourceType())
+        assertEquals(6, proxy().getSourceType())
+        // The content rides along unchanged - the switch touches the claimed slot only.
+        assertEquals("Song", bt.getTitle())
+        assertEquals("file:///pictures/ohu-media/x.jpg", bt.getArtwork())
+    }
+
+    @Test
     fun `radio getters answer an empty String, not a number - the firmware casts them during the push`() {
         // Round 5 (2026-10-17 08:20): getRadioFrequency returned Integer 0 and the firmware's
         // MediaInteraction.updatePlaybackInfo:93 threw ClassCastException — one wrong-typed

@@ -186,6 +186,9 @@ class SettingsFragment : Fragment() {
     private var pendingClusterMedia: Boolean? = null
     private var pendingClusterBtFallback: Boolean? = null
     private var pendingClusterProgress: Boolean? = null
+    private var pendingClusterSourceTypeBt: Boolean? = null
+    private var pendingClusterSourceAnnounce: Boolean? = null
+    private var pendingClusterMediaCenterProbe: Boolean? = null
 
     private val pending = SettingsPendingCopy()
     private var pendingUseGps by pending::useGps
@@ -378,6 +381,9 @@ class SettingsFragment : Fragment() {
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
         pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
+        pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
+        pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
+        pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
 
         // Initialize local state with current values
         pending.loadFrom(settings)
@@ -451,6 +457,9 @@ class SettingsFragment : Fragment() {
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
         pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
+        pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
+        pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
+        pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
     }
 
     /**
@@ -604,6 +613,9 @@ class SettingsFragment : Fragment() {
             pendingClusterMedia?.let { if (it != cluster.enabled) cluster.enabled = it }
             pendingClusterBtFallback?.let { if (it != cluster.btFallback) cluster.btFallback = it }
             pendingClusterProgress?.let { if (it != cluster.progressEnabled) cluster.progressEnabled = it }
+            pendingClusterSourceTypeBt?.let { if (it != cluster.sourceTypeBt) cluster.sourceTypeBt = it }
+            pendingClusterSourceAnnounce?.let { if (it != cluster.sourceAnnounce) cluster.sourceAnnounce = it }
+            pendingClusterMediaCenterProbe?.let { if (it != cluster.mediaCenterProbe) cluster.mediaCenterProbe = it }
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -774,6 +786,9 @@ class SettingsFragment : Fragment() {
         pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
         pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
         pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
+        pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
+        pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
+        pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
         hasChanges = false
         requiresRestart = false
         requiresServiceRestart = false
@@ -803,7 +818,10 @@ class SettingsFragment : Fragment() {
             } ||
             pendingClusterMedia != ClusterMediaSettings(requireContext().applicationContext).enabled ||
             pendingClusterBtFallback != ClusterMediaSettings(requireContext().applicationContext).btFallback ||
-            pendingClusterProgress != ClusterMediaSettings(requireContext().applicationContext).progressEnabled
+            pendingClusterProgress != ClusterMediaSettings(requireContext().applicationContext).progressEnabled ||
+            pendingClusterSourceTypeBt != ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt ||
+            pendingClusterSourceAnnounce != ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce ||
+            pendingClusterMediaCenterProbe != ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
 
         // Check for restart requirement
         requiresRestart = pendingResolution != settings.resolutionId ||
@@ -3075,6 +3093,9 @@ class SettingsFragment : Fragment() {
         val clusterMediaOn = pendingClusterMedia ?: ClusterMediaSettings(requireContext().applicationContext).enabled
         val clusterBtFallbackOn = pendingClusterBtFallback ?: ClusterMediaSettings(requireContext().applicationContext).btFallback
         val clusterProgressOn = pendingClusterProgress ?: ClusterMediaSettings(requireContext().applicationContext).progressEnabled
+        val clusterSourceTypeBtOn = pendingClusterSourceTypeBt ?: ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
+        val clusterSourceAnnounceOn = pendingClusterSourceAnnounce ?: ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
+        val clusterMediaCenterProbeOn = pendingClusterMediaCenterProbe ?: ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
         val saveHvacChange: () -> Unit = {
             hasChanges = true
             updateSaveButtonState()
@@ -3211,6 +3232,36 @@ class SettingsFragment : Fragment() {
             isChecked = clusterProgressOn,
             onCheckedChanged = { checked ->
                 pendingClusterProgress = checked
+                saveHvacChange()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterSourceTypeBt",
+            nameResId = R.string.cluster_source_type_bt,
+            descriptionResId = R.string.cluster_source_type_bt_description,
+            isChecked = clusterSourceTypeBtOn,
+            onCheckedChanged = { checked ->
+                pendingClusterSourceTypeBt = checked
+                saveHvacChange()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterSourceAnnounce",
+            nameResId = R.string.cluster_source_announce,
+            descriptionResId = R.string.cluster_source_announce_description,
+            isChecked = clusterSourceAnnounceOn,
+            onCheckedChanged = { checked ->
+                pendingClusterSourceAnnounce = checked
+                saveHvacChange()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterMediaCenterProbe",
+            nameResId = R.string.cluster_mediacenter_probe,
+            descriptionResId = R.string.cluster_mediacenter_probe_description,
+            isChecked = clusterMediaCenterProbeOn,
+            onCheckedChanged = { checked ->
+                pendingClusterMediaCenterProbe = checked
                 saveHvacChange()
             }
         ))
@@ -3356,7 +3407,8 @@ class SettingsFragment : Fragment() {
     private val geelyItemIds = setOf(
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
         "hvacHideTimeout", "hvacSendLogs",
-        "clusterMedia", "clusterBtFallback"
+        "clusterMedia", "clusterBtFallback", "clusterProgress",
+        "clusterSourceTypeBt", "clusterSourceAnnounce", "clusterMediaCenterProbe"
     )
 
     private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds

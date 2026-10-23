@@ -1404,6 +1404,12 @@
     <string name="cluster_bt_fallback_grant_hint">Grant notification access to this app</string>
     <string name="cluster_progress">Cluster card position updates</string>
     <string name="cluster_progress_description">Diagnostic switch (flicker hunt): sends the track position to the instrument cluster every second. The card itself (cover, title) is unaffected - turn OFF when the card starts flickering and watch whether the flicker stops</string>
+    <string name="cluster_source_type_bt">Cluster card as Bluetooth source</string>
+    <string name="cluster_source_type_bt_description">Diagnostic switch (flicker hunt): the card declares itself as the Bluetooth source instead of an online app, so it feeds the very slot the stock Bluetooth card occupies - there should be no second card to switch to. Turn it off if the cover disappears</string>
+    <string name="cluster_source_announce">Announce active source to cluster</string>
+    <string name="cluster_source_announce_description">Diagnostic switch (flicker hunt): on every track change tells the instrument cluster that the active source is Bluetooth (the audio actually plays over it). Independent of the previous switch; requires the firmware to support the announcement</string>
+    <string name="cluster_mediacenter_probe">Read stock media center state</string>
+    <string name="cluster_mediacenter_probe_description">Diagnostic switch (flicker hunt): every 5 seconds reads what the stock Bluetooth feed holds (title, artist, cover) and writes every change to the HVAC log; the cover is saved to the app folder for inspection. Read-only observation</string>
     <string name="hvac_hide_timeout">Icon hide timeout</string>
     <string name="hvac_timeout_seconds">%1$d s</string>
     <string name="hvac_level_number">Level %1$d</string>

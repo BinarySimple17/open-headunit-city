@@ -1293,6 +1293,12 @@
     <string name="cluster_bt_fallback_grant_hint">Выдайте приложению доступ к уведомлениям</string>
     <string name="cluster_progress">Обновления позиции на карточке приборки</string>
     <string name="cluster_progress_description">Диагностический выключатель (охота на мигание): раз в секунду передаёт приборке позицию трека. Сама карточка (обложка, название) не затрагивается - выключите, когда карточка замигает, и посмотрите, прекратится ли мигание</string>
+    <string name="cluster_source_type_bt">Карточка приборки как источник Bluetooth</string>
+    <string name="cluster_source_type_bt_description">Диагностический выключатель (охота на мигание): карточка объявляет себя источником Bluetooth, а не онлайн-приложением, и кормит тот же слот, где живёт штатная BT-карточка, - второй карточки для переключения быть не должно. Если обложка пропадёт - выключите</string>
+    <string name="cluster_source_announce">Объявлять приборке активный источник</string>
+    <string name="cluster_source_announce_description">Диагностический выключатель (охота на мигание): при каждой смене трека сообщает приборке, что активный источник - Bluetooth (звук в этот момент играет именно по нему). Независим от предыдущего выключателя; нужна поддержка прошивки</string>
+    <string name="cluster_mediacenter_probe">Читать состояние штатного медиацентра</string>
+    <string name="cluster_mediacenter_probe_description">Диагностический выключатель (охота на мигание): раз в 5 секунд читает, что штатный BT-фид держит сейчас (название, исполнитель, обложка), и пишет каждое изменение в HVAC-лог; обложка сохраняется в папку приложения для просмотра. Только наблюдение, ничего не меняет</string>
     <string name="hvac_hide_timeout">Таймаут скрытия иконок</string>
     <string name="hvac_timeout_seconds">%1$d с</string>
     <string name="hvac_level_number">Уровень %1$d</string>

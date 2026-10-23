@@ -21,8 +21,15 @@ data class TrackSnapshot(
     val isPlaying: Boolean,
     /** Stable per-track id so a re-publish of the same track reads as the same card. */
     val trackUuid: String?,
+    /** The source type the card claims: 6 = ONLINE (the reference's default), 2 = BT —
+     *  candidate Ж, the switch occupies the stock Bluetooth card's own slot. */
+    val sourceType: Int = SOURCE_TYPE_ONLINE,
 ) {
     companion object {
+        /** IMediaInteraction constants (adaptapi reference): the slot kinds the cluster knows. */
+        const val SOURCE_TYPE_BT = 2
+        const val SOURCE_TYPE_ONLINE = 6
+
         /** The reference's empty implementation: every getter answers its neutral default. */
         val EMPTY = TrackSnapshot(null, null, null, null, 0L, false, null)
     }
@@ -79,9 +86,10 @@ object PlaybackInfoProxy {
         // through the reference's per-track value and user setting to constant 6 — round 6
         // (2026-10-17): our 0 reached the firmware (sources =:0 in the car log) and the card
         // came up without artwork; 6 is the value the working reference ships by default.
+        // Since candidate Ж (fact 25) the snapshot carries the type: 6 or BT=2 by switch.
         "getLoopMode", "getRadioMode", "getPlayingItemPositionInQueue" -> 0
         "getFavoriteState" -> 1
-        "getSourceType" -> 6
+        "getSourceType" -> snapshot.sourceType
         "getUUID" -> snapshot.trackUuid
         else -> null
     }

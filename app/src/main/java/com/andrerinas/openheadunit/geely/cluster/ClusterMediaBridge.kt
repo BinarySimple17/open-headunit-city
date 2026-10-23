@@ -88,6 +88,8 @@ class ClusterMediaBridge(context: Context) {
 
     private fun handleGateChanged() {
         syncBtMonitor()
+        // The probe follows its own switch even when no ticks flow (music stopped etc.).
+        if (settings.mediaCenterProbe) MediaCenterProbe.ensureStarted(app) else MediaCenterProbe.stop()
         if (!btFallbackArmed()) clearIfPublished("switch off")
     }
 
@@ -117,12 +119,27 @@ class ClusterMediaBridge(context: Context) {
                 "${snapshot.title}, artwork=${snapshot.artworkUri != null})")
         }
         if (snapshot != lastSnapshot) {
-            if (publish(snapshot)) lastSnapshot = snapshot
+            // Candidate Ж (fact 25): the card can claim the Bluetooth slot (sourceType=2)
+            // instead of ONLINE — one switch, the card content is untouched.
+            val effective = if (settings.sourceTypeBt) {
+                snapshot.copy(sourceType = TrackSnapshot.SOURCE_TYPE_BT)
+            } else {
+                snapshot
+            }
+            if (publish(effective)) lastSnapshot = effective
         }
         // D2 experiment (fact 20): the 1 Hz progress stream is a suspect feed of the
         // cluster's source arbitration — the settings switch cuts it without touching
         // the standing card (uuid/cover stay as published).
         if (settings.progressEnabled) DimMediaChannel.publishProgress(positionMs)
+        // Candidate З (fact 25): declare the active source at publication time. Fires on
+        // the same rare track-change path as the push; BT because that is where the audio
+        // actually flows (A2DP) while our card is up.
+        if (settings.sourceAnnounce) {
+            DimMediaChannel.publishSourceType(TrackSnapshot.SOURCE_TYPE_BT)
+        }
+        // The observation surface (fact 25): poll the stock feed while the hunt is on.
+        if (settings.mediaCenterProbe) MediaCenterProbe.ensureStarted(app) else MediaCenterProbe.stop()
         // S015 diagnostics: which card does the cluster hold RIGHT NOW (uuid/sourceType)?
         // Read-back only — the publication model stays frozen this session (Task 2).
         if (DimMediaChannel.firmwareChannel) {

@@ -40,6 +40,38 @@ class ClusterMediaSettings(context: Context) {
         get() = prefs.getBoolean(KEY_PROGRESS, true)
         set(value) = prefs.edit().putBoolean(KEY_PROGRESS, value).apply()
 
+    /**
+     * Candidate Ж (BL-004 facts 20/25): publish the card with sourceType=2 (SOURCE_TYPE_BT)
+     * instead of 6 (SOURCE_TYPE_ONLINE). If the cluster keeps cards per source type, our
+     * push then feeds the very slot the stock Bluetooth card occupies — no second card, no
+     * arbitration. Risk: the BT slot's renderer may not draw artwork at all (round 6 proved
+     * the type affects rendering).
+     */
+    var sourceTypeBt: Boolean
+        get() = prefs.getBoolean(KEY_SOURCE_TYPE_BT, false)
+        set(value) = prefs.edit().putBoolean(KEY_SOURCE_TYPE_BT, value).apply()
+
+    /**
+     * Candidate З (BL-004 facts 20/25): announce the active audio source to the cluster
+     * (updateCurrentSourceType, a firmware setter of our own DIM channel we never called)
+     * on every card publication. Hypothesis: the cluster flicks cards because nobody
+     * declares the current source; declaring BT while the A2DP audio plays removes the
+     * reason to switch "to Bluetooth". Independent of [sourceTypeBt].
+     */
+    var sourceAnnounce: Boolean
+        get() = prefs.getBoolean(KEY_SOURCE_ANNOUNCE, false)
+        set(value) = prefs.edit().putBoolean(KEY_SOURCE_ANNOUNCE, value).apply()
+
+    /**
+     * The observation surface (BL-004 fact 25): poll the vendor media center over its
+     * oneosapi binder for what the STOCK Bluetooth feed currently holds (title, artist,
+     * cover, play state) and log every change to the HVAC log. Read-only diagnostics for
+     * the flicker hunt — it prints what the competing publisher knows and when.
+     */
+    var mediaCenterProbe: Boolean
+        get() = prefs.getBoolean(KEY_MEDIA_CENTER_PROBE, false)
+        set(value) = prefs.edit().putBoolean(KEY_MEDIA_CENTER_PROBE, value).apply()
+
     /** Watches this file — the bridge reacts to Save without anyone wiring it by hand. */
     fun addListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
@@ -50,5 +82,8 @@ class ClusterMediaSettings(context: Context) {
         const val KEY_ENABLED = "cluster_media_enabled"
         const val KEY_BT_FALLBACK = "cluster_bt_fallback"
         const val KEY_PROGRESS = "cluster_progress_enabled"
+        const val KEY_SOURCE_TYPE_BT = "cluster_source_type_bt"
+        const val KEY_SOURCE_ANNOUNCE = "cluster_source_announce"
+        const val KEY_MEDIA_CENTER_PROBE = "cluster_mediacenter_probe"
     }
 }
