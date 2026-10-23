@@ -1,4 +1,9 @@
 # Changelog
+### v.3.5.0-beta25
+- Added: a "Cluster card as Bluetooth source" switch (off by default) - the card declares itself as the Bluetooth source instead of an online app, feeding the very slot the stock Bluetooth card occupies, so the cluster has no second card to switch to
+- Added: an "Announce active source to cluster" switch (off by default) - on every track change the app tells the cluster the active source is Bluetooth, the same source the audio actually plays over; needs firmware support and degrades to silence where it is missing
+- Added: a "Read stock media center state" switch (off by default) - every 5 seconds the app reads what the stock Bluetooth feed holds (title, artist, cover) and logs every change to the car log, with the cover saved to the app folder for inspection; a read-only window into the competing publisher the flicker hunt could not see before
+- Fixed: the cluster position switch added in the previous release lived on the wrong settings tab - all cluster switches now sit together in the CAR tab
 ### v.3.5.0-beta24
 - Fixed: the snapshot cache of the Bluetooth card dropped the track it had just stored once it filled up - the eviction took an arbitrary key, ate the current track's entry, and the app rebuilt the whole card (donor lookup, cover re-encode, diagnostics dump) every second of a drive; the cache is now access-ordered, so the current track is never its own eviction victim
 - Fixed: the ~1 second stripped next-track announcement the Bluetooth session makes before every track change (album and duration removed) was published as its own card identity, pushing a second uuid - a double card update per track change; such reads are now skipped without touching the standing card
