@@ -26,9 +26,7 @@ class ClimateWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, appWidgetIds: IntArray) {
         StatusPollService.start(context)
         val settings = WidgetSettings(context)
-        val views = WidgetRenderer.render(
-            context, settings.carModel, WidgetStatus.snapshot, settings.lastMemoryRestore,
-        )
+        val views = renderGuarded(context, settings)
         for (appWidgetId in appWidgetIds) {
             manager.updateAppWidget(appWidgetId, views)
         }
@@ -70,12 +68,26 @@ class ClimateWidgetProvider : AppWidgetProvider() {
             val ids = manager.getAppWidgetIds(ComponentName(appContext, ClimateWidgetProvider::class.java))
             if (ids.isEmpty()) return
             val settings = WidgetSettings(appContext)
-            val views = WidgetRenderer.render(
-                appContext, settings.carModel, WidgetStatus.snapshot, settings.lastMemoryRestore,
-            )
+            val views = renderGuarded(appContext, settings)
             for (appWidgetId in ids) {
                 manager.updateAppWidget(appWidgetId, views)
             }
         }
+
+        /**
+         * Degradation net (canon rule 8): if the registry render ever throws, the bare layout
+         * is applied instead — the launcher keeps a valid (if inert) widget and the desktop
+         * never sees an apply-time exception, so the widget cannot wedge itself into a
+         * crash-loop or become unremovable.
+         */
+        private fun renderGuarded(context: Context, settings: WidgetSettings): RemoteViews =
+            try {
+                WidgetRenderer.render(
+                    context, settings.carModel, WidgetStatus.snapshot, settings.lastMemoryRestore,
+                )
+            } catch (e: Throwable) {
+                WidgetLog.e("render failed — falling back to the bare layout", e)
+                RemoteViews(context.packageName, R.layout.climate_widget)
+            }
     }
 }

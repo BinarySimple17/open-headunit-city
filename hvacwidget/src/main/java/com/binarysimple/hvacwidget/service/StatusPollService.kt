@@ -73,16 +73,23 @@ class StatusPollService : Service() {
     }
 
     private fun startInForeground() {
-        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, getString(R.string.notification_channel), NotificationManager.IMPORTANCE_MIN),
-        )
-        val notification: Notification = Notification.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_widget)
-            .setContentTitle(getString(R.string.notification_title))
-            .setOngoing(true)
-            .build()
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+        try {
+            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(
+                NotificationChannel(CHANNEL_ID, getString(R.string.notification_channel), NotificationManager.IMPORTANCE_MIN),
+            )
+            val notification: Notification = Notification.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_widget)
+                .setContentTitle(getString(R.string.notification_title))
+                .setOngoing(true)
+                .build()
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+        } catch (e: Throwable) {
+            // Degrade, never crash-loop: a service that cannot promote itself stops quietly
+            // (well inside the startForegroundService contract) instead of dying repeatedly.
+            WidgetLog.e("foreground promotion failed — stopping the poll service", e)
+            stopSelf()
+        }
     }
 
     companion object {
