@@ -1,7 +1,7 @@
 import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.repositories
 
-include(":app", ":contract", ":mockcar")
+include(":app", ":contract", ":mockcar", ":hvacwidget")
 
 
 rootProject.name = "open-headunit"

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Skeleton palette (Task 1); Task 2's theme aligns the level colors with the :app panel. -->
+    <color name="widget_bg">#E6141517</color>
+    <color name="widget_button_bg">#2A2D33</color>
+    <color name="widget_button_stroke">#3A3D42</color>
+    <color name="widget_text">#ECECEC</color>
+    <color name="widget_accent">#2686C6</color>
+</resources>
