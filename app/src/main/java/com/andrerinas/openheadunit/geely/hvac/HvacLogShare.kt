@@ -47,6 +47,9 @@ object HvacLogShare {
         val app = context.applicationContext
         val uris = withContext(Dispatchers.IO) { collectUris(app) }
         if (uris.isEmpty()) {
+            // The 2026-10-24 round: the "no logs" toast arrived with zero trace of WHY, and the
+            // logcat could not separate "capture toggle was off" from "the provider went mute".
+            AppLog.w("[HVAC] share: nothing to send")
             ToastUtils.showToast(
                 app,
                 app.getString(R.string.hvac_send_logs_none),
@@ -55,6 +58,7 @@ object HvacLogShare {
             )
             return
         }
+        AppLog.i("[HVAC] share: sending %d capture(s)", uris.size)
 
         val send = if (uris.size == 1) {
             Intent(Intent.ACTION_SEND).apply {
@@ -108,7 +112,17 @@ object HvacLogShare {
                 urisByName[name] = ContentUris.withAppendedId(collection, cursor.getLong(0))
             }
         }
-        return retainedCaptureNames(names, HvacLog.MAX_FILES).mapNotNull(urisByName::get)
+        val retained = retainedCaptureNames(names, HvacLog.MAX_FILES).mapNotNull(urisByName::get)
+        if (retained.isEmpty()) {
+            // Remembered=0 means no capture was made since this memory exists (the toggle may
+            // simply be off); rows are what the provider answered — zero while files exist is
+            // the mute-provider signature seen on 2026-10-24.
+            AppLog.w(
+                "[HVAC] share: collector empty — remembered=0, provider query rows=%d",
+                names.size
+            )
+        }
+        return retained
     }
 
     private fun legacyUris(context: Context): List<Uri> {
