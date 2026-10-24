@@ -87,6 +87,11 @@ object HvacLogShare {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun mediaStoreUris(context: Context): List<Uri> {
+        // Own-URI memory first: the firmware's provider stopped answering the name query even
+        // for a file this app inserted a minute earlier (2026-10-24 round), so a query-only
+        // collector would say "no logs" while the capture it just wrote is still open.
+        val remembered = HvacLog.rememberedCaptureUris(context)
+        if (remembered.isNotEmpty()) return remembered
         val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
         val names = ArrayList<String>()
         val urisByName = HashMap<String, Uri>()

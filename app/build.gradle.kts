@@ -98,8 +98,8 @@ android {
         // and a 21 floor keeps Geely-specific code free of pre-Lollipop guards.
         minSdk = 21
         targetSdk = 36
-        versionCode = 138
-        versionName = "3.5.0-beta25"
+        versionCode = 139
+        versionName = "3.5.0-beta26"
         setProperty("archivesBaseName", "${applicationId}_${versionName}")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true

@@ -1,4 +1,8 @@
 # Changelog
+### v.3.5.0-beta26
+- Fixed: the "send HVAC logs" button reported "no logs" even seconds after the app had written a capture - the firmware's media store stopped answering the by-name query for the app's own Download files, so the share now reads the capture locations the app remembers from its own inserts (the query stays only as a fallback), dead entries are pruned on the spot
+- Fixed: toggling the Bluetooth-source switch no longer waits for the next track to reach the cluster card - a standing card is re-published with the new source type the moment the switch moves, so a single-track drive actually exercises the experiment instead of reading as "nothing changed"
+- Added: every saved change of the CAR-tab settings is logged as "name old -> new" to both the app log and the car log, so a drive record shows exactly when each switch was turned on or off
 ### v.3.5.0-beta25
 - Added: a "Cluster card as Bluetooth source" switch (off by default) - the card declares itself as the Bluetooth source instead of an online app, feeding the very slot the stock Bluetooth card occupies, so the cluster has no second card to switch to
 - Added: an "Announce active source to cluster" switch (off by default) - on every track change the app tells the cluster the active source is Bluetooth, the same source the audio actually plays over; needs firmware support and degrades to silence where it is missing

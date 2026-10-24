@@ -589,6 +589,26 @@ class SettingsFragment : Fragment() {
         saveButton?.text = if (requiresRestart) getString(R.string.save_and_restart) else getString(R.string.save)
     }
 
+    /**
+     * The CAR-tab experiment lives or dies by knowing WHICH switch moved and WHEN: the
+     * 2026-10-24 drive read as "nothing changed" and the logs could not say whether the
+     * toggles were even active. Every saved geely change therefore lands in both the app
+     * log (always on, survives the HVAC capture being off) and the HVAC capture (the
+     * car-log narrative), as `name old -> new`, one line per switch.
+     */
+    private fun logGeelyChange(name: String, from: Any?, to: Any?) {
+        val line = "settings: $name $from -> $to"
+        AppLog.i(line)
+        HvacLog.i(line)
+    }
+
+    /** Commits one pending geely setting, logging nothing when nothing actually changes. */
+    private fun <T> commitGeely(name: String, pending: T?, current: () -> T, apply: (T) -> Unit) {
+        if (pending == null || pending == current()) return
+        logGeelyChange(name, current(), pending)
+        apply(pending)
+    }
+
     private fun saveSettings() {
         checkChanges()
         var audioSessionEnded = false
@@ -597,25 +617,23 @@ class SettingsFragment : Fragment() {
         pendingAdvancedSettings?.let { if (it != settings.isAdvancedSettingsActive) settings.isAdvancedSettingsActive = it }
         // Geely HVAC: applied with the common Save; the log file follows the saved toggle.
         HvacSettings(requireContext().applicationContext).also { hvac ->
-            pendingHvacPanelMode?.let { if (it != hvac.panelMode) hvac.panelMode = it }
-            pendingHvacCarModel?.let { if (it != hvac.carModel) hvac.carModel = it }
-            pendingHvacHideTimeoutSec?.let { if (it != hvac.hideTimeoutSec) hvac.hideTimeoutSec = it }
-            pendingHvacDebugLog?.let { pending ->
-                if (pending != hvac.debugLog) {
-                    hvac.debugLog = pending
-                    if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
-                }
+            commitGeely("hvacPanelMode", pendingHvacPanelMode, { hvac.panelMode }, { hvac.panelMode = it })
+            commitGeely("hvacCarModel", pendingHvacCarModel, { hvac.carModel }, { hvac.carModel = it })
+            commitGeely("hvacHideTimeout", pendingHvacHideTimeoutSec, { hvac.hideTimeoutSec }, { hvac.hideTimeoutSec = it })
+            commitGeely("hvacDebugLog", pendingHvacDebugLog, { hvac.debugLog }) { pending ->
+                hvac.debugLog = pending
+                if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
             }
         }
         // Geely cluster media (F013): the bridge watches its own prefs file and reacts
         // (publication stops and the card clears) without anyone calling into it.
         ClusterMediaSettings(requireContext().applicationContext).also { cluster ->
-            pendingClusterMedia?.let { if (it != cluster.enabled) cluster.enabled = it }
-            pendingClusterBtFallback?.let { if (it != cluster.btFallback) cluster.btFallback = it }
-            pendingClusterProgress?.let { if (it != cluster.progressEnabled) cluster.progressEnabled = it }
-            pendingClusterSourceTypeBt?.let { if (it != cluster.sourceTypeBt) cluster.sourceTypeBt = it }
-            pendingClusterSourceAnnounce?.let { if (it != cluster.sourceAnnounce) cluster.sourceAnnounce = it }
-            pendingClusterMediaCenterProbe?.let { if (it != cluster.mediaCenterProbe) cluster.mediaCenterProbe = it }
+            commitGeely("clusterMedia", pendingClusterMedia, { cluster.enabled }, { cluster.enabled = it })
+            commitGeely("clusterBtFallback", pendingClusterBtFallback, { cluster.btFallback }, { cluster.btFallback = it })
+            commitGeely("clusterProgress", pendingClusterProgress, { cluster.progressEnabled }, { cluster.progressEnabled = it })
+            commitGeely("clusterSourceTypeBt", pendingClusterSourceTypeBt, { cluster.sourceTypeBt }, { cluster.sourceTypeBt = it })
+            commitGeely("clusterSourceAnnounce", pendingClusterSourceAnnounce, { cluster.sourceAnnounce }, { cluster.sourceAnnounce = it })
+            commitGeely("clusterMediaCenterProbe", pendingClusterMediaCenterProbe, { cluster.mediaCenterProbe }, { cluster.mediaCenterProbe = it })
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }

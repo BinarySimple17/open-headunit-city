@@ -90,7 +90,21 @@ class ClusterMediaBridge(context: Context) {
         syncBtMonitor()
         // The probe follows its own switch even when no ticks flow (music stopped etc.).
         if (settings.mediaCenterProbe) MediaCenterProbe.ensureStarted(app) else MediaCenterProbe.stop()
-        if (!btFallbackArmed()) clearIfPublished("switch off")
+        if (!btFallbackArmed()) {
+            clearIfPublished("switch off")
+            return
+        }
+        // A Ж toggle must reach the standing card without waiting for the next track: the
+        // 2026-10-24 round showed mid-drive toggling otherwise reads as "nothing changed"
+        // because a single-track session never publishes again. Re-push only when the stamped
+        // sourceType actually differs — a same-card re-push still collapses.
+        val snapshot = lastSnapshot ?: return
+        val effective = if (settings.sourceTypeBt) {
+            snapshot.copy(sourceType = TrackSnapshot.SOURCE_TYPE_BT)
+        } else {
+            snapshot
+        }
+        if (effective != snapshot && publish(effective)) lastSnapshot = effective
     }
 
     /** The head unit's Bluetooth session is the single data source: while it plays, its

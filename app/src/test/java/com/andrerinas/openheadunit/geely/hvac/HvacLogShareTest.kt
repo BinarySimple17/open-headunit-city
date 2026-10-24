@@ -53,4 +53,39 @@ class HvacLogShareTest {
     fun `nothing captured - empty share`() {
         assertEquals(emptyList<String>(), HvacLogShare.retainedCaptureNames(emptyList(), limit))
     }
+
+    /**
+     * The share sheet reads the URIs this app remembered at insert time (the firmware's name
+     * query stopped answering even for a file inserted a minute earlier), so the memory has
+     * to hold the newest captures in insertion order and never grow past the retention limit.
+     */
+    @Test
+    fun `remembered uris keep insertion order, capped at the retention limit`() {
+        val first = "content://media/external/downloads/101"
+        val second = "content://media/external/downloads/102"
+
+        val one = HvacLog.rememberUriString(null, first, limit)
+        assertEquals(first, one)
+
+        val two = HvacLog.rememberUriString(one, second, limit)
+        assertEquals("$second\n$first", two)
+
+        // Re-sharing an already remembered URI must not duplicate it.
+        assertEquals(two, HvacLog.rememberUriString(two, second, limit))
+
+        val many = (1..(limit + 2)).joinToString("\n") {
+            "content://media/external/downloads/$it"
+        }
+        val next = HvacLog.rememberUriString(many, "content://media/external/downloads/999", limit)
+        val lines = next.split('\n')
+        assertEquals(limit, lines.size)
+        assertEquals("content://media/external/downloads/999", lines.first())
+    }
+
+    @Test
+    fun `blank and null memories are tolerated`() {
+        assertEquals("u1", HvacLog.rememberUriString(null, "u1", limit))
+        assertEquals("u1", HvacLog.rememberUriString("", "u1", limit))
+        assertEquals("u2\nu1", HvacLog.rememberUriString("u1\n\n \n", "u2", limit))
+    }
 }
