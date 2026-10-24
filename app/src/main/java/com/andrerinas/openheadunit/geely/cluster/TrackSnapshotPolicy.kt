@@ -35,4 +35,13 @@ internal object TrackSnapshotPolicy {
      *  NUM_TRACKS=n<queue position> for ~1 s before the full metadata). */
     internal fun isDegradedPreAnnouncement(album: String?, durationMs: Long): Boolean =
         album.isNullOrEmpty() && durationMs <= 0L
+
+    /** The Ж stamp (BL-004 fact 25): a standing card claims the Bluetooth slot by
+     *  publishing sourceType=2 instead of 6. Idempotent by construction — the caller
+     *  must compare the STAMPED snapshot against the stored one: comparing the raw
+     *  read (6) against a stored stamped card (2) made every tick look like a track
+     *  change, and a one-track drive re-pushed the card at ~1 Hz for its whole
+     *  length (171 pushes, 2026-10-24 evening round). */
+    internal fun effectiveSnapshot(raw: TrackSnapshot, sourceTypeBt: Boolean): TrackSnapshot =
+        if (sourceTypeBt) raw.copy(sourceType = TrackSnapshot.SOURCE_TYPE_BT) else raw
 }

@@ -1,4 +1,9 @@
 # Changelog
+### v.3.5.0-beta27
+- (fill in before release)
+### v.3.5.0-beta27
+- Fixed: the Bluetooth-source switch re-published the cluster card on every monitor tick instead of once per track - the stored card carried the Bluetooth slot id while each fresh read carried the online one, so the comparison never settled and a one-track drive pushed 171 full cards at ~1 Hz; the slot stamp now happens before the comparison, and the card publishes once per track again
+- Added: the "send HVAC logs" button now writes what it found to the app log - the capture count it is sending, or the remembered count and the provider query row count when it has nothing, so an empty result is never silent again
 ### v.3.5.0-beta26
 - Fixed: the "send HVAC logs" button reported "no logs" even seconds after the app had written a capture - the firmware's media store stopped answering the by-name query for the app's own Download files, so the share now reads the capture locations the app remembers from its own inserts (the query stays only as a fallback), dead entries are pruned on the spot
 - Fixed: toggling the Bluetooth-source switch no longer waits for the next track to reach the cluster card - a standing card is re-published with the new source type the moment the switch moves, so a single-track drive actually exercises the experiment instead of reading as "nothing changed"

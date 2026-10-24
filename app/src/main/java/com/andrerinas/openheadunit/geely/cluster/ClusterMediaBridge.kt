@@ -99,11 +99,7 @@ class ClusterMediaBridge(context: Context) {
         // because a single-track session never publishes again. Re-push only when the stamped
         // sourceType actually differs — a same-card re-push still collapses.
         val snapshot = lastSnapshot ?: return
-        val effective = if (settings.sourceTypeBt) {
-            snapshot.copy(sourceType = TrackSnapshot.SOURCE_TYPE_BT)
-        } else {
-            snapshot
-        }
+        val effective = TrackSnapshotPolicy.effectiveSnapshot(snapshot, settings.sourceTypeBt)
         if (effective != snapshot && publish(effective)) lastSnapshot = effective
     }
 
@@ -132,16 +128,14 @@ class ClusterMediaBridge(context: Context) {
             HvacLog.i("cluster.bt: bluetooth session owns the card ($sourcePackage: " +
                 "${snapshot.title}, artwork=${snapshot.artworkUri != null})")
         }
-        if (snapshot != lastSnapshot) {
-            // Candidate Ж (fact 25): the card can claim the Bluetooth slot (sourceType=2)
-            // instead of ONLINE — one switch, the card content is untouched.
-            val effective = if (settings.sourceTypeBt) {
-                snapshot.copy(sourceType = TrackSnapshot.SOURCE_TYPE_BT)
-            } else {
-                snapshot
-            }
-            if (publish(effective)) lastSnapshot = effective
-        }
+        // Candidate Ж (fact 25): the card can claim the Bluetooth slot (sourceType=2)
+        // instead of ONLINE — one switch, the card content is untouched. The stamp sits
+        // OUTSIDE the equality on purpose: the stored card carries 2 while the raw read
+        // carries 6, so comparing raw-against-stamped re-pushed the card on EVERY tick
+        // of a one-track drive (171 pushes, 2026-10-24 evening round) and buried the
+        // experiment under a 1 Hz stream it was never meant to test.
+        val effective = TrackSnapshotPolicy.effectiveSnapshot(snapshot, settings.sourceTypeBt)
+        if (effective != lastSnapshot && publish(effective)) lastSnapshot = effective
         // D2 experiment (fact 20): the 1 Hz progress stream is a suspect feed of the
         // cluster's source arbitration — the settings switch cuts it without touching
         // the standing card (uuid/cover stay as published).

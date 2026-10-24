@@ -55,4 +55,16 @@ class TrackSnapshotPolicyTest {
         assertFalse(TrackSnapshotPolicy.isDegradedPreAnnouncement("Illwill", 0L))
         assertFalse(TrackSnapshotPolicy.isDegradedPreAnnouncement("Illwill", 243_930L))
     }
+
+    @Test
+    fun `the source-type stamp is idempotent - a standing card cannot re-push forever`() {
+        val raw = TrackSnapshot("Absolution", "Muse", "Absolution", null, 274_120L, true, "uuid-1")
+        assertEquals("the raw read defaults to the online slot", TrackSnapshot.SOURCE_TYPE_ONLINE, raw.sourceType)
+        val stamped = TrackSnapshotPolicy.effectiveSnapshot(raw, sourceTypeBt = true)
+        assertEquals(TrackSnapshot.SOURCE_TYPE_BT, stamped.sourceType)
+        // The evening-loop regression (2026-10-24): stamping the already-stamped card
+        // must change nothing, so equality against the stored card holds tick after tick.
+        assertEquals(stamped, TrackSnapshotPolicy.effectiveSnapshot(stamped, sourceTypeBt = true))
+        assertEquals("switch off leaves the raw card untouched", raw, TrackSnapshotPolicy.effectiveSnapshot(raw, sourceTypeBt = false))
+    }
 }
