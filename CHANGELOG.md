@@ -1,6 +1,6 @@
 # Changelog
-### v.3.5.0-beta27
-- (fill in before release)
+### v.3.5.0-beta28
+- Added: a "Capture cluster diagnostics" button in the CAR tab - the desk has no adb into the head unit, so the one missing view of the card flicker (what the system's own publishers log on their side) is captured on the unit itself: two logcat passes (media-tag filtered and a raw tail) plus the media session stack, shared over Bluetooth like every other log; with root the capture covers the whole system, and the file header names the lane so a partial capture cannot be mistaken for a complete one
 ### v.3.5.0-beta27
 - Fixed: the Bluetooth-source switch re-published the cluster card on every monitor tick instead of once per track - the stored card carried the Bluetooth slot id while each fresh read carried the online one, so the comparison never settled and a one-track drive pushed 171 full cards at ~1 Hz; the slot stamp now happens before the comparison, and the card publishes once per track again
 - Added: the "send HVAC logs" button now writes what it found to the app log - the capture count it is sending, or the remembered count and the provider query row count when it has nothing, so an empty result is never silent again

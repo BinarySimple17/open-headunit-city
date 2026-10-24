@@ -1293,6 +1293,12 @@
     <string name="hvac_debug_log_summary">Пишет все события панели и car-сервиса в HVAC_Log_*.txt в папке Download - включите, если панель работает неправильно, и пришлите файл</string>
     <string name="hvac_send_logs">Передать логи HVAC</string>
     <string name="hvac_send_logs_summary">Открывает меню отправки с файлами HVAC_Log_*.txt из папки Download - выберите Bluetooth, чтобы передать их на телефон</string>
+    <string name="cluster_diag_capture">Снять диагностику приборки</string>
+    <string name="cluster_diag_capture_summary">Снимает медиа-лог (logcat) и стек медиасессий и предлагает файл по Bluetooth - с root видна вся система, без него только само приложение</string>
+    <string name="cluster_diag_captured">Снято: %s</string>
+    <string name="cluster_diag_failed">Не получилось снять: %s</string>
+    <string name="cluster_diag_mode_root">root (вся система)</string>
+    <string name="cluster_diag_mode_none">только своё приложение (нет root)</string>
     <string name="hvac_send_logs_none">Логов HVAC пока нет - включите подробный лог HVAC, воспроизведите проблему и передайте снова</string>
     <string name="cluster_media">Медиа на приборке</string>
     <string name="cluster_media_description">Дополнительно показывает текущий трек Android Auto (название, исполнителя, альбом, обложку) на приборке автомобиля. Требует включённой галки \"Текущий трек AA в медиасессии\" - та сессия и уведомление работают как раньше</string>

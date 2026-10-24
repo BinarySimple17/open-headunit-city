@@ -28,6 +28,7 @@ import com.andrerinas.openheadunit.utils.CarLauncherManager
 import com.andrerinas.openheadunit.geely.hvac.Hvac
 import com.andrerinas.openheadunit.geely.hvac.HvacLog
 import com.andrerinas.openheadunit.geely.cluster.ClusterMediaSettings
+import com.andrerinas.openheadunit.geely.cluster.ClusterDiagnosticsCapture
 import com.andrerinas.openheadunit.geely.hvac.HvacLogShare
 import com.andrerinas.openheadunit.geely.hvac.HvacSettings
 import com.andrerinas.openheadunit.utils.UpdateChecker
@@ -3216,6 +3217,21 @@ class SettingsFragment : Fragment() {
                 }
             }
         ))
+        items.add(SettingItem.SettingEntry(
+            stableId = "clusterDiagCapture",
+            nameResId = R.string.cluster_diag_capture,
+            value = getString(R.string.cluster_diag_capture_summary),
+            onClick = { _ ->
+                // The planner's desk has no adb into the unit, so the "who else publishes
+                // to the cluster" measurement (BL-004 fact 32) is a button: logcat and the
+                // media session stack, as wide as the available privilege allows, over the
+                // same Bluetooth route every other log takes. Off the main thread like the
+                // HVAC share - the process read can take seconds.
+                viewLifecycleOwner.lifecycleScope.launch {
+                    ClusterDiagnosticsCapture.captureAndShare(requireContext().applicationContext)
+                }
+            }
+        ))
         items.add(SettingItem.ToggleSettingEntry(
             stableId = "clusterMedia",
             nameResId = R.string.cluster_media,
@@ -3436,7 +3452,7 @@ class SettingsFragment : Fragment() {
     // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
     private val geelyItemIds = setOf(
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
-        "hvacHideTimeout", "hvacSendLogs",
+        "hvacHideTimeout", "hvacSendLogs", "clusterDiagCapture",
         "clusterMedia", "clusterBtFallback", "clusterProgress",
         "clusterSourceTypeBt", "clusterSourceAnnounce", "clusterMediaCenterProbe"
     )

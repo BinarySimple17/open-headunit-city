@@ -1406,6 +1406,12 @@
     <string name="hvac_debug_log_summary">Writes every panel and car-service event to HVAC_Log_*.txt in the Download folder - enable this when the panel misbehaves and share the file</string>
     <string name="hvac_send_logs">Send HVAC logs</string>
     <string name="hvac_send_logs_summary">Opens the share sheet with the HVAC_Log_*.txt files from the Download folder - pick Bluetooth to send them to a phone</string>
+    <string name="cluster_diag_capture">Capture cluster diagnostics</string>
+    <string name="cluster_diag_capture_summary">Dumps the media logcat and the media session stack, then offers the file over Bluetooth - with root it covers the whole system, otherwise only this app\'s own process is visible</string>
+    <string name="cluster_diag_captured">Captured: %s</string>
+    <string name="cluster_diag_failed">Capture failed: %s</string>
+    <string name="cluster_diag_mode_root">root (whole system)</string>
+    <string name="cluster_diag_mode_none">own process only (no root)</string>
     <string name="hvac_send_logs_none">No HVAC logs yet - enable the detailed HVAC log, reproduce the issue, then send again</string>
     <string name="cluster_media">Media on instrument cluster</string>
     <string name="cluster_media_description">Shows the track playing on the phone (title, artist, album, cover) on the car\'s instrument cluster over the Bluetooth channel - works for both plain Bluetooth audio and Android Auto playback</string>
