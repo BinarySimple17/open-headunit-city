@@ -1,4 +1,4 @@
-# Open Headunit — fork for City
+# Open Headunit — fork for Cityray
 
 Форк проекта [andreknieriem/open-headunit](https://github.com/andreknieriem/open-headunit) —
 Android-приложения, превращающего планшет или головное устройство в ресивер Android Auto
@@ -62,7 +62,7 @@ Self-Mode. Подробности — в [upstream-README](https://github.com/an
 ## Trademarks
 
 Android, Google Play, Google Maps и Android Auto — торговые марки Google Inc.
-Geely, ECARX и названия моделей автомобилей — торговые марки соответствующих
+Geely, Cityray, ECARX и названия моделей автомобилей — торговые марки соответствующих
 правообладателей. Этот проект — независимая разработка сообщества: он не связан
 с компаниями Geely, ECARX и Google, не одобрен ими и не спонсируется ими;
 упоминание марок — только для обозначения совместимости (номинативное
