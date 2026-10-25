@@ -1,4 +1,4 @@
-# Open Headunit — fork for Cityray **under development**
+# Open Headunit — fork for Cityray ** under development **
 
 Форк проекта [andreknieriem/open-headunit](https://github.com/andreknieriem/open-headunit) —
 Android-приложения, превращающего планшет или головное устройство в ресивер Android Auto
