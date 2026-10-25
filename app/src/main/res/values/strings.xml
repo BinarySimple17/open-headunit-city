@@ -1524,6 +1524,10 @@
     <string name="cluster_source_announce_description">Diagnostic switch (flicker hunt): on every track change tells the instrument cluster that the active source is Bluetooth (the audio actually plays over it). Independent of the previous switch; requires the firmware to support the announcement</string>
     <string name="cluster_mediacenter_probe">Read stock media center state</string>
     <string name="cluster_mediacenter_probe_description">Diagnostic switch (flicker hunt): every 5 seconds reads what the stock Bluetooth feed holds (title, artist, cover) and writes every change to the HVAC log; the cover is saved to the app folder for inspection. Read-only observation</string>
+    <string name="cluster_broker_observe">Watch the cluster media bus</string>
+    <string name="cluster_broker_observe_description">Diagnostic switch (flicker hunt): connects to the head unit\'s own message bus - the service that feeds the instrument cluster - and writes every media frame it carries, including the stock publisher\'s, to the HVAC log. Finally makes the invisible competitor observable without root; strictly read-only</string>
+    <string name="cluster_broker_pin">Pin the cluster media card to projection</string>
+    <string name="cluster_broker_pin_description">Experimental switch (flicker hunt): while our card is up, tells the cluster to read the media card from the phone projection - the same frame the firmware\'s own CarPlay mechanism uses. Changes a system-wide head-unit state; switching it off hands the card back to the stock sources</string>
     <string name="hvac_hide_timeout">Icon hide timeout</string>
     <string name="hvac_timeout_seconds">%1$d s</string>
     <string name="hvac_level_number">Level %1$d</string>

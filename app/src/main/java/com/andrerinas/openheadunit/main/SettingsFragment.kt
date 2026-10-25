@@ -190,6 +190,8 @@ class SettingsFragment : Fragment() {
     private var pendingClusterSourceTypeBt: Boolean? = null
     private var pendingClusterSourceAnnounce: Boolean? = null
     private var pendingClusterMediaCenterProbe: Boolean? = null
+    private var pendingClusterBrokerObserve: Boolean? = null
+    private var pendingClusterBrokerPin: Boolean? = null
 
     private val pending = SettingsPendingCopy()
     private var pendingUseGps by pending::useGps
@@ -385,6 +387,8 @@ class SettingsFragment : Fragment() {
         pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
         pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
         pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
+        pendingClusterBrokerObserve = ClusterMediaSettings(requireContext().applicationContext).brokerObserver
+        pendingClusterBrokerPin = ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
 
         // Initialize local state with current values
         pending.loadFrom(settings)
@@ -461,6 +465,8 @@ class SettingsFragment : Fragment() {
         pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
         pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
         pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
+        pendingClusterBrokerObserve = ClusterMediaSettings(requireContext().applicationContext).brokerObserver
+        pendingClusterBrokerPin = ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
     }
 
     /**
@@ -635,6 +641,8 @@ class SettingsFragment : Fragment() {
             commitGeely("clusterSourceTypeBt", pendingClusterSourceTypeBt, { cluster.sourceTypeBt }, { cluster.sourceTypeBt = it })
             commitGeely("clusterSourceAnnounce", pendingClusterSourceAnnounce, { cluster.sourceAnnounce }, { cluster.sourceAnnounce = it })
             commitGeely("clusterMediaCenterProbe", pendingClusterMediaCenterProbe, { cluster.mediaCenterProbe }, { cluster.mediaCenterProbe = it })
+            commitGeely("clusterBrokerObserve", pendingClusterBrokerObserve, { cluster.brokerObserver }, { cluster.brokerObserver = it })
+            commitGeely("clusterBrokerPin", pendingClusterBrokerPin, { cluster.brokerPinProjection }, { cluster.brokerPinProjection = it })
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -808,6 +816,8 @@ class SettingsFragment : Fragment() {
         pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
         pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
         pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
+        pendingClusterBrokerObserve = ClusterMediaSettings(requireContext().applicationContext).brokerObserver
+        pendingClusterBrokerPin = ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
         hasChanges = false
         requiresRestart = false
         requiresServiceRestart = false
@@ -840,7 +850,9 @@ class SettingsFragment : Fragment() {
             pendingClusterProgress != ClusterMediaSettings(requireContext().applicationContext).progressEnabled ||
             pendingClusterSourceTypeBt != ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt ||
             pendingClusterSourceAnnounce != ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce ||
-            pendingClusterMediaCenterProbe != ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
+            pendingClusterMediaCenterProbe != ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe ||
+            pendingClusterBrokerObserve != ClusterMediaSettings(requireContext().applicationContext).brokerObserver ||
+            pendingClusterBrokerPin != ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
 
         // Check for restart requirement
         requiresRestart = pendingResolution != settings.resolutionId ||
@@ -3125,6 +3137,8 @@ class SettingsFragment : Fragment() {
         val clusterSourceTypeBtOn = pendingClusterSourceTypeBt ?: ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
         val clusterSourceAnnounceOn = pendingClusterSourceAnnounce ?: ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
         val clusterMediaCenterProbeOn = pendingClusterMediaCenterProbe ?: ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
+        val clusterBrokerObserveOn = pendingClusterBrokerObserve ?: ClusterMediaSettings(requireContext().applicationContext).brokerObserver
+        val clusterBrokerPinOn = pendingClusterBrokerPin ?: ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
         val saveHvacChange: () -> Unit = {
             hasChanges = true
             updateSaveButtonState()
@@ -3309,6 +3323,26 @@ class SettingsFragment : Fragment() {
                 saveHvacChange()
             }
         ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterBrokerObserve",
+            nameResId = R.string.cluster_broker_observe,
+            descriptionResId = R.string.cluster_broker_observe_description,
+            isChecked = clusterBrokerObserveOn,
+            onCheckedChanged = { checked ->
+                pendingClusterBrokerObserve = checked
+                saveHvacChange()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "clusterBrokerPin",
+            nameResId = R.string.cluster_broker_pin,
+            descriptionResId = R.string.cluster_broker_pin_description,
+            isChecked = clusterBrokerPinOn,
+            onCheckedChanged = { checked ->
+                pendingClusterBrokerPin = checked
+                saveHvacChange()
+            }
+        ))
 
         // No bottom save button: the toolbar Save is the single save
         // affordance — it lights up for pending changes on every tab, GEELY included.
@@ -3454,7 +3488,8 @@ class SettingsFragment : Fragment() {
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
         "hvacHideTimeout", "hvacSendLogs", "clusterDiagCapture",
         "clusterMedia", "clusterBtFallback", "clusterProgress",
-        "clusterSourceTypeBt", "clusterSourceAnnounce", "clusterMediaCenterProbe"
+        "clusterSourceTypeBt", "clusterSourceAnnounce", "clusterMediaCenterProbe",
+        "clusterBrokerObserve", "clusterBrokerPin"
     )
 
     private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds

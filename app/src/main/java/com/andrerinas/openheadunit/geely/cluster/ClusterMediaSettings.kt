@@ -72,6 +72,27 @@ class ClusterMediaSettings(context: Context) {
         get() = prefs.getBoolean(KEY_MEDIA_CENTER_PROBE, false)
         set(value) = prefs.edit().putBoolean(KEY_MEDIA_CENTER_PROBE, value).apply()
 
+    /**
+     * Candidate И (BL-004 fact 41): subscribe to the cluster's own message broker
+     * (`ihu/#` on the loopback MQTT the firmware's dimsupportservice feeds from) and
+     * echo every frame to the HVAC log. The stock publisher and the projection-axis
+     * switches become observable without root; read-only, nothing is ever published.
+     */
+    var brokerObserver: Boolean
+        get() = prefs.getBoolean(KEY_BROKER_OBSERVER, false)
+        set(value) = prefs.edit().putBoolean(KEY_BROKER_OBSERVER, value).apply()
+
+    /**
+     * Candidate К (BL-004 fact 41): while our card stands, publish the projection-axis
+     * frame (`androidAutoMedia`) the firmware's own CarPlay path uses — the cluster then
+     * reads its media card from the projection instead of flipping back to the head
+     * unit's own Bluetooth source. Changes a system-wide head-unit state; turning it
+     * off undoes our pin and hands the card back to the stock sources.
+     */
+    var brokerPinProjection: Boolean
+        get() = prefs.getBoolean(KEY_BROKER_PIN, false)
+        set(value) = prefs.edit().putBoolean(KEY_BROKER_PIN, value).apply()
+
     /** Watches this file — the bridge reacts to Save without anyone wiring it by hand. */
     fun addListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
@@ -85,5 +106,7 @@ class ClusterMediaSettings(context: Context) {
         const val KEY_SOURCE_TYPE_BT = "cluster_source_type_bt"
         const val KEY_SOURCE_ANNOUNCE = "cluster_source_announce"
         const val KEY_MEDIA_CENTER_PROBE = "cluster_mediacenter_probe"
+        const val KEY_BROKER_OBSERVER = "cluster_broker_observer"
+        const val KEY_BROKER_PIN = "cluster_broker_pin_projection"
     }
 }

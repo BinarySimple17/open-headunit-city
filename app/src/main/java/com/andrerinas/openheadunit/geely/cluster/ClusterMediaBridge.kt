@@ -90,6 +90,13 @@ class ClusterMediaBridge(context: Context) {
         syncBtMonitor()
         // The probe follows its own switch even when no ticks flow (music stopped etc.).
         if (settings.mediaCenterProbe) MediaCenterProbe.ensureStarted(app) else MediaCenterProbe.stop()
+        // The broker channel (fact 41) is independent of the card: the observer is worth
+        // running even with publication off, so it arms before any early return below.
+        if (settings.brokerObserver || settings.brokerPinProjection) {
+            DimBrokerChannel.ensureStarted(app, settings.brokerObserver)
+        } else {
+            DimBrokerChannel.stop()
+        }
         if (!btFallbackArmed()) {
             clearIfPublished("switch off")
             return
@@ -101,6 +108,10 @@ class ClusterMediaBridge(context: Context) {
         val snapshot = lastSnapshot ?: return
         val effective = TrackSnapshotPolicy.effectiveSnapshot(snapshot, settings.sourceTypeBt)
         if (effective != snapshot && publish(effective)) lastSnapshot = effective
+        // The pin (candidate К) rides the same rule: a toggle change mid-drive must reach
+        // the axis now — a single-track session publishes nothing more to hang it on.
+        if (settings.brokerPinProjection && lastSnapshot != null) DimBrokerChannel.pinMediaProjection(true)
+        if (!settings.brokerPinProjection) DimBrokerChannel.pinMediaProjection(false)
     }
 
     /** The head unit's Bluetooth session is the single data source: while it plays, its
@@ -195,13 +206,20 @@ class ClusterMediaBridge(context: Context) {
         if (DimMediaChannel.firmwareChannel) {
             DimMediaChannel.firmwareMediaInteraction()?.let { DimSourceProbe.armOnce(it, sourceEventSink) }
         }
-        return DimMediaChannel.publish(PlaybackInfoProxy.create(infoInterface, snapshot))
+        val delivered = DimMediaChannel.publish(PlaybackInfoProxy.create(infoInterface, snapshot))
+        // Candidate К (fact 41): the pin rides the same rare path as the card itself —
+        // one frame per publication, never a stream (the late frame wins on that broker).
+        if (delivered && settings.brokerPinProjection) DimBrokerChannel.pinMediaProjection(true)
+        return delivered
     }
 
     private fun clearIfPublished(reason: String) {
         if (lastSnapshot == null) return
         lastSnapshot = null
         HvacLog.i("cluster: card cleared ($reason)")
+        // Undo our own projection pin before the empty card goes out — the cluster falls
+        // back to the head unit's own sources, which is the honest state for no card.
+        if (settings.brokerPinProjection) DimBrokerChannel.pinMediaProjection(false)
         // The empty implementation is the reference's own way of wiping the card.
         val infoInterface = DimMediaChannel.playbackInfoInterface() ?: return
         DimMediaChannel.publish(PlaybackInfoProxy.create(infoInterface, TrackSnapshot.EMPTY))

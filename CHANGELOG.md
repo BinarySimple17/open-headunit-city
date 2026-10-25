@@ -1,4 +1,7 @@
 # Changelog
+### v.3.5.0-beta29
+- Added: a "Watch the cluster media bus" switch (off by default) - the app connects to the head unit's own message bus (the broker its cluster-feed service publishes to on the loopback interface) and writes every media frame it carries, including the stock publisher's and the source-switch frames, to the car log; the invisible competitor of the card-flicker hunt is finally observable without root, strictly read-only, and a head unit without the broker answers with one honest connect-failure line
+- Added: a "Pin the cluster media card to projection" switch (off by default, experimental) - while our card stands, the app publishes the same source-selection frame the firmware's own CarPlay path uses, telling the cluster to read the media card from the phone projection instead of flipping back to the head unit's own Bluetooth source; the frame rides card publications (one per track, never a stream), and turning the switch off undoes our own pin
 ### v.3.5.0-beta28
 - Added: a "Capture cluster diagnostics" button in the CAR tab - the desk has no adb into the head unit, so the one missing view of the card flicker (what the system's own publishers log on their side) is captured on the unit itself: two logcat passes (media-tag filtered and a raw tail) plus the media session stack, shared over Bluetooth like every other log; with root the capture covers the whole system, and the file header names the lane so a partial capture cannot be mistaken for a complete one
 ### v.3.5.0-beta27
