@@ -20,15 +20,20 @@
 - Native AA: recover when the platform deletes the group mid-join, bring the hotspot back after sleep, log the Bluetooth link, and stop a QR crash below Android 4.4
 - Merged upstream main: everything below down to v.3.5.0 details upstream's own 3.5.0 release of the same changes
 
-### 4.0.0-alpha (unreleased)
+### 4.0.0-alpha
 - New Homescreen, thanks to @andrecuellar
 - AAP: send one version request over TCP, so a slow head unit server is not left deaf
 - AAP: Keep media and navigation display updates off the receive path
 - AAP: Preserve frame boundaries during handshake
+- AAP: send one version request over TCP, so a slow head unit server is not left deaf
 - WiFi Direct: detect a wedged P2P stack and offer a WiFi restart
 - WiFi: Pause automatic searches during wireless sessions with Shizuku
 - Native AA: remember a unit that refuses every banded WiFi Direct group
 - Native AA: connect faster
+- Wizard: test the decoder before recommending settings
+- Fix(usb): Resolve dongle AOA switching
+- Status pill: stop saying Android Auto is starting when nothing is
+- Projection: keep the decoder through a short cover
 
 ### v.3.5.0
 - Native AA: reconnect to a network that is still there, wake the phone over Bluetooth or the external module, bring a lost group or hotspot back after sleep, boot or ACC wake, stop advertising an address that moves, and pick, wake or hold back only for a phone that is on
