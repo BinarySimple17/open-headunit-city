@@ -522,12 +522,6 @@ class AapService : Service() {
     private fun onAaMediaMetadataFromPhone(meta: MediaPlayback.MediaMetaData, session: AaPresentationSession) {
         if (!acceptPresentationSession(session)) return
         lastAaMediaMetadata = meta
-        // Geely cluster card (S014, model A): the AA stream's art bytes FEED the Bluetooth
-        // card as a donor — the bridge publishes nothing here (single publisher, D-010).
-        App.provide(this).clusterMediaBridge.onAaCover(
-            meta.song, meta.artist,
-            if (meta.hasAlbumArt() && !meta.albumArt.isEmpty) meta.albumArt.toByteArray() else null,
-        )
         if (!shouldSyncAaMediaMetadata()) return
         // Avoid showing a previous track's art with new title/artist until decode finishes.
         cachedAaAlbumArtBitmap = null
@@ -1763,9 +1757,6 @@ class AapService : Service() {
         cachedAaAlbumArtBitmap = null
         mediaNotification.cancel()
         applyPlaceholderMediaMetadata()
-        // Geely cluster card (F013): a stray non-Bluetooth card must not outlive the projection;
-        // the Bluetooth card stays (the bridge keeps it while its session plays on).
-        App.provide(this).clusterMediaBridge.onProjectionStopped()
         // Keep MediaSession alive across disconnect/reconnect cycles.
         // Only deactivate it — do NOT release it. A released session can no longer
         // receive media button events, which means the keymap stops working until

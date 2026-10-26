@@ -27,8 +27,6 @@ import com.andrerinas.openheadunit.utils.OemAppManager
 import com.andrerinas.openheadunit.utils.CarLauncherManager
 import com.andrerinas.openheadunit.geely.hvac.Hvac
 import com.andrerinas.openheadunit.geely.hvac.HvacLog
-import com.andrerinas.openheadunit.geely.cluster.ClusterMediaSettings
-import com.andrerinas.openheadunit.geely.cluster.ClusterDiagnosticsCapture
 import com.andrerinas.openheadunit.geely.hvac.HvacLogShare
 import com.andrerinas.openheadunit.geely.hvac.HvacSettings
 import com.andrerinas.openheadunit.utils.UpdateChecker
@@ -182,16 +180,6 @@ class SettingsFragment : Fragment() {
     private var pendingHvacCarModel: Hvac.CarModel? = null
     private var pendingHvacDebugLog: Boolean? = null
     private var pendingHvacHideTimeoutSec: Int? = null
-
-    // Geely cluster media (F013) rides the same common Save flow as the HVAC settings.
-    private var pendingClusterMedia: Boolean? = null
-    private var pendingClusterBtFallback: Boolean? = null
-    private var pendingClusterProgress: Boolean? = null
-    private var pendingClusterSourceTypeBt: Boolean? = null
-    private var pendingClusterSourceAnnounce: Boolean? = null
-    private var pendingClusterMediaCenterProbe: Boolean? = null
-    private var pendingClusterBrokerObserve: Boolean? = null
-    private var pendingClusterBrokerPin: Boolean? = null
 
     private val pending = SettingsPendingCopy()
     private var pendingUseGps by pending::useGps
@@ -381,14 +369,6 @@ class SettingsFragment : Fragment() {
             pendingHvacDebugLog = hvac.debugLog
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
-        pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
-        pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
-        pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
-        pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
-        pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
-        pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
-        pendingClusterBrokerObserve = ClusterMediaSettings(requireContext().applicationContext).brokerObserver
-        pendingClusterBrokerPin = ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
 
         // Initialize local state with current values
         pending.loadFrom(settings)
@@ -459,14 +439,6 @@ class SettingsFragment : Fragment() {
             pendingHvacDebugLog = hvac.debugLog
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
-        pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
-        pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
-        pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
-        pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
-        pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
-        pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
-        pendingClusterBrokerObserve = ClusterMediaSettings(requireContext().applicationContext).brokerObserver
-        pendingClusterBrokerPin = ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
     }
 
     /**
@@ -631,18 +603,6 @@ class SettingsFragment : Fragment() {
                 hvac.debugLog = pending
                 if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
             }
-        }
-        // Geely cluster media (F013): the bridge watches its own prefs file and reacts
-        // (publication stops and the card clears) without anyone calling into it.
-        ClusterMediaSettings(requireContext().applicationContext).also { cluster ->
-            commitGeely("clusterMedia", pendingClusterMedia, { cluster.enabled }, { cluster.enabled = it })
-            commitGeely("clusterBtFallback", pendingClusterBtFallback, { cluster.btFallback }, { cluster.btFallback = it })
-            commitGeely("clusterProgress", pendingClusterProgress, { cluster.progressEnabled }, { cluster.progressEnabled = it })
-            commitGeely("clusterSourceTypeBt", pendingClusterSourceTypeBt, { cluster.sourceTypeBt }, { cluster.sourceTypeBt = it })
-            commitGeely("clusterSourceAnnounce", pendingClusterSourceAnnounce, { cluster.sourceAnnounce }, { cluster.sourceAnnounce = it })
-            commitGeely("clusterMediaCenterProbe", pendingClusterMediaCenterProbe, { cluster.mediaCenterProbe }, { cluster.mediaCenterProbe = it })
-            commitGeely("clusterBrokerObserve", pendingClusterBrokerObserve, { cluster.brokerObserver }, { cluster.brokerObserver = it })
-            commitGeely("clusterBrokerPin", pendingClusterBrokerPin, { cluster.brokerPinProjection }, { cluster.brokerPinProjection = it })
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -810,14 +770,6 @@ class SettingsFragment : Fragment() {
             pendingHvacDebugLog = hvac.debugLog
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
-        pendingClusterMedia = ClusterMediaSettings(requireContext().applicationContext).enabled
-        pendingClusterBtFallback = ClusterMediaSettings(requireContext().applicationContext).btFallback
-        pendingClusterProgress = ClusterMediaSettings(requireContext().applicationContext).progressEnabled
-        pendingClusterSourceTypeBt = ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
-        pendingClusterSourceAnnounce = ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
-        pendingClusterMediaCenterProbe = ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
-        pendingClusterBrokerObserve = ClusterMediaSettings(requireContext().applicationContext).brokerObserver
-        pendingClusterBrokerPin = ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
         hasChanges = false
         requiresRestart = false
         requiresServiceRestart = false
@@ -844,15 +796,7 @@ class SettingsFragment : Fragment() {
                     pendingHvacCarModel != hvac.carModel ||
                     pendingHvacDebugLog != hvac.debugLog ||
                     pendingHvacHideTimeoutSec != hvac.hideTimeoutSec
-            } ||
-            pendingClusterMedia != ClusterMediaSettings(requireContext().applicationContext).enabled ||
-            pendingClusterBtFallback != ClusterMediaSettings(requireContext().applicationContext).btFallback ||
-            pendingClusterProgress != ClusterMediaSettings(requireContext().applicationContext).progressEnabled ||
-            pendingClusterSourceTypeBt != ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt ||
-            pendingClusterSourceAnnounce != ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce ||
-            pendingClusterMediaCenterProbe != ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe ||
-            pendingClusterBrokerObserve != ClusterMediaSettings(requireContext().applicationContext).brokerObserver ||
-            pendingClusterBrokerPin != ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
+            }
 
         // Check for restart requirement
         requiresRestart = pendingResolution != settings.resolutionId ||
@@ -3131,14 +3075,6 @@ class SettingsFragment : Fragment() {
         val hvacCarModel = pendingHvacCarModel ?: hvac.carModel
         val hvacDebugLog = pendingHvacDebugLog ?: hvac.debugLog
         val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
-        val clusterMediaOn = pendingClusterMedia ?: ClusterMediaSettings(requireContext().applicationContext).enabled
-        val clusterBtFallbackOn = pendingClusterBtFallback ?: ClusterMediaSettings(requireContext().applicationContext).btFallback
-        val clusterProgressOn = pendingClusterProgress ?: ClusterMediaSettings(requireContext().applicationContext).progressEnabled
-        val clusterSourceTypeBtOn = pendingClusterSourceTypeBt ?: ClusterMediaSettings(requireContext().applicationContext).sourceTypeBt
-        val clusterSourceAnnounceOn = pendingClusterSourceAnnounce ?: ClusterMediaSettings(requireContext().applicationContext).sourceAnnounce
-        val clusterMediaCenterProbeOn = pendingClusterMediaCenterProbe ?: ClusterMediaSettings(requireContext().applicationContext).mediaCenterProbe
-        val clusterBrokerObserveOn = pendingClusterBrokerObserve ?: ClusterMediaSettings(requireContext().applicationContext).brokerObserver
-        val clusterBrokerPinOn = pendingClusterBrokerPin ?: ClusterMediaSettings(requireContext().applicationContext).brokerPinProjection
         val saveHvacChange: () -> Unit = {
             hasChanges = true
             updateSaveButtonState()
@@ -3231,118 +3167,7 @@ class SettingsFragment : Fragment() {
                 }
             }
         ))
-        items.add(SettingItem.SettingEntry(
-            stableId = "clusterDiagCapture",
-            nameResId = R.string.cluster_diag_capture,
-            value = getString(R.string.cluster_diag_capture_summary),
-            onClick = { _ ->
-                // The planner's desk has no adb into the unit, so the "who else publishes
-                // to the cluster" measurement (BL-004 fact 32) is a button: logcat and the
-                // media session stack, as wide as the available privilege allows, over the
-                // same Bluetooth route every other log takes. Off the main thread like the
-                // HVAC share - the process read can take seconds.
-                viewLifecycleOwner.lifecycleScope.launch {
-                    ClusterDiagnosticsCapture.captureAndShare(requireContext().applicationContext)
-                }
-            }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterMedia",
-            nameResId = R.string.cluster_media,
-            descriptionResId = R.string.cluster_media_description,
-            isChecked = clusterMediaOn,
-            onCheckedChanged = { checked ->
-                pendingClusterMedia = checked
-                saveHvacChange()
-            }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterBtFallback",
-            nameResId = R.string.cluster_bt_fallback,
-            descriptionResId = R.string.cluster_bt_fallback_description,
-            isChecked = clusterBtFallbackOn,
-                onCheckedChanged = { checked ->
-                    if (checked) {
-                        // The grant lives in a system screen; the switch stores the intent
-                        // and the card arms itself the moment the listener connects.
-                        if (!notificationAccessGranted()) {
-                            runCatching {
-                                startActivity(Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                            }
-                            ToastUtils.showToast(requireContext(), R.string.cluster_bt_fallback_grant_hint, Toast.LENGTH_LONG)
-                        }
-                        // The AVRCP stack probe (round-10 cover quest) talks to the Bluetooth
-                        // profile directly - the runtime connect grant gates it on API 31+.
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                            ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            bluetoothPermissionLauncher.launch(android.Manifest.permission.BLUETOOTH_CONNECT)
-                        }
-                    }
-                    pendingClusterBtFallback = checked
-                    saveHvacChange()
-                }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterProgress",
-            nameResId = R.string.cluster_progress,
-            descriptionResId = R.string.cluster_progress_description,
-            isChecked = clusterProgressOn,
-            onCheckedChanged = { checked ->
-                pendingClusterProgress = checked
-                saveHvacChange()
-            }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterSourceTypeBt",
-            nameResId = R.string.cluster_source_type_bt,
-            descriptionResId = R.string.cluster_source_type_bt_description,
-            isChecked = clusterSourceTypeBtOn,
-            onCheckedChanged = { checked ->
-                pendingClusterSourceTypeBt = checked
-                saveHvacChange()
-            }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterSourceAnnounce",
-            nameResId = R.string.cluster_source_announce,
-            descriptionResId = R.string.cluster_source_announce_description,
-            isChecked = clusterSourceAnnounceOn,
-            onCheckedChanged = { checked ->
-                pendingClusterSourceAnnounce = checked
-                saveHvacChange()
-            }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterMediaCenterProbe",
-            nameResId = R.string.cluster_mediacenter_probe,
-            descriptionResId = R.string.cluster_mediacenter_probe_description,
-            isChecked = clusterMediaCenterProbeOn,
-            onCheckedChanged = { checked ->
-                pendingClusterMediaCenterProbe = checked
-                saveHvacChange()
-            }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterBrokerObserve",
-            nameResId = R.string.cluster_broker_observe,
-            descriptionResId = R.string.cluster_broker_observe_description,
-            isChecked = clusterBrokerObserveOn,
-            onCheckedChanged = { checked ->
-                pendingClusterBrokerObserve = checked
-                saveHvacChange()
-            }
-        ))
-        items.add(SettingItem.ToggleSettingEntry(
-            stableId = "clusterBrokerPin",
-            nameResId = R.string.cluster_broker_pin,
-            descriptionResId = R.string.cluster_broker_pin_description,
-            isChecked = clusterBrokerPinOn,
-            onCheckedChanged = { checked ->
-                pendingClusterBrokerPin = checked
-                saveHvacChange()
-            }
-        ))
+
 
         // No bottom save button: the toolbar Save is the single save
         // affordance — it lights up for pending changes on every tab, GEELY included.
@@ -3486,19 +3311,10 @@ class SettingsFragment : Fragment() {
     // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
     private val geelyItemIds = setOf(
         "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
-        "hvacHideTimeout", "hvacSendLogs", "clusterDiagCapture",
-        "clusterMedia", "clusterBtFallback", "clusterProgress",
-        "clusterSourceTypeBt", "clusterSourceAnnounce", "clusterMediaCenterProbe",
-        "clusterBrokerObserve", "clusterBrokerPin"
+        "hvacHideTimeout", "hvacSendLogs"
     )
 
     private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds
-
-    /** The Bluetooth card fallback reads media sessions, which needs the notification-access
-     *  grant; the system exposes the granted listener packages to any caller. */
-    private fun notificationAccessGranted(): Boolean =
-        androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(requireContext())
-            .contains(requireContext().packageName)
 
     // Resolutions this wide or more (1440p, 4K) are flagged as high-bandwidth.
     private val HIGH_BANDWIDTH_WIDTH = 2560
