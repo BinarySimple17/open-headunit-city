@@ -221,14 +221,14 @@ class HvacPanelController private constructor(
         }
     }
 
-    /** Paints one button: self-colored icon swap when the node carries an active icon, the
-     *  status palette otherwise (F015 seat memory keeps the planner's own colors). */
+    /** Paints one button: a self-colored icon swap (F015 seat memory — same day/night
+     *  mechanics as the other buttons via [PanelTheme.paintSlotButton]), the status
+     *  palette otherwise. */
     private fun paintNodeButton(node: PanelNode<CarFunctionSpec>, level: Int, active: Boolean) {
         val button = surface?.button(node.id) ?: return
         val activeIcon = node.activeIconRes
         if (activeIcon != null) {
-            button.icon?.setImageResource(if (active) activeIcon else node.iconRes)
-            button.icon?.clearColorFilter()
+            theme.paintSlotButton(button, node.iconRes, activeIcon, active, button.badge)
         } else {
             theme.paintButton(button, level, active)
         }

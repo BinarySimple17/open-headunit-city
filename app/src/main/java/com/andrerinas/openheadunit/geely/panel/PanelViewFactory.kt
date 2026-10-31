@@ -18,7 +18,7 @@ import android.widget.TextView
  * and become a touch on the phone screen; the panel CONTAINERS stay non-clickable on purpose
  * (the touch-isolation contract).
  */
-class RoundButton(val view: FrameLayout, val icon: ImageView?)
+class RoundButton(val view: FrameLayout, val icon: ImageView?, val badge: TextView? = null)
 
 /** One shared [RoundButton] factory bound to a context, theme and anchor mark drawable. */
 class PanelViewFactory(
@@ -123,6 +123,6 @@ class PanelViewFactory(
         }
         box.addView(icon)
         box.addView(label)
-        return RoundButton(box, icon)
+        return RoundButton(box, icon, label)
     }
 }

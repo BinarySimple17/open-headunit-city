@@ -20,8 +20,9 @@ sealed class PanelNode<out T> {
     /**
      * Optional self-colored active-state icon (F015 seat memory): when set, the button is
      * NOT painted with the status palette — the coordinator swaps [iconRes]/[activeIconRes]
-     * by the car's read instead, and the icon keeps its own fill (the planner's #212121
-     * seat / green active mark). Null = palette paint as before.
+     * by the car's read instead. By day the icon keeps its own fill (the planner's #212121
+     * seat / green active mark); by night the same palette filter runs over it as over every
+     * other button ([PanelTheme.paintSlotButton]). Null = palette paint as before.
      */
     open val activeIconRes: Int? = null
 }
