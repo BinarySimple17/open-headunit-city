@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.TextView
 
 /**
  * Builds the panel's round buttons (F010), moved verbatim from the old HvacPanelController:
@@ -81,6 +82,47 @@ class PanelViewFactory(
             isFocusable = true
         }
         box.addView(icon)
+        return RoundButton(box, icon)
+    }
+
+    /**
+     * A self-colored slot button (F015 seat memory): the icon keeps its OWN fill (the
+     * planner's #212121 seat; the active state is a separate, already-colored icon), and a
+     * static number badge sits over it, upper-left per the planner's mockup, in the same
+     * #212121 ([PanelMetrics.COLOR_TEXT] — the panel's standard text color). No status
+     * palette tint is applied to this button.
+     */
+    fun makeSlotButton(iconRes: Int, badge: String, contentDescription: String): RoundButton {
+        val icon = ImageView(context).apply {
+            setImageResource(iconRes)
+            layoutParams = FrameLayout.LayoutParams(dp(PanelMetrics.ICON_SIZE_DP), dp(PanelMetrics.ICON_SIZE_DP), Gravity.CENTER)
+        }
+        val label = TextView(context).apply {
+            text = badge
+            setTextColor(PanelMetrics.COLOR_TEXT)
+            textSize = 18f
+            typeface = Typeface.DEFAULT_BOLD
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP or Gravity.START
+            ).apply { setMargins(dp(17), dp(14), 0, 0) }
+        }
+        val box = FrameLayout(context).apply {
+            this.contentDescription = contentDescription
+            background = theme.circleBackground()
+            elevation = dp(PanelMetrics.REST_ELEVATION_DP).toFloat()
+            setOnTouchListener { v, event ->
+                v.elevation = dp(
+                    if (event.actionMasked == MotionEvent.ACTION_DOWN) PanelMetrics.PRESSED_ELEVATION_DP
+                    else PanelMetrics.REST_ELEVATION_DP
+                ).toFloat()
+                false
+            }
+            isClickable = true
+            isFocusable = true
+        }
+        box.addView(icon)
+        box.addView(label)
         return RoundButton(box, icon)
     }
 }

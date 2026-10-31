@@ -44,11 +44,21 @@ object Hvac {
     // READ_AUTO_SEAT_HEAT above STAYS: the car may still answer the manual property with it
     // (the stock AUTO button), and the display must fold it into a level.
 
-    /** Head-unit models with a model-specific front-defrost property ID. */
-    enum class CarModel(val defrostFrontPropertyId: Int) {
-        CITYRAY(269755136),
-        PREFACE(269753088),
-        ATLAS(269027328),
+    // --- Seat memory (F015): restore positions of the driver seat, per the MyGeelyWidgets
+    // 2.4.3 decode (analysis243, class SeatMemory) — verified working on the planner's
+    // Cityray. Restore-only: SAVING stays with the car's own interface (2026-10-23 decision).
+    const val PROP_SEAT_MEMORY = 760219136 // 0x2D500500
+    const val SEAT_MEMORY_AREA = 1 // the driver area
+
+    /** Head-unit models: the model-specific front-defrost property id and the seat-memory
+     * slot ladder (the raw restore values of [PROP_SEAT_MEMORY]; MODEL-DEPENDENT registry
+     * data, never logic). CITYRAY carries the 2.4.3 reference values (verified on the car);
+     * ATLAS keeps the §2e ladder of three (the panel shows TWO buttons, the third value
+     * stays data); PREFACE has neither a confirmed ladder nor a probe yet — empty is honest. */
+    enum class CarModel(val defrostFrontPropertyId: Int, val memorySlots: List<Int>) {
+        CITYRAY(269755136, listOf(760218882, 760218883)),
+        PREFACE(269753088, emptyList()),
+        ATLAS(269027328, listOf(760219140, 760219139, 760219138)),
     }
 
     enum class PanelMode { COLLAPSED, ALWAYS }
@@ -84,6 +94,29 @@ object Hvac {
         return if (index >= levels.lastIndex) 0 else index + 1
     }
 
+    /**
+     * Ordinal to apply after a timed tap on a seat-heat button (F015, planner's rule): a tap
+     * within [TAP_OFF_WINDOW_MS] of the previous tap on THIS button walks the ladder (and the
+     * timer restarts), a tap after the window — or the first tap on an already-on button —
+     * switches OFF without raising the level; from off, a tap always turns on at L1. The auto
+     * read code never counts as "off" here (a long tap still kills it, a quick tap walks on).
+     *
+     * @param currentOrdinal display ordinal of the current read (auto already folded)
+     * @param levels the spec's level table (its size IS the ladder; the top wraps to off)
+     * @param elapsedSinceLastTapMs time since the previous tap on this button; null = no
+     *        recent tap in memory (panel just attached or the process restarted)
+     * @return display ordinal to write (0 = off); the caller always restarts the timer —
+     *         the tap itself happened.
+     */
+    fun timedTapOrdinal(currentOrdinal: Int, levels: IntArray, elapsedSinceLastTapMs: Long?): Int {
+        if (currentOrdinal <= 0) return 1
+        val quick = elapsedSinceLastTapMs != null && elapsedSinceLastTapMs <= TAP_OFF_WINDOW_MS
+        return if (quick) nextLevelOrdinal(currentOrdinal, levels) else 0
+    }
+
+    /** The tap-timer window (F015): taps further apart switch off instead of walking the ladder. */
+    const val TAP_OFF_WINDOW_MS = 5_000L
+
     /** True when the read value means the defrost (0/1 property) is on. */
     fun isDefrostOn(raw: Int): Boolean = raw == 1
 
@@ -106,6 +139,12 @@ object Hvac {
 
     /** Zone of a "seat:<area>" status key. */
     fun seatZoneOfKey(key: String): Int = key.substringAfter(':').toInt()
+
+    /** "memory:<n>" status key of a seat-position button (F015). */
+    fun memoryKey(n: Int): String = "memory:$n"
+
+    /** Position number of a "memory:<n>" status key. */
+    fun memorySlotOfKey(key: String): Int = key.substringAfter(':').toInt()
 
     /** Every tracked status key in panel order: four seat zones, wheel, three defrosts, recirculation. */
     fun statusKeys(): List<String> = GeelyCarFunctions.all(CarModel.CITYRAY).map { it.id }

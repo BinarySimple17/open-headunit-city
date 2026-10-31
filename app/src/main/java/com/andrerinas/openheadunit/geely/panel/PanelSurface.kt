@@ -107,7 +107,7 @@ class PanelSurface<T>(
     }
 
     private fun makeColumnButton(node: PanelNode<T>): View {
-        val button = factory.makeIconButton(node.iconRes, label(node))
+        val button = makeNodeButton(node)
         button.view.layoutParams = LinearLayout.LayoutParams(
             dp(PanelMetrics.BUTTON_SIZE_DP), dp(PanelMetrics.BUTTON_SIZE_DP)
         ).apply { bottomMargin = dp(PanelMetrics.GAP_DP) }
@@ -130,7 +130,7 @@ class PanelSurface<T>(
             ).apply { setMargins(0, dp(PanelMetrics.inlineRowTopDp(buttonIndex)), dp(PanelMetrics.INLINE_ROW_END_DP), 0) }
         }
         for (child in group.children) {
-            val button = factory.makeIconButton(child.iconRes, label(child))
+            val button = makeNodeButton(child)
             button.view.layoutParams = LinearLayout.LayoutParams(
                 dp(PanelMetrics.BUTTON_SIZE_DP), dp(PanelMetrics.BUTTON_SIZE_DP)
             ).apply { marginEnd = dp(PanelMetrics.GAP_DP) }
@@ -141,6 +141,13 @@ class PanelSurface<T>(
         row.visibility = View.GONE
         rowViews[group.id] = row
         return row
+    }
+
+    /** A standard icon button, or a self-colored slot button when the node carries a badge. */
+    private fun makeNodeButton(node: PanelNode<T>): RoundButton = when {
+        node is ActionNode<*> && node.badge != null ->
+            factory.makeSlotButton(node.iconRes, node.badge!!, label(node))
+        else -> factory.makeIconButton(node.iconRes, label(node))
     }
 
     private fun wireTaps(button: RoundButton, node: PanelNode<T>) {

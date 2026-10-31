@@ -21,6 +21,9 @@ object GeelyCarFunctions {
         propertyId = Hvac.PROP_SEAT_HEATING, areaId = zone,
         kind = FunctionKind.LEVELS, levels = Hvac.SEAT_HEAT_LEVELS,
         autoReadCode = Hvac.READ_AUTO_SEAT_HEAT,
+        // F015: the timed tap — quick taps walk the ladder, a tap after the window switches
+        // the seat heat off. Registry data; the other functions carry no window.
+        tapOffWindowMs = Hvac.TAP_OFF_WINDOW_MS,
     )
 
     val wheelSpec: CarFunctionSpec = CarFunctionSpec(
@@ -53,16 +56,36 @@ object GeelyCarFunctions {
         kind = FunctionKind.TOGGLE, onValue = Hvac.CIRCULATION_ON, offValue = Hvac.CIRCULATION_OFF,
     )
 
+    /** Seat-memory status keys in panel order: position 1, position 2. */
+    val MEMORY_KEYS = listOf(Hvac.memoryKey(1), Hvac.memoryKey(2))
+
+    /**
+     * The two seat-position specs (F015), restore-only: each writes its own raw value into
+     * [Hvac.PROP_SEAT_MEMORY] — the values are MODEL-DEPENDENT registry data ([Hvac.CarModel.memorySlots];
+     * a model without a confirmed ladder carries specs with no value: they read but never
+     * command, and the panel tree hides the group). The ACTIVE verdict comes only from the
+     * car's answer (raw == slotValue), never from the last tap.
+     */
+    fun memorySlotSpecs(model: Hvac.CarModel): List<CarFunctionSpec> =
+        (1..2).map { n ->
+            CarFunctionSpec(
+                id = Hvac.memoryKey(n),
+                propertyId = Hvac.PROP_SEAT_MEMORY, areaId = Hvac.SEAT_MEMORY_AREA,
+                kind = FunctionKind.SLOT,
+                slotValue = model.memorySlots.getOrNull(n - 1),
+            )
+        }
+
     /** Manual seat specs in zone order. */
     private val seatSpecs: List<CarFunctionSpec> = SEAT_ZONES.map { seatSpec(it) }
 
-    /** All tracked functions for the model, in [Hvac.statusKeys] order (seat block, wheel, rest). */
+    /** All tracked functions for the model, in [Hvac.statusKeys] order (seat block, wheel, rest, memory). */
     private val byModel: Map<Hvac.CarModel, List<CarFunctionSpec>> =
         Hvac.CarModel.values().associateWith { model ->
             seatSpecs + listOf(
                 wheelSpec,
                 defrostFrontSpec(model), defrostRearSpec, defrostMaxSpec, recirculationSpec,
-            )
+            ) + memorySlotSpecs(model)
         }
 
     fun all(model: Hvac.CarModel): List<CarFunctionSpec> = byModel.getValue(model)
@@ -94,5 +117,6 @@ object GeelyCarFunctions {
         add(CarFunctionProbe(defrostRearSpec, "defrost_rear"))
         add(CarFunctionProbe(defrostMaxSpec, "defrost_max"))
         add(CarFunctionProbe(recirculationSpec, "recirc"))
+        add(CarFunctionProbe(memorySlotSpecs(Hvac.CarModel.CITYRAY).first(), "seat_memory"))
     }
 }

@@ -26,6 +26,15 @@ class HvacSettings(context: Context) {
         get() = prefs.getBoolean(KEY_DEBUG_LOG, false)
         set(value) = prefs.edit().putBoolean(KEY_DEBUG_LOG, value).apply()
 
+    /**
+     * Whether the panel shows its tap-confirmation toasts (F015). Default ON — the toasts
+     * predate the setting and stay the current behavior until the user opts out; the GEELY
+     * tab applies changes with the common Save. The HVAC log writes regardless of this.
+     */
+    var toastsEnabled: Boolean
+        get() = prefs.getBoolean(KEY_TOASTS_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_TOASTS_ENABLED, value).apply()
+
     /** Seconds before the expanded icons auto-collapse (COLLAPSED mode only). */
     var hideTimeoutSec: Int
         get() = prefs.getInt(KEY_HIDE_TIMEOUT_SEC, DEFAULT_HIDE_TIMEOUT_SEC)
@@ -36,6 +45,7 @@ class HvacSettings(context: Context) {
         const val KEY_PANEL_MODE = "panel_mode"
         const val KEY_CAR_MODEL = "car_model"
         const val KEY_DEBUG_LOG = "debug_log"
+        const val KEY_TOASTS_ENABLED = "toasts_enabled"
         const val KEY_HIDE_TIMEOUT_SEC = "hide_timeout_sec"
         const val DEFAULT_HIDE_TIMEOUT_SEC = 5
     }

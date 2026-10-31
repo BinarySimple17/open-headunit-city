@@ -61,6 +61,42 @@ class HvacLogicTest {
 
     //endregion
 
+    //region F015 tap timer (quick taps walk the ladder, a tap after the window switches off)
+
+    @Test
+    fun `quick taps walk the ladder`() {
+        assertEquals(2, Hvac.timedTapOrdinal(1, Hvac.SEAT_HEAT_LEVELS, 4_999))
+        assertEquals(3, Hvac.timedTapOrdinal(2, Hvac.SEAT_HEAT_LEVELS, 0))
+    }
+
+    @Test
+    fun `a tap after the window switches off instead of raising the level`() {
+        assertEquals(0, Hvac.timedTapOrdinal(1, Hvac.SEAT_HEAT_LEVELS, 5_001))
+        assertEquals(0, Hvac.timedTapOrdinal(3, Hvac.SEAT_HEAT_LEVELS, 60_000))
+        // No tap in memory (panel just attached) counts as "after the window".
+        assertEquals(0, Hvac.timedTapOrdinal(2, Hvac.SEAT_HEAT_LEVELS, null))
+    }
+
+    @Test
+    fun `from off a tap always turns the heat on at level 1`() {
+        assertEquals(1, Hvac.timedTapOrdinal(0, Hvac.SEAT_HEAT_LEVELS, null))
+        assertEquals(1, Hvac.timedTapOrdinal(0, Hvac.SEAT_HEAT_LEVELS, 100))
+        assertEquals(1, Hvac.timedTapOrdinal(0, Hvac.SEAT_HEAT_LEVELS, 10_000))
+    }
+
+    @Test
+    fun `the top level wraps to off on a quick tap`() {
+        assertEquals(0, Hvac.timedTapOrdinal(3, Hvac.SEAT_HEAT_LEVELS, 1_000))
+    }
+
+    @Test
+    fun `the window boundary is exact`() {
+        assertEquals(2, Hvac.timedTapOrdinal(1, Hvac.SEAT_HEAT_LEVELS, Hvac.TAP_OFF_WINDOW_MS))
+        assertEquals(0, Hvac.timedTapOrdinal(1, Hvac.SEAT_HEAT_LEVELS, Hvac.TAP_OFF_WINDOW_MS + 1))
+    }
+
+    //endregion
+
     //region Toggle semantics
 
     @Test
@@ -100,6 +136,18 @@ class HvacLogicTest {
         assertEquals(269027328, Hvac.CarModel.ATLAS.defrostFrontPropertyId)
     }
 
+    @Test
+    fun `seat memory ladders are model-dependent registry data`() {
+        // CITYRAY: the 2.4.3 reference values (verified working on the planner's car).
+        assertEquals(listOf(760218882, 760218883), Hvac.CarModel.CITYRAY.memorySlots)
+        // ATLAS: the §2e ladder of three — the panel shows TWO buttons, the third stays data.
+        assertEquals(listOf(760219140, 760219139, 760219138), Hvac.CarModel.ATLAS.memorySlots)
+        // PREFACE: no confirmed ladder — empty is honest, never a guess.
+        assertTrue(Hvac.CarModel.PREFACE.memorySlots.isEmpty())
+        assertEquals(Hvac.PROP_SEAT_MEMORY, 760219136)
+        assertEquals(Hvac.SEAT_MEMORY_AREA, 1)
+    }
+
     //endregion
 
     //region Status scheme (buttons mirror real property reads)
@@ -109,12 +157,15 @@ class HvacLogicTest {
         assertEquals(
             listOf(
                 "seat:1", "seat:4", "seat:16", "seat:64",
-                "wheel", "defrost_front", "defrost_rear", "defrost_max", "recirc"
+                "wheel", "defrost_front", "defrost_rear", "defrost_max", "recirc",
+                "memory:1", "memory:2"
             ),
             Hvac.statusKeys()
         )
         assertEquals("seat:${Hvac.ZONE_REAR_LEFT}", Hvac.seatKey(Hvac.ZONE_REAR_LEFT))
         assertEquals(Hvac.ZONE_REAR_RIGHT, Hvac.seatZoneOfKey("seat:64"))
+        assertEquals("memory:2", Hvac.memoryKey(2))
+        assertEquals(2, Hvac.memorySlotOfKey("memory:2"))
     }
 
     @Test
@@ -137,10 +188,12 @@ class HvacLogicTest {
             override fun setInt(propertyId: Int, areaId: Int, value: Int) = true
         }
         val status = Hvac.readStatus(port, Hvac.CarModel.CITYRAY)
-        // Four seat zones, wheel, three defrosts, recirculation.
-        assertEquals(9, asked.size)
+        // Four seat zones, wheel, three defrosts, recirculation — and the seat memory
+        // property (F015), read twice (the two slot specs share one property/area).
+        assertEquals(11, asked.size)
         assertEquals(4, asked.count { it.first == Hvac.PROP_SEAT_HEATING })
         assertEquals(Hvac.GLOBAL_AREA, asked.single { it.first == Hvac.PROP_STEERING_WHEEL_HEAT }.second)
+        assertEquals(2, asked.count { it.first == Hvac.PROP_SEAT_MEMORY && it.second == Hvac.SEAT_MEMORY_AREA })
         assertEquals(268763650, status["seat:${Hvac.ZONE_DRIVER}"])
         assertEquals(0, status[Hvac.KEY_WHEEL])
         assertEquals(1, status[Hvac.KEY_DEFROST_FRONT])

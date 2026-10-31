@@ -107,7 +107,7 @@ class HvacPanelController private constructor(
     private fun buildPanel(container: FrameLayout, initialStatus: Map<String, Int?>) {
         val statusStore = PanelStatusStore(port, settings.carModel, portExecutor, mainHandler) { detached }
         val commandRunner = CarCommandRunner(
-            context, port, portExecutor, mainHandler, { detached }, statusStore,
+            context, port, portExecutor, mainHandler, { detached }, statusStore, settings,
         )
         store = statusStore
 
@@ -204,16 +204,33 @@ class HvacPanelController private constructor(
     private fun paintNode(node: PanelNode<CarFunctionSpec>, status: Map<String, Int?>) {
         when (node) {
             is GroupNode -> {
-                // The group button shows the strongest of its zones (level).
+                // The group button shows the strongest of its zones (level); a group with an
+                // active state of its own (F015 seat position) also lights when any child is
+                // active — the SLOT children carry no level.
                 var level = 0
+                var childActive = false
                 for (child in node.children) {
                     level = maxOf(level, child.function.levelOf(status[child.function.id]))
+                    if (child.function.isActive(status[child.function.id])) childActive = true
                     paintAction(child, status)
                 }
-                surface?.button(node.id)?.let { theme.paintButton(it, level, level > 0) }
+                paintNodeButton(node, level, level > 0 || childActive)
             }
             is ActionNode -> paintAction(node, status)
-            else -> surface?.button(node.id)?.let { theme.paintButton(it, 0, active = false) }
+            else -> paintNodeButton(node, 0, active = false)
+        }
+    }
+
+    /** Paints one button: self-colored icon swap when the node carries an active icon, the
+     *  status palette otherwise (F015 seat memory keeps the planner's own colors). */
+    private fun paintNodeButton(node: PanelNode<CarFunctionSpec>, level: Int, active: Boolean) {
+        val button = surface?.button(node.id) ?: return
+        val activeIcon = node.activeIconRes
+        if (activeIcon != null) {
+            button.icon?.setImageResource(if (active) activeIcon else node.iconRes)
+            button.icon?.clearColorFilter()
+        } else {
+            theme.paintButton(button, level, active)
         }
     }
 
@@ -222,9 +239,7 @@ class HvacPanelController private constructor(
     private fun paintAction(node: ActionNode<CarFunctionSpec>, status: Map<String, Int?>) {
         val f = node.function
         val manualRaw = status[f.id]
-        val level = f.levelOf(manualRaw)
-        val active = f.isActive(manualRaw)
-        surface?.button(node.id)?.let { theme.paintButton(it, level, active) }
+        paintNodeButton(node, f.levelOf(manualRaw), f.isActive(manualRaw))
     }
 
 

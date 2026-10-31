@@ -179,6 +179,7 @@ class SettingsFragment : Fragment() {
     private var pendingHvacPanelMode: Hvac.PanelMode? = null
     private var pendingHvacCarModel: Hvac.CarModel? = null
     private var pendingHvacDebugLog: Boolean? = null
+    private var pendingHvacToasts: Boolean? = null
     private var pendingHvacHideTimeoutSec: Int? = null
 
     private val pending = SettingsPendingCopy()
@@ -367,6 +368,7 @@ class SettingsFragment : Fragment() {
             pendingHvacPanelMode = hvac.panelMode
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
+            pendingHvacToasts = hvac.toastsEnabled
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
 
@@ -437,6 +439,7 @@ class SettingsFragment : Fragment() {
             pendingHvacPanelMode = hvac.panelMode
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
+            pendingHvacToasts = hvac.toastsEnabled
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
     }
@@ -603,6 +606,8 @@ class SettingsFragment : Fragment() {
                 hvac.debugLog = pending
                 if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
             }
+            // F015: the tap toasts follow the saved value; the HVAC log is untouched here.
+            commitGeely("hvacToasts", pendingHvacToasts, { hvac.toastsEnabled }, { hvac.toastsEnabled = it })
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -768,6 +773,7 @@ class SettingsFragment : Fragment() {
             pendingHvacPanelMode = hvac.panelMode
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
+            pendingHvacToasts = hvac.toastsEnabled
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
         }
         hasChanges = false
@@ -795,6 +801,7 @@ class SettingsFragment : Fragment() {
                 pendingHvacPanelMode != hvac.panelMode ||
                     pendingHvacCarModel != hvac.carModel ||
                     pendingHvacDebugLog != hvac.debugLog ||
+                    pendingHvacToasts != hvac.toastsEnabled ||
                     pendingHvacHideTimeoutSec != hvac.hideTimeoutSec
             }
 
@@ -3074,6 +3081,7 @@ class SettingsFragment : Fragment() {
         val hvacPanelMode = pendingHvacPanelMode ?: hvac.panelMode
         val hvacCarModel = pendingHvacCarModel ?: hvac.carModel
         val hvacDebugLog = pendingHvacDebugLog ?: hvac.debugLog
+        val hvacToasts = pendingHvacToasts ?: hvac.toastsEnabled
         val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
         val saveHvacChange: () -> Unit = {
             hasChanges = true
@@ -3151,6 +3159,17 @@ class SettingsFragment : Fragment() {
             onCheckedChanged = { checked ->
                 // Applied on Save: the log file follows the saved value, not the toggle.
                 pendingHvacDebugLog = checked
+                saveHvacChange()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "hvacToasts",
+            nameResId = R.string.hvac_toasts,
+            descriptionResId = R.string.hvac_toasts_summary,
+            isChecked = hvacToasts,
+            onCheckedChanged = { checked ->
+                // Applied on Save, like every GEELY field (F015).
+                pendingHvacToasts = checked
                 saveHvacChange()
             }
         ))
@@ -3310,7 +3329,7 @@ class SettingsFragment : Fragment() {
 
     // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
     private val geelyItemIds = setOf(
-        "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
+        "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog", "hvacToasts",
         "hvacHideTimeout", "hvacSendLogs"
     )
 
