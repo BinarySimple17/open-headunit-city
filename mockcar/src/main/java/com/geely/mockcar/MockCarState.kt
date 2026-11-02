@@ -43,6 +43,12 @@ object MockCarSpec {
     val AUTO_WHEEL_HEAT_LEVELS = intArrayOf(0, 269025793, 269025794, 269025795)
     const val SEAT_HEAT_AUTO_ANSWER = 268763663 // 0x1005020F
 
+    // Day/night signal (F003): the vendor property the firmware uses as the system-wide
+    // day/night state (0x21401d9b; Cityray-AutoTheme reads it over root telnet — конспект §1).
+    // 1 = day, 0 = night; global area 0.
+    const val PROP_DAY_NIGHT = 557850011
+    const val DAY_NIGHT_AREA = 0
+
     /** True when [propertyId] is one the mock knows how to validate. */
     fun isKnown(propertyId: Int, areaId: Int): Boolean = when (propertyId) {
         PROP_SEAT_HEATING, PROP_SEAT_VENTILATION -> SEAT_ZONES.contains(areaId)
@@ -53,6 +59,8 @@ object MockCarSpec {
         PROP_DEFROST_REAR,
         PROP_CIRCULATION,
         PROP_AC -> true
+
+        PROP_DAY_NIGHT -> areaId == DAY_NIGHT_AREA
 
         in DEFROST_FRONT_IDS.toSet() -> true
         else -> false
@@ -71,6 +79,7 @@ object MockCarSpec {
         PROP_AUTO_SEAT_HEATING -> normalizeLevel(value, AUTO_SEAT_HEAT_LEVELS)
         PROP_AUTO_STEERING_WHEEL_HEAT -> normalizeLevel(value, AUTO_WHEEL_HEAT_LEVELS)
         PROP_DEFROST_FRONT_MAX, PROP_DEFROST_REAR, PROP_AC -> if (value == 0 || value == 1) value else null
+        PROP_DAY_NIGHT -> if (value == 0 || value == 1) value else null
         PROP_CIRCULATION -> when (value) {
             CIRCULATION_ON, CIRCULATION_OFF -> value
             else -> null
@@ -95,6 +104,11 @@ object MockCarSpec {
 class MockCarState {
 
     private val values = mutableMapOf<Long, Int>()
+
+    init {
+        // A parked car starts in daylight; adb SET flips it to 0 (night) for the watch.
+        set(MockCarSpec.PROP_DAY_NIGHT, MockCarSpec.DAY_NIGHT_AREA, 1)
+    }
 
     /**
      * Reads a property. While a seat zone's auto mode is on, the main seat property answers

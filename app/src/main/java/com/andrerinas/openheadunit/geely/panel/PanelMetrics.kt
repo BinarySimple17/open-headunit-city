@@ -32,7 +32,6 @@ object PanelMetrics {
     const val REST_ELEVATION_DP = 8
     const val PRESSED_ELEVATION_DP = 14
 
-    const val AUTO_BADGE = "A"
 
     /** The status palette: standard text, off, and one color per level. */
     const val COLOR_TEXT = 0xFF212121.toInt()

@@ -174,13 +174,13 @@ class SettingsFragment : Fragment() {
     private var pendingGeelyTab: Boolean = false
 
     // Geely HVAC settings ride the common Save flow: the pickers write these pending
+    // Geely HVAC settings ride the common Save flow: the pickers write these pending
     // values, saveSettings() applies them to HvacSettings — no immediate persistence.
     private var pendingHvacPanelMode: Hvac.PanelMode? = null
     private var pendingHvacCarModel: Hvac.CarModel? = null
     private var pendingHvacDebugLog: Boolean? = null
+    private var pendingHvacToasts: Boolean? = null
     private var pendingHvacHideTimeoutSec: Int? = null
-    private var pendingHvacSeatAutoLevel: Int? = null
-    private var pendingHvacWheelAutoLevel: Int? = null
 
     private val pending = SettingsPendingCopy()
     private var pendingUseGps by pending::useGps
@@ -368,9 +368,8 @@ class SettingsFragment : Fragment() {
             pendingHvacPanelMode = hvac.panelMode
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
+            pendingHvacToasts = hvac.toastsEnabled
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
-            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
-            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
 
         // Initialize local state with current values
@@ -440,9 +439,8 @@ class SettingsFragment : Fragment() {
             pendingHvacPanelMode = hvac.panelMode
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
+            pendingHvacToasts = hvac.toastsEnabled
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
-            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
-            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
     }
 
@@ -573,6 +571,26 @@ class SettingsFragment : Fragment() {
         saveButton?.text = if (requiresRestart) getString(R.string.save_and_restart) else getString(R.string.save)
     }
 
+    /**
+     * The CAR-tab experiment lives or dies by knowing WHICH switch moved and WHEN: the
+     * 2026-10-24 drive read as "nothing changed" and the logs could not say whether the
+     * toggles were even active. Every saved geely change therefore lands in both the app
+     * log (always on, survives the HVAC capture being off) and the HVAC capture (the
+     * car-log narrative), as `name old -> new`, one line per switch.
+     */
+    private fun logGeelyChange(name: String, from: Any?, to: Any?) {
+        val line = "settings: $name $from -> $to"
+        AppLog.i(line)
+        HvacLog.i(line)
+    }
+
+    /** Commits one pending geely setting, logging nothing when nothing actually changes. */
+    private fun <T> commitGeely(name: String, pending: T?, current: () -> T, apply: (T) -> Unit) {
+        if (pending == null || pending == current()) return
+        logGeelyChange(name, current(), pending)
+        apply(pending)
+    }
+
     private fun saveSettings() {
         checkChanges()
         var audioSessionEnded = false
@@ -581,17 +599,15 @@ class SettingsFragment : Fragment() {
         pendingAdvancedSettings?.let { if (it != settings.isAdvancedSettingsActive) settings.isAdvancedSettingsActive = it }
         // Geely HVAC: applied with the common Save; the log file follows the saved toggle.
         HvacSettings(requireContext().applicationContext).also { hvac ->
-            pendingHvacPanelMode?.let { if (it != hvac.panelMode) hvac.panelMode = it }
-            pendingHvacCarModel?.let { if (it != hvac.carModel) hvac.carModel = it }
-            pendingHvacHideTimeoutSec?.let { if (it != hvac.hideTimeoutSec) hvac.hideTimeoutSec = it }
-            pendingHvacSeatAutoLevel?.let { if (it != hvac.seatAutoLevel) hvac.seatAutoLevel = it }
-            pendingHvacWheelAutoLevel?.let { if (it != hvac.wheelAutoLevel) hvac.wheelAutoLevel = it }
-            pendingHvacDebugLog?.let { pending ->
-                if (pending != hvac.debugLog) {
-                    hvac.debugLog = pending
-                    if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
-                }
+            commitGeely("hvacPanelMode", pendingHvacPanelMode, { hvac.panelMode }, { hvac.panelMode = it })
+            commitGeely("hvacCarModel", pendingHvacCarModel, { hvac.carModel }, { hvac.carModel = it })
+            commitGeely("hvacHideTimeout", pendingHvacHideTimeoutSec, { hvac.hideTimeoutSec }, { hvac.hideTimeoutSec = it })
+            commitGeely("hvacDebugLog", pendingHvacDebugLog, { hvac.debugLog }) { pending ->
+                hvac.debugLog = pending
+                if (pending) HvacLog.start(requireContext(), hvac.carModel) else HvacLog.stop()
             }
+            // F015: the tap toasts follow the saved value; the HVAC log is untouched here.
+            commitGeely("hvacToasts", pendingHvacToasts, { hvac.toastsEnabled }, { hvac.toastsEnabled = it })
         }
         pendingUseGps?.let { if (it != settings.useGpsForNavigation) settings.useGpsForNavigation = it }
         pendingShowNavigationNotifications?.let { if (it != settings.showNavigationNotifications) settings.showNavigationNotifications = it }
@@ -757,9 +773,8 @@ class SettingsFragment : Fragment() {
             pendingHvacPanelMode = hvac.panelMode
             pendingHvacCarModel = hvac.carModel
             pendingHvacDebugLog = hvac.debugLog
+            pendingHvacToasts = hvac.toastsEnabled
             pendingHvacHideTimeoutSec = hvac.hideTimeoutSec
-            pendingHvacSeatAutoLevel = hvac.seatAutoLevel
-            pendingHvacWheelAutoLevel = hvac.wheelAutoLevel
         }
         hasChanges = false
         requiresRestart = false
@@ -786,9 +801,8 @@ class SettingsFragment : Fragment() {
                 pendingHvacPanelMode != hvac.panelMode ||
                     pendingHvacCarModel != hvac.carModel ||
                     pendingHvacDebugLog != hvac.debugLog ||
-                    pendingHvacHideTimeoutSec != hvac.hideTimeoutSec ||
-                    pendingHvacSeatAutoLevel != hvac.seatAutoLevel ||
-                    pendingHvacWheelAutoLevel != hvac.wheelAutoLevel
+                    pendingHvacToasts != hvac.toastsEnabled ||
+                    pendingHvacHideTimeoutSec != hvac.hideTimeoutSec
             }
 
         // Check for restart requirement
@@ -3067,9 +3081,8 @@ class SettingsFragment : Fragment() {
         val hvacPanelMode = pendingHvacPanelMode ?: hvac.panelMode
         val hvacCarModel = pendingHvacCarModel ?: hvac.carModel
         val hvacDebugLog = pendingHvacDebugLog ?: hvac.debugLog
+        val hvacToasts = pendingHvacToasts ?: hvac.toastsEnabled
         val hvacHideTimeoutSec = pendingHvacHideTimeoutSec ?: hvac.hideTimeoutSec
-        val hvacSeatAutoLevel = pendingHvacSeatAutoLevel ?: hvac.seatAutoLevel
-        val hvacWheelAutoLevel = pendingHvacWheelAutoLevel ?: hvac.wheelAutoLevel
         val saveHvacChange: () -> Unit = {
             hasChanges = true
             updateSaveButtonState()
@@ -3138,42 +3151,6 @@ class SettingsFragment : Fragment() {
                     .show()
             }
         ))
-        items.add(SettingItem.SettingEntry(
-            stableId = "hvacSeatAutoLevel",
-            nameResId = R.string.hvac_seat_auto_level,
-            value = getString(R.string.hvac_level_number, hvacSeatAutoLevel),
-            searchKeywords = (1..3).joinToString(" ") { getString(R.string.hvac_level_number, it) },
-            onClick = { _ ->
-                val options = (1..3).map { getString(R.string.hvac_level_number, it) }.toTypedArray()
-                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
-                    .setTitle(R.string.hvac_seat_auto_level)
-                    .setSingleChoiceItems(options, (hvacSeatAutoLevel - 1).coerceIn(0, 2)) { dialog, which ->
-                        pendingHvacSeatAutoLevel = which + 1
-                        dialog.dismiss()
-                        saveHvacChange()
-                    }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
-            }
-        ))
-        items.add(SettingItem.SettingEntry(
-            stableId = "hvacWheelAutoLevel",
-            nameResId = R.string.hvac_wheel_auto_level,
-            value = getString(R.string.hvac_level_number, hvacWheelAutoLevel),
-            searchKeywords = (1..3).joinToString(" ") { getString(R.string.hvac_level_number, it) },
-            onClick = { _ ->
-                val options = (1..3).map { getString(R.string.hvac_level_number, it) }.toTypedArray()
-                MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
-                    .setTitle(R.string.hvac_wheel_auto_level)
-                    .setSingleChoiceItems(options, (hvacWheelAutoLevel - 1).coerceIn(0, 2)) { dialog, which ->
-                        pendingHvacWheelAutoLevel = which + 1
-                        dialog.dismiss()
-                        saveHvacChange()
-                    }
-                    .setNegativeButton(R.string.cancel, null)
-                    .show()
-            }
-        ))
         items.add(SettingItem.ToggleSettingEntry(
             stableId = "hvacDebugLog",
             nameResId = R.string.hvac_debug_log,
@@ -3182,6 +3159,17 @@ class SettingsFragment : Fragment() {
             onCheckedChanged = { checked ->
                 // Applied on Save: the log file follows the saved value, not the toggle.
                 pendingHvacDebugLog = checked
+                saveHvacChange()
+            }
+        ))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "hvacToasts",
+            nameResId = R.string.hvac_toasts,
+            descriptionResId = R.string.hvac_toasts_summary,
+            isChecked = hvacToasts,
+            onCheckedChanged = { checked ->
+                // Applied on Save, like every GEELY field (F015).
+                pendingHvacToasts = checked
                 saveHvacChange()
             }
         ))
@@ -3198,6 +3186,7 @@ class SettingsFragment : Fragment() {
                 }
             }
         ))
+
 
         // No bottom save button: the toolbar Save is the single save
         // affordance — it lights up for pending changes on every tab, GEELY included.
@@ -3340,8 +3329,8 @@ class SettingsFragment : Fragment() {
 
     // Geely climate panel items (F005) live in their own tab tier; see shouldShowItem.
     private val geelyItemIds = setOf(
-        "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog",
-        "hvacHideTimeout", "hvacSeatAutoLevel", "hvacWheelAutoLevel", "hvacSendLogs"
+        "hvacHeader", "hvacPanelMode", "hvacCarModel", "hvacDebugLog", "hvacToasts",
+        "hvacHideTimeout", "hvacSendLogs"
     )
 
     private fun isGeelyItem(item: SettingItem): Boolean = item.stableId in geelyItemIds

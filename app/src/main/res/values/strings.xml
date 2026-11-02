@@ -1479,6 +1479,9 @@
     <string name="settings_tab_geely">CAR</string>
     <string name="geely_settings_category">Car climate panel</string>
     <string name="hvac_handle">Climate</string>
+    <string name="hvac_btn_seat_position">Seat position</string>
+    <string name="hvac_seat_position_1">Seat position 1</string>
+    <string name="hvac_seat_position_2">Seat position 2</string>
     <string name="hvac_btn_seats">Seats</string>
     <string name="hvac_btn_wheel">Wheel</string>
     <string name="hvac_btn_front_defrost">Windshield</string>
@@ -1492,6 +1495,7 @@
     <string name="hvac_toast_level">%1$s: level %2$d</string>
     <string name="hvac_toast_off">%1$s: off</string>
     <string name="hvac_toast_on">%1$s: on</string>
+    <string name="hvac_toast_position">%1$s: position %2$d</string>
     <string name="hvac_cmd_failed">Command rejected by the car</string>
     <string name="hvac_fn_unavailable">Not available on this car</string>
     <string name="hvac_panel_mode">Panel visibility</string>
@@ -1502,13 +1506,13 @@
     <string name="hvac_car_model_description">Front windshield defrost property ID differs between models</string>
     <string name="hvac_debug_log">Detailed HVAC log</string>
     <string name="hvac_debug_log_summary">Writes every panel and car-service event to HVAC_Log_*.txt in the Download folder - enable this when the panel misbehaves and share the file</string>
+    <string name="hvac_toasts">Show toasts</string>
+    <string name="hvac_toasts_summary">Confirmation popups over the projection when a panel button is tapped; the HVAC log keeps writing either way</string>
     <string name="hvac_send_logs">Send HVAC logs</string>
     <string name="hvac_send_logs_summary">Opens the share sheet with the HVAC_Log_*.txt files from the Download folder - pick Bluetooth to send them to a phone</string>
     <string name="hvac_send_logs_none">No HVAC logs yet - enable the detailed HVAC log, reproduce the issue, then send again</string>
     <string name="hvac_hide_timeout">Icon hide timeout</string>
     <string name="hvac_timeout_seconds">%1$d s</string>
-    <string name="hvac_seat_auto_level">Seat auto-heat level</string>
-    <string name="hvac_wheel_auto_level">Steering wheel auto-heat level</string>
     <string name="hvac_level_number">Level %1$d</string>
 
     <!-- Home screen -->

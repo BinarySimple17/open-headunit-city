@@ -2,10 +2,9 @@ package com.andrerinas.openheadunit.geely.panel
 
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
-import android.view.View
+import android.widget.TextView
 
 /**
  * Day/night theming and status painting of the panel (F010), moved verbatim from the old
@@ -44,14 +43,37 @@ class PanelTheme {
     }
 
     /** Recolors one button from its display state; main thread only. */
-    fun paintButton(button: RoundButton, level: Int, active: Boolean, auto: Boolean) {
-        // Follow the theme: the circle surface and the badge ink flip with day/night, the
+    fun paintButton(button: RoundButton, level: Int, active: Boolean) {
+        // Follow the theme: the circle surface flips with day/night, the
         // status palette itself stays readable on both.
         if (paintedNight != isNight) button.view.background = circleBackground()
         button.icon?.setColorFilter(stateColor(level, active))
-        button.badge.visibility = if (auto) View.VISIBLE else View.GONE
-        button.badge.text = PanelMetrics.AUTO_BADGE
-        button.badge.setTextColor(if (isNight) PanelMetrics.COLOR_TEXT_ON_DARK else PanelMetrics.COLOR_TEXT)
+    }
+
+    /**
+     * Paints a self-colored button (F015 seat memory) the same way the other buttons follow
+     * the theme: the circle surface flips day/night, and the ICON is color-filtered like the
+     * rest of the palette ([stateColor] — gray off, green active). By day the filter is off
+     * so the planner's own fills show (#212121 seat, the green active icon); by night the
+     * same filter runs over the swapped icon — the #212121 fill would drown on the dark
+     * circle otherwise. The number badge flips with the text color (the anchor's rule).
+     */
+    fun paintSlotButton(
+        button: RoundButton,
+        iconRes: Int,
+        activeIconRes: Int,
+        active: Boolean,
+        badge: TextView?,
+    ) {
+        if (paintedNight != isNight) button.view.background = circleBackground()
+        button.icon?.setImageResource(if (active) activeIconRes else iconRes)
+        if (isNight) {
+            button.icon?.setColorFilter(stateColor(0, active))
+            badge?.setTextColor(PanelMetrics.COLOR_TEXT_ON_DARK)
+        } else {
+            button.icon?.clearColorFilter()
+            badge?.setTextColor(PanelMetrics.COLOR_TEXT)
+        }
     }
 
     /** The anchor is not status-driven: only its theme surface (and the mark's tint) follow. */

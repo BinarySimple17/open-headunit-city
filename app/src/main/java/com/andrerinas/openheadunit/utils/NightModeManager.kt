@@ -40,6 +40,16 @@ class NightModeManager(
     private var isObserverRegistered = false
     private var isCarSignalObserverRegistered = false
     private var isSystemCallbacksRegistered = false
+
+    /**
+     * Optional first-choice source for [Settings.NightMode.CAR_SIGNAL]: 1 = night, 0 = day,
+     * null = "no answer". The Geely integration supplies the car's day/night VHAL property
+     * here (F003, docs/geely-references.md §1); while it is null — or answers null — the
+     * mode behaves exactly as before, on the aftermarket Settings.System.car_mode ILL+ key
+     * that Geely/ECARX units never expose.
+     */
+    @Volatile
+    var carSignalSource: (() -> Int?)? = null
     
     private val handler = Handler(Looper.getMainLooper())
 
@@ -255,17 +265,24 @@ class NightModeManager(
                 }
             }
             Settings.NightMode.CAR_SIGNAL -> {
-                // Many Chinese aftermarket head units (e.g. OLEDPRO) expose the car's
-                // ILL+ headlight signal as Settings.System.car_mode (0 = day, 1 = night).
-                val carMode = try {
-                    SystemSettings.System.getInt(context.contentResolver, "car_mode")
-                } catch (_: Exception) { -1 }
-                if (carMode >= 0) {
-                    isNight = carMode != 0
-                    AppLog.d("NightModeManager: CAR_SIGNAL car_mode=$carMode isNight=$isNight")
+                // Geely day/night VHAL first (F003); the aftermarket ILL+ key stays the fallback.
+                val geely = carSignalSource?.invoke()
+                if (geely != null) {
+                    isNight = geely != 0
+                    AppLog.d("NightModeManager: CAR_SIGNAL geely vhal=$geely isNight=$isNight")
                 } else {
-                    AppLog.w("NightModeManager: CAR_SIGNAL key 'car_mode' not present; keeping previous state")
-                    isNight = lastEmittedValue ?: false
+                    // Many Chinese aftermarket head units (e.g. OLEDPRO) expose the car's
+                    // ILL+ headlight signal as Settings.System.car_mode (0 = day, 1 = night).
+                    val carMode = try {
+                        SystemSettings.System.getInt(context.contentResolver, "car_mode")
+                    } catch (_: Exception) { -1 }
+                    if (carMode >= 0) {
+                        isNight = carMode != 0
+                        AppLog.d("NightModeManager: CAR_SIGNAL car_mode=$carMode isNight=$isNight")
+                    } else {
+                        AppLog.w("NightModeManager: CAR_SIGNAL key 'car_mode' not present; keeping previous state")
+                        isNight = lastEmittedValue ?: false
+                    }
                 }
             }
             Settings.NightMode.SYSTEM -> {

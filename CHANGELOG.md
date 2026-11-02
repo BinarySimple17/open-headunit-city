@@ -1,4 +1,72 @@
 # Changelog
+### v.3.5.0-beta30
+- Removed: the instrument-cluster media card and everything built around it - the card switches leave the CAR tab, the app stops publishing anything to the cluster and stops reading the head unit's own Bluetooth media session. The two-week flicker hunt proved the remaining card switching is done by the firmware's own source arbitration, out of reach of any app on this unit (no root, no read-back, no broker), so the card itself is withdrawn rather than shipped half-fixed; the HVAC panel and its logs are unaffected
+### v.3.5.0-beta29
+- Added: a "Watch the cluster media bus" switch (off by default) - the app connects to the head unit's own message bus (the broker its cluster-feed service publishes to on the loopback interface) and writes every media frame it carries, including the stock publisher's and the source-switch frames, to the car log; the invisible competitor of the card-flicker hunt is finally observable without root, strictly read-only, and a head unit without the broker answers with one honest connect-failure line
+- Added: a "Pin the cluster media card to projection" switch (off by default, experimental) - while our card stands, the app publishes the same source-selection frame the firmware's own CarPlay path uses, telling the cluster to read the media card from the phone projection instead of flipping back to the head unit's own Bluetooth source; the frame rides card publications (one per track, never a stream), and turning the switch off undoes our own pin
+### v.3.5.0-beta28
+- Added: a "Capture cluster diagnostics" button in the CAR tab - the desk has no adb into the head unit, so the one missing view of the card flicker (what the system's own publishers log on their side) is captured on the unit itself: two logcat passes (media-tag filtered and a raw tail) plus the media session stack, shared over Bluetooth like every other log; with root the capture covers the whole system, and the file header names the lane so a partial capture cannot be mistaken for a complete one
+### v.3.5.0-beta27
+- Fixed: the Bluetooth-source switch re-published the cluster card on every monitor tick instead of once per track - the stored card carried the Bluetooth slot id while each fresh read carried the online one, so the comparison never settled and a one-track drive pushed 171 full cards at ~1 Hz; the slot stamp now happens before the comparison, and the card publishes once per track again
+- Added: the "send HVAC logs" button now writes what it found to the app log - the capture count it is sending, or the remembered count and the provider query row count when it has nothing, so an empty result is never silent again
+### v.3.5.0-beta26
+- Fixed: the "send HVAC logs" button reported "no logs" even seconds after the app had written a capture - the firmware's media store stopped answering the by-name query for the app's own Download files, so the share now reads the capture locations the app remembers from its own inserts (the query stays only as a fallback), dead entries are pruned on the spot
+- Fixed: toggling the Bluetooth-source switch no longer waits for the next track to reach the cluster card - a standing card is re-published with the new source type the moment the switch moves, so a single-track drive actually exercises the experiment instead of reading as "nothing changed"
+- Added: every saved change of the CAR-tab settings is logged as "name old -> new" to both the app log and the car log, so a drive record shows exactly when each switch was turned on or off
+### v.3.5.0-beta25
+- Added: a "Cluster card as Bluetooth source" switch (off by default) - the card declares itself as the Bluetooth source instead of an online app, feeding the very slot the stock Bluetooth card occupies, so the cluster has no second card to switch to
+- Added: an "Announce active source to cluster" switch (off by default) - on every track change the app tells the cluster the active source is Bluetooth, the same source the audio actually plays over; needs firmware support and degrades to silence where it is missing
+- Added: a "Read stock media center state" switch (off by default) - every 5 seconds the app reads what the stock Bluetooth feed holds (title, artist, cover) and logs every change to the car log, with the cover saved to the app folder for inspection; a read-only window into the competing publisher the flicker hunt could not see before
+- Fixed: the cluster position switch added in the previous release lived on the wrong settings tab - all cluster switches now sit together in the CAR tab
+### v.3.5.0-beta24
+- Fixed: the snapshot cache of the Bluetooth card dropped the track it had just stored once it filled up - the eviction took an arbitrary key, ate the current track's entry, and the app rebuilt the whole card (donor lookup, cover re-encode, diagnostics dump) every second of a drive; the cache is now access-ordered, so the current track is never its own eviction victim
+- Fixed: the ~1 second stripped next-track announcement the Bluetooth session makes before every track change (album and duration removed) was published as its own card identity, pushing a second uuid - a double card update per track change; such reads are now skipped without touching the standing card
+- Added: a diagnostic switch "Cluster card position updates" for the flicker hunt - the second-long position stream to the cluster can be cut mid-drive without touching the card itself, to test whether that stream feeds the cluster's source switching; the cover and title stay as published
+### v.3.5.0-beta23
+- Fixed: the pre-release review of the sticky card - a playing session whose metadata carries no title, artist or album (a placeholder session can win the playing race) now reaches the same hold as a vanished session instead of clearing the card instantly past it, and the hold clock is no longer restarted by such empty reads; no other behavior change
+### v.3.5.0-beta22
+- Fixed: the slow half of the instrument-cluster card flicker - when the head unit's own media session drops out, the card is now held for up to 60 s (position frozen) instead of being cleared once the short 2 s grace runs out, which stopped the card from alternating with the stock Bluetooth card every few seconds; the track key no longer includes the duration the unit changes every tick, so the card identity stops being reissued and the cover pipeline stops re-running at 1 Hz; the car log now prints numeric metadata values and the name of the session that owns the card
+### v.3.5.0-beta21
+- Fixed: the pre-round review of the cluster source probe - the callback registration is now found by its decoded name first (a shape scan alone could arm a foreign listener and the flicker hunt would see no events at all), a failed registration is reported exactly once per channel instead of retrying every publish, and the read-back lines share the events' log prefix; no behavior change for the card itself
+### v.3.5.0-beta20
+- Added: round-10 diagnostics only - the app now registers the instrument cluster's own diminteraction media callback (source-selected, source-changed and status-refresh events) and reads back the card the cluster is currently holding (uuid, source type, title) once every track tick. Every observation lands in the detailed HVAC log, so the card flicker hunt sees who and when switches the slot; nothing is published and the card itself is never touched
+### v.3.5.0-beta19
+- (fill in before release)
+### v.3.5.0-beta19
+- Added: the Bluetooth card can finally carry a cover - the Android Auto stream donates its album art bytes to the very same card. The publisher stays single (the head unit's own Bluetooth session, no card fights): when the projection delivers artwork for a track, the card's ladder picks those bytes up for exactly that title and artist, a mismatch means no cover rather than a foreign one, and every rung of the ladder prints its verdict to the car log
+- Changed: the artwork ladder also tries the session's public display-icon keys and uris
+### v.3.5.0-beta18
+- (fill in before release)
+### v.3.5.0-beta18
+- Added: the Bluetooth cover hunt goes fully in-app, no adb on the unit needed. The app now probes the head unit's AVRCP stack directly (the hidden controller profile) and logs what the stack itself holds for the phone - if cover art was ever fetched over AVRCP it lives there even when the media session strips it. The car log also gains the playback-state extras, the session's now-playing queue with its per-item icons, the track description (art uri and extras) and an overview of every active media session; each line lands once per track change. Enabling the cluster card switch now also asks for the Bluetooth connect permission the probe needs
+### v.3.5.0-beta17
+- (fill in before release)
+### v.3.5.0-beta17
+- Added: the car log now records everything the Bluetooth session actually carries - every metadata key with its value kind and bitmap size, plus the session controller's extras bundle, once per track. The search for where this firmware keeps the AVRCP cover art needs that full picture from the car log alone, without adb on the unit; no behavior change otherwise
+### v.3.5.0-beta16
+- (fill in before release)
+### v.3.5.0-beta16
+- Changed: the instrument-cluster card now has a single publisher - the head unit's own Bluetooth session. The Android Auto track card is retired completely: car round 9 caught our own AA card (with its cover) being displaced by our own Bluetooth card one second after publication, so the "card fight" was between our two channels, and one channel means no arbitration by construction. The Bluetooth session mirrors the phone's track over both plain Bluetooth audio and Android Auto playback, the card no longer depends on the "AA now playing on media session" switch, and a stopped or paused session clears the card after its two-second grace window
+
+- Fixed: a notification from any app carrying an icon in an unexpected format crashed the whole app through the notification listener the cluster card's Bluetooth fallback relies on - such payloads now degrade to "no artwork" instead (found and reproduced on the emulator bench); the listener is also protected against every other malformed notification
+- Added: the mock-car stand-in gains the media-card receiver and a fake Bluetooth source (F014) - the cluster card pipeline is rehearsed on an emulator end to end, including the cover drawn from the published file exactly like the real cluster reads it
+### v.3.5.0-beta14
+- Fixed: a transient drop in the Bluetooth session's play state no longer flips the cluster card to the other content and back - short dropouts are held through for two seconds exactly like the working references do (round 8 caught such a flip pair in the car log), and every held gap lands in the car log so the session's jitter frequency becomes visible
+### v.3.5.0-beta13
+- Fixed: the cluster card's Bluetooth fallback can finally find a cover - on this head unit the Bluetooth session's metadata carries none, the cover travels in the Bluetooth app's media notification and arrives there seconds late (decoded from a second working publisher that mines exactly that rung). The listener now caches the notification's artwork, the monitor keeps retrying while the track is still coverless, and a late cover re-publishes the card mid-track; each step lands in the car log
+### v.3.5.0-beta12
+- Changed: round-8 diagnostics only - the Bluetooth takeover line now reports whether the session carried artwork (artwork=true/false) and a track without a cover is logged once explicitly; no behavior change, the log must separate "the car's AVRCP session has no cover" from "the cover was not rendered"
+### v.3.5.0-beta11
+- Added: the cluster card can follow the phone's Bluetooth playback - while the sound goes through the car's Bluetooth channel, the card is fed from the head unit's own Bluetooth session (the very data the stock card shows) plus the artwork that session already carries but the stock card never draws; armed with a new "Cluster card from Bluetooth music" switch in the GEELY tab (one-time notification-access grant requested on first enable)
+### v.3.5.0-beta10
+- Changed: cluster card artwork is re-encoded to jpeg q90 before being handed to the cluster, exactly like the working reference publisher does - round 7 proved the bytes arrive and are stored (a real png on a public path) yet the card showed no image, and a jpeg-only renderer would skip a png silently; undecodable payloads keep their raw bytes and the verdict lands in the HVAC log
+### v.3.5.0-beta9
+- Added: the projection night theme can finally follow dark time on these units - a read-only watcher polls the car's own day/night property (the signal the stock theme switcher uses, decoded from the reference widget app) and feeds the "Car Headlight Signal (ILL+)" setting; with no signal available the previous behavior is unchanged
+- Added: the debug mock car serves the day/night property too (boots at day, adb SET flips it to night) so the whole chain is testable on an emulator
+### v.3.5.0-beta8
+- Fixed: instrument-cluster media card - the firmware casts the card's getters itself, and one getter answering a number instead of a string killed the whole publication; wrong-typed answers now degrade to the type's neutral (the radio getters answer "not a radio")
+- Changed: steering-wheel auto heat (long-press) drives the stock AUTO switch the car itself uses (probed available), not the unavailable dedicated property
+- Changed: seat auto heat tries the manual level codes on the AUTO property - the car's own catalog lists them as its supported values; the earlier plain and base|level encodings sit outside the catalog
 ### v.3.5.0-beta7
 - Changed: HVAC auto mode is judged by the car's answer, not by the write going out - each candidate encoding waits up to 2.5 s for the car to confirm before the next is tried, and a silent rejection ends in an honest "command rejected" toast instead of a false "on"
 - Changed: the zone button goes dim and ignores touches while the car's auto verdict is pending

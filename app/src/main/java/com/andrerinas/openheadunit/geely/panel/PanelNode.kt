@@ -16,6 +16,15 @@ sealed class PanelNode<out T> {
     abstract val id: String
     abstract val iconRes: Int
     abstract val labelRes: Int
+
+    /**
+     * Optional self-colored active-state icon (F015 seat memory): when set, the button is
+     * NOT painted with the status palette — the coordinator swaps [iconRes]/[activeIconRes]
+     * by the car's read instead. By day the icon keeps its own fill (the planner's #212121
+     * seat / green active mark); by night the same palette filter runs over it as over every
+     * other button ([PanelTheme.paintSlotButton]). Null = palette paint as before.
+     */
+    open val activeIconRes: Int? = null
 }
 
 /** A leaf button bound to a car function of type [T]. */
@@ -24,6 +33,9 @@ class ActionNode<T>(
     override val iconRes: Int,
     override val labelRes: Int,
     val function: T,
+    /** Static text badge over the icon (the F015 seat-position number), null = none. */
+    val badge: String? = null,
+    override val activeIconRes: Int? = null,
 ) : PanelNode<T>()
 
 /**
@@ -38,6 +50,7 @@ class GroupNode<T>(
     override val labelRes: Int,
     val children: List<ActionNode<T>>,
     val display: GroupDisplay = GroupDisplay.INLINE_ROW,
+    override val activeIconRes: Int? = null,
 ) : PanelNode<T>()
 
 /** How a [GroupNode] presents its children. */

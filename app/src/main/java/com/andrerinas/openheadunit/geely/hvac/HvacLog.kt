@@ -51,6 +51,9 @@ object HvacLog {
     /** Old captures beyond this are rotated away at the next start. */
     internal const val MAX_FILES = 10
 
+    private const val SHARE_PREFS = "hvac_log_share"
+    private const val KEY_URIS = "capture_uris"
+
     @Volatile private var sink: DownloadSink? = null
 
     val isEnabled: Boolean get() = sink != null
@@ -89,6 +92,52 @@ object HvacLog {
         // Errors always reach logcat even with the capture off — a silent panel must not be silent.
         if (tr != null) AppLog.e("[HVAC] $msg", tr) else AppLog.e("[HVAC] $msg")
     }
+
+    /**
+     * Own capture URIs, newest first, with dead entries pruned. The share sheet reads these
+     * INSTEAD of querying MediaStore by name: on the round of 2026-10-24 the firmware's
+     * provider stopped answering the name query even for a file this app had inserted a
+     * minute earlier, and a "no logs" toast while a capture is being written is a lie the
+     * reporter cannot work around. Every remembered URI is probed by opening it — a row the
+     * provider can no longer serve (rotated, uninstall-wiped) is forgotten on the spot.
+     */
+    fun rememberedCaptureUris(context: Context): List<Uri> {
+        val app = context.applicationContext
+        val prefs = app.getSharedPreferences(SHARE_PREFS, Context.MODE_PRIVATE)
+        val raw = prefs.getString(KEY_URIS, null) ?: return emptyList()
+        val alive = ArrayList<Uri>()
+        val aliveTokens = ArrayList<String>()
+        for (token in raw.split('\n')) {
+            if (token.isBlank()) continue
+            val uri = try { Uri.parse(token) } catch (_: Throwable) { null }
+            val aliveNow = uri != null && try {
+                app.contentResolver.openInputStream(uri)?.use { true } ?: false
+            } catch (_: Throwable) { false }
+            if (aliveNow) {
+                alive += uri
+                aliveTokens += token
+            }
+        }
+        if (aliveTokens.size != raw.split('\n').count { it.isNotBlank() }) {
+            prefs.edit().putString(KEY_URIS, aliveTokens.joinToString("\n")).apply()
+        }
+        return alive
+    }
+
+    /** Adds a freshly inserted capture URI at the front, capped at the retention limit. */
+    private fun rememberCaptureUri(context: Context, uri: Uri) {
+        val prefs = context.applicationContext
+            .getSharedPreferences(SHARE_PREFS, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(KEY_URIS, rememberUriString(prefs.getString(KEY_URIS, null), uri.toString(), MAX_FILES))
+            .apply()
+    }
+
+    internal fun rememberUriString(existing: String?, newUri: String, limit: Int): String =
+        (listOf(newUri) + (existing?.split('\n')?.filter { it.isNotBlank() } ?: emptyList()))
+            .distinct()
+            .take(limit)
+            .joinToString("\n")
 
     private fun println(priority: Int, msg: String) {
         sink?.println(priority, TAG, "[HVAC] $msg")
@@ -160,6 +209,7 @@ object HvacLog {
                 }
                 val uri: Uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                     ?: throw IOException("MediaStore insert returned null")
+                rememberCaptureUri(context, uri)
                 val description = "${Environment.DIRECTORY_DOWNLOADS}/$fileName"
                 val openStream = { resolver.openOutputStream(uri, "wa") ?: throw IOException("no stream for $uri") }
                 return DownloadSink(openStream, description)

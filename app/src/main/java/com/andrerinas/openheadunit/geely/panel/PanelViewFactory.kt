@@ -13,12 +13,12 @@ import android.widget.TextView
 
 /**
  * Builds the panel's round buttons (F010), moved verbatim from the old HvacPanelController:
- * a white/dark circle carrying a tinted icon and an optional badge ("A" auto mark), Material
- * elevation with a press lift. Every button consumes its own tap — anything that slipped
- * through would reach OverlayTouchView and become a touch on the phone screen; the panel
- * CONTAINERS stay non-clickable on purpose (the touch-isolation contract).
+ * a white/dark circle carrying a tinted icon, Material elevation with a press lift. Every
+ * button consumes its own tap — anything that slipped through would reach OverlayTouchView
+ * and become a touch on the phone screen; the panel CONTAINERS stay non-clickable on purpose
+ * (the touch-isolation contract).
  */
-class RoundButton(val view: FrameLayout, val icon: ImageView?, val badge: TextView)
+class RoundButton(val view: FrameLayout, val icon: ImageView?, val badge: TextView? = null)
 
 /** One shared [RoundButton] factory bound to a context, theme and anchor mark drawable. */
 class PanelViewFactory(
@@ -35,16 +35,6 @@ class PanelViewFactory(
             setImageResource(iconRes)
             setColorFilter(PanelMetrics.COLOR_OFF)
             layoutParams = FrameLayout.LayoutParams(dp(PanelMetrics.ICON_SIZE_DP), dp(PanelMetrics.ICON_SIZE_DP), Gravity.CENTER)
-        }
-        val badge = TextView(context).apply {
-            textSize = 18f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(PanelMetrics.COLOR_TEXT)
-            visibility = View.GONE
-            layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.TOP or Gravity.CENTER_HORIZONTAL
-            ).apply { topMargin = dp(2) }
         }
         val box = FrameLayout(context).apply {
             this.contentDescription = contentDescription
@@ -66,8 +56,7 @@ class PanelViewFactory(
             isLongClickable = true
         }
         box.addView(icon)
-        box.addView(badge)
-        return RoundButton(box, icon, badge)
+        return RoundButton(box, icon)
     }
 
     fun makeAnchorButton(contentDescription: String): RoundButton {
@@ -78,7 +67,6 @@ class PanelViewFactory(
             setColorFilter(if (theme.isNight) PanelMetrics.COLOR_TEXT_ON_DARK else PanelMetrics.COLOR_TEXT)
             layoutParams = FrameLayout.LayoutParams(dp(40), dp(31), Gravity.CENTER)
         }
-        val badge = TextView(context).apply { visibility = View.GONE }
         val box = FrameLayout(context).apply {
             this.contentDescription = contentDescription
             background = theme.circleBackground()
@@ -94,6 +82,47 @@ class PanelViewFactory(
             isFocusable = true
         }
         box.addView(icon)
-        return RoundButton(box, icon, badge)
+        return RoundButton(box, icon)
+    }
+
+    /**
+     * A self-colored slot button (F015 seat memory): the icon keeps its OWN fill (the
+     * planner's #212121 seat; the active state is a separate, already-colored icon), and a
+     * static number badge sits over it, upper-left per the planner's mockup, in the same
+     * #212121 ([PanelMetrics.COLOR_TEXT] — the panel's standard text color). No status
+     * palette tint is applied to this button.
+     */
+    fun makeSlotButton(iconRes: Int, badge: String, contentDescription: String): RoundButton {
+        val icon = ImageView(context).apply {
+            setImageResource(iconRes)
+            layoutParams = FrameLayout.LayoutParams(dp(PanelMetrics.ICON_SIZE_DP), dp(PanelMetrics.ICON_SIZE_DP), Gravity.CENTER)
+        }
+        val label = TextView(context).apply {
+            text = badge
+            setTextColor(PanelMetrics.COLOR_TEXT)
+            textSize = 18f
+            typeface = Typeface.DEFAULT_BOLD
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP or Gravity.START
+            ).apply { setMargins(dp(17), dp(14), 0, 0) }
+        }
+        val box = FrameLayout(context).apply {
+            this.contentDescription = contentDescription
+            background = theme.circleBackground()
+            elevation = dp(PanelMetrics.REST_ELEVATION_DP).toFloat()
+            setOnTouchListener { v, event ->
+                v.elevation = dp(
+                    if (event.actionMasked == MotionEvent.ACTION_DOWN) PanelMetrics.PRESSED_ELEVATION_DP
+                    else PanelMetrics.REST_ELEVATION_DP
+                ).toFloat()
+                false
+            }
+            isClickable = true
+            isFocusable = true
+        }
+        box.addView(icon)
+        box.addView(label)
+        return RoundButton(box, icon, label)
     }
 }
