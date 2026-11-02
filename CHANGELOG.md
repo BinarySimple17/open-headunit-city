@@ -1,4 +1,8 @@
 # Changelog
+### v.4.0.0.G.0.1
+- First release under the fork's own version line (D-015: `<base>.G.<Maj>.<Min>` - this build sits on the merged upstream 4.0.0-beta1, the fork counter starts at 0.1 and never resets on base changes)
+- Changed: the HVAC panel's seat-position buttons follow the status palette like every other button - gray while off, the palette's green when active - instead of their raw #212121 vector fill that read as black next to the gray off-buttons (planner order after the head-unit round)
+- Fixed: the update check can tell fork releases apart on the same base - the version parser reads the G.Maj.Min tail and orders it after the base version, so v4.0.0.G.0.2 is no longer invisible next to v4.0.0.G.0.1
 ### v.3.5.0-beta30
 - Removed: the instrument-cluster media card and everything built around it - the card switches leave the CAR tab, the app stops publishing anything to the cluster and stops reading the head unit's own Bluetooth media session. The two-week flicker hunt proved the remaining card switching is done by the firmware's own source arbitration, out of reach of any app on this unit (no root, no read-back, no broker), so the card itself is withdrawn rather than shipped half-fixed; the HVAC panel and its logs are unaffected
 ### v.3.5.0-beta29
