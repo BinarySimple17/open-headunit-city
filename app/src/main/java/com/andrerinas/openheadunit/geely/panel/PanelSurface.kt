@@ -143,7 +143,7 @@ class PanelSurface<T>(
         return row
     }
 
-    /** A standard icon button, or a self-colored slot button when the node carries a badge. */
+    /** A standard icon button, or a slot button with a number badge (F015 seat memory). */
     private fun makeNodeButton(node: PanelNode<T>): RoundButton = when {
         node is ActionNode<*> && node.badge != null ->
             factory.makeSlotButton(node.iconRes, node.badge!!, label(node))

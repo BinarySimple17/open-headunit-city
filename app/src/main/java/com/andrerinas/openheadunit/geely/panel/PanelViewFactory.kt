@@ -86,15 +86,17 @@ class PanelViewFactory(
     }
 
     /**
-     * A self-colored slot button (F015 seat memory): the icon keeps its OWN fill (the
-     * planner's #212121 seat; the active state is a separate, already-colored icon), and a
-     * static number badge sits over it, upper-left per the planner's mockup, in the same
-     * #212121 ([PanelMetrics.COLOR_TEXT] — the panel's standard text color). No status
-     * palette tint is applied to this button.
+     * A slot button (F015 seat memory): the icon follows the status palette like every other
+     * button ([PanelTheme.paintSlotButton] — gray off until the car read activates it; the
+     * separate active icon carries the palette's green). It starts filtered
+     * [PanelMetrics.COLOR_OFF], so the first frame matches the rest of the panel. A static
+     * number badge sits over the icon, upper-left per the planner's mockup, in the panel's
+     * text color by day ([PanelMetrics.COLOR_TEXT]).
      */
     fun makeSlotButton(iconRes: Int, badge: String, contentDescription: String): RoundButton {
         val icon = ImageView(context).apply {
             setImageResource(iconRes)
+            setColorFilter(PanelMetrics.COLOR_OFF)
             layoutParams = FrameLayout.LayoutParams(dp(PanelMetrics.ICON_SIZE_DP), dp(PanelMetrics.ICON_SIZE_DP), Gravity.CENTER)
         }
         val label = TextView(context).apply {

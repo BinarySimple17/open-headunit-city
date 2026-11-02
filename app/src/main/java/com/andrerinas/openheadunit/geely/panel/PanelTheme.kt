@@ -51,12 +51,12 @@ class PanelTheme {
     }
 
     /**
-     * Paints a self-colored button (F015 seat memory) the same way the other buttons follow
-     * the theme: the circle surface flips day/night, and the ICON is color-filtered like the
-     * rest of the palette ([stateColor] — gray off, green active). By day the filter is off
-     * so the planner's own fills show (#212121 seat, the green active icon); by night the
-     * same filter runs over the swapped icon — the #212121 fill would drown on the dark
-     * circle otherwise. The number badge flips with the text color (the anchor's rule).
+     * Paints a slot button (F015 seat memory) exactly like every other button: the circle
+     * surface flips day/night and the ICON follows the status palette ([stateColor] — gray
+     * off, the palette's green when active; the planner's 2026-11-02 order replaced the raw
+     * #212121 fill, which read as black next to the gray off-buttons). The active icon's own
+     * fill is the palette's green, so the filter leaves it as designed. The badge keeps the
+     * text rule: the panel's text color by day, the light one by night.
      */
     fun paintSlotButton(
         button: RoundButton,
@@ -67,13 +67,8 @@ class PanelTheme {
     ) {
         if (paintedNight != isNight) button.view.background = circleBackground()
         button.icon?.setImageResource(if (active) activeIconRes else iconRes)
-        if (isNight) {
-            button.icon?.setColorFilter(stateColor(0, active))
-            badge?.setTextColor(PanelMetrics.COLOR_TEXT_ON_DARK)
-        } else {
-            button.icon?.clearColorFilter()
-            badge?.setTextColor(PanelMetrics.COLOR_TEXT)
-        }
+        button.icon?.setColorFilter(stateColor(0, active))
+        badge?.setTextColor(if (isNight) PanelMetrics.COLOR_TEXT_ON_DARK else PanelMetrics.COLOR_TEXT)
     }
 
     /** The anchor is not status-driven: only its theme surface (and the mark's tint) follow. */

@@ -65,9 +65,9 @@ object HvacPanelSpec {
 
     /**
      * The seat-position group (F015): a tap opens the TWO position buttons beside the column
-     * (the seats-group semantics), each a self-colored seat icon with its number badge over
-     * it; the active position swaps to the green active icon by the car's read. The slot
-     * values are the model's ladder data (root() only calls this when the model has one).
+     * (the seats-group semantics), each a seat icon with its number badge over it; the active
+     * position swaps to the green active icon by the car's read. The slot values are the
+     * model's ladder data (root() only calls this when the model has one).
      */
     fun seatPosition(model: Hvac.CarModel): GroupNode<CarFunctionSpec> {
         val specs = GeelyCarFunctions.memorySlotSpecs(model)
