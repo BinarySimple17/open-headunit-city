@@ -51,4 +51,34 @@ class AppVersionTest {
         assertFalse(oldStable > beta1)
         assertEquals(0, stable.compareTo(AppVersion.parse("v.3.5.0")!!))
     }
+
+    @Test
+    fun testForkVersionParsing() {
+        val v = AppVersion.parse("v4.0.0.G.0.1")
+        assertNotNull(v)
+        assertEquals(4, v!!.major)
+        assertEquals(0, v.minor)
+        assertEquals(0, v.patch)
+        assertEquals(3, v.preReleaseStage) // the G line is a stable-stage name
+        assertEquals(0, v.forkMajor)
+        assertEquals(1, v.forkMinor)
+    }
+
+    @Test
+    fun testForkVersionOrdering() {
+        val g01 = AppVersion.parse("4.0.0.G.0.1")!!
+        val g02 = AppVersion.parse("4.0.0.G.0.2")!!
+        val g10 = AppVersion.parse("4.0.0.G.1.0")!!
+        val beta30 = AppVersion.parse("3.5.0-beta30")!!
+        val newBase = AppVersion.parse("4.0.1.G.0.3")!!
+
+        assertTrue(g02 > g01)
+        assertTrue(g10 > g02)
+        assertTrue(g01 > beta30)
+        // D-015: the fork counter never resets - the base swap does not grow it,
+        // every fork release still sorts above every earlier one.
+        assertTrue(newBase > g02)
+        assertFalse(newBase > AppVersion.parse("4.0.1.G.0.4")!!)
+        assertEquals(0, g01.compareTo(AppVersion.parse("v.4.0.0.G.0.1")!!))
+    }
 }

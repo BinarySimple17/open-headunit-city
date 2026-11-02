@@ -20,7 +20,12 @@ data class AppVersion(
     val minor: Int,
     val patch: Int,
     val preReleaseStage: Int, // 0 = alpha, 1 = beta, 2 = rc, 3 = stable release
-    val preReleaseNumber: Int
+    val preReleaseNumber: Int,
+    // The fork's own line (D-015): "<base>.G.<Maj>.<Min>". The base rewrites itself on every
+    // upstream merge, the counter never resets, so "which base and which fork" is always
+    // readable. Upstream-style versions carry zeros here.
+    val forkMajor: Int = 0,
+    val forkMinor: Int = 0
 ) : Comparable<AppVersion> {
 
     override fun compareTo(other: AppVersion): Int {
@@ -28,7 +33,9 @@ data class AppVersion(
         if (minor != other.minor) return minor.compareTo(other.minor)
         if (patch != other.patch) return patch.compareTo(other.patch)
         if (preReleaseStage != other.preReleaseStage) return preReleaseStage.compareTo(other.preReleaseStage)
-        return preReleaseNumber.compareTo(other.preReleaseNumber)
+        if (preReleaseNumber != other.preReleaseNumber) return preReleaseNumber.compareTo(other.preReleaseNumber)
+        if (forkMajor != other.forkMajor) return forkMajor.compareTo(other.forkMajor)
+        return forkMinor.compareTo(other.forkMinor)
     }
 
     companion object {
@@ -45,6 +52,13 @@ data class AppVersion(
             val major = numParts.getOrNull(0)?.toIntOrNull() ?: return null
             val minor = numParts.getOrNull(1)?.toIntOrNull() ?: 0
             val patch = numParts.getOrNull(2)?.toIntOrNull() ?: 0
+
+            var forkMajor = 0
+            var forkMinor = 0
+            if (numParts.getOrNull(3)?.lowercase() == "g") {
+                forkMajor = numParts.getOrNull(4)?.toIntOrNull() ?: 0
+                forkMinor = numParts.getOrNull(5)?.toIntOrNull() ?: 0
+            }
 
             var stage = 3 // default: stable
             var preNum = 0
@@ -67,7 +81,7 @@ data class AppVersion(
                 }
             }
 
-            return AppVersion(major, minor, patch, stage, preNum)
+            return AppVersion(major, minor, patch, stage, preNum, forkMajor, forkMinor)
         }
     }
 }
