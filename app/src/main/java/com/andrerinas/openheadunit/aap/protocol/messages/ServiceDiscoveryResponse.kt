@@ -3,6 +3,7 @@ package com.andrerinas.openheadunit.aap.protocol.messages
 import android.content.Context
 import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.aap.AapMessage
+import com.andrerinas.openheadunit.aap.AapTransport
 import com.andrerinas.openheadunit.aap.NarrowBandProfilePolicy
 import com.andrerinas.openheadunit.aap.VehicleIdentityPolicy
 import com.andrerinas.openheadunit.aap.VehicleTypePolicy
@@ -21,14 +22,13 @@ import com.andrerinas.openheadunit.utils.VideoFallbackPolicy
 import com.andrerinas.openheadunit.aap.AudioSessionConfig
 import com.google.protobuf.Message
 
-internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSessionConfig)
-    : AapMessage(Channel.ID_CTR, Control.ControlMsgType.MESSAGE_SERVICE_DISCOVERY_RESPONSE_VALUE, makeProto(context, audioConfig)) {
+internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSessionConfig, transport: AapTransport)
+    : AapMessage(Channel.ID_CTR, Control.ControlMsgType.MESSAGE_SERVICE_DISCOVERY_RESPONSE_VALUE, makeProto(context, audioConfig, transport)) {
 
     companion object {
-        private fun makeProto(context: Context, audioConfig: AudioSessionConfig): Message {
+        private fun makeProto(context: Context, audioConfig: AudioSessionConfig, transport: AapTransport): Message {
             val settings = App.provide(context).settings
-            // Initialize HeadUnitScreenConfig with actual physical screen dimensions
-            HeadUnitScreenConfig.init(context, context.resources.displayMetrics, settings)
+            val geometry = HeadUnitScreenConfig.announceGeometry(transport, context, context.resources.displayMetrics, settings)
 
             val services = mutableListOf<Control.Service>()
 
@@ -52,62 +52,34 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
             val video = Control.Service.newBuilder().also { service ->
                 service.id = Channel.ID_VID
                 service.mediaSinkService = Control.Service.MediaSinkService.newBuilder().also { mediaSinkServiceBuilder ->
-                    val explicitSoftwareHevc =
+                    val selectedSoftwareHevcAvailable =
                         settings.videoCodec == VideoDecoder.CodecType.H265.settingsValue &&
                                 settings.forceSoftwareDecoding &&
                                 when (settings.softwareVideoDecoder) {
                                     com.andrerinas.openheadunit.utils.Settings.SoftwareVideoDecoder.BUNDLED_FFMPEG ->
-                                        com.andrerinas.openheadunit.decoder.video.VideoDecoder.isBundledHevcDecoderAvailable()
+                                        VideoDecoder.isBundledDecoderAvailable(VideoDecoder.CodecType.H265)
                                     com.andrerinas.openheadunit.utils.Settings.SoftwareVideoDecoder.DEVICE_MEDIACODEC ->
-                                        com.andrerinas.openheadunit.decoder.video.VideoDecoder.isHevcDecoderAvailable(includeSoftware = true)
+                                        VideoDecoder.isHevcDecoderAvailable(includeSoftware = true)
                                 }
-                    val hevcAvailableForUserChoice =
-                        com.andrerinas.openheadunit.decoder.video.VideoDecoder.isHevcSupported() || explicitSoftwareHevc
-                    val hevcAvailableForHighResolution =
-                        com.andrerinas.openheadunit.decoder.video.VideoDecoder.isHevcReliable() || explicitSoftwareHevc
+                    val hardwareHevcSupported = VideoDecoder.isHevcSupported()
+                    val hardwareHevcReliable = VideoDecoder.isHevcReliable()
 
-                    val codecToRequest = when (settings.videoCodec) {
-                        "H.265" -> if (hevcAvailableForUserChoice) {
-                            Media.MediaCodecType.MEDIA_CODEC_VIDEO_H265
-                        } else {
-                            Media.MediaCodecType.MEDIA_CODEC_VIDEO_H264_BP
-                        }
-                        "Auto" -> {
-                            // Only use H.265 in Auto mode for 4K or if explicitly needed,
-                            // otherwise prefer stable H.264
-                            val negotiatedResolution = HeadUnitScreenConfig.negotiatedResolutionType
-                            if (negotiatedResolution == Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._3840x2160 &&
-                                com.andrerinas.openheadunit.decoder.video.VideoDecoder.isHevcReliable()) {
-                                Media.MediaCodecType.MEDIA_CODEC_VIDEO_H265
-                            } else {
-                                Media.MediaCodecType.MEDIA_CODEC_VIDEO_H264_BP
-                            }
-                        }
-                        else -> Media.MediaCodecType.MEDIA_CODEC_VIDEO_H264_BP
-                    }
+                    val negotiatedResolution = geometry.resolution
+                    val phoneWidthMargin = geometry.widthMargin
+                    val phoneHeightMargin = geometry.heightMargin
 
-                    // A fallback adopted last session would leak into the margins read below.
-                    HeadUnitScreenConfig.recordAnnouncedFallback(null, 0, 0)
-
-                    // Use HeadUnitScreenConfig for negotiated resolution and margins
-                    val negotiatedResolution = HeadUnitScreenConfig.negotiatedResolutionType
-                    val phoneWidthMargin = HeadUnitScreenConfig.getWidthMargin()
-                    val phoneHeightMargin = HeadUnitScreenConfig.getHeightMargin()
-                    // What goes on the wire, so a later metrics change can be seen to have left it.
-                    HeadUnitScreenConfig.recordAnnouncedMargins(phoneWidthMargin, phoneHeightMargin)
-                    // The pixel shape goes out here and nowhere else, so this is the canvas the
-                    // rest of the session is committed to.
-                    HeadUnitScreenConfig.recordAnnouncedCanvas()
-
-                    // Enforce H.265 for 1440p resolution as required by Android Auto.
-                    // Software HEVC is allowed only when the user explicitly selected it.
-                    val effectiveCodec = if ((negotiatedResolution == Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._2560x1440 ||
+                    val effectiveCodec = VideoCodecNegotiationPolicy.select(
+                        preference = settings.videoCodec,
+                        resolution = negotiatedResolution,
+                        forceSoftware = settings.forceSoftwareDecoding,
+                        selectedSoftwareHevcAvailable = selectedSoftwareHevcAvailable,
+                        hardwareHevcSupported = hardwareHevcSupported,
+                        hardwareHevcReliable = hardwareHevcReliable
+                    )
+                    if ((negotiatedResolution == Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._2560x1440 ||
                         negotiatedResolution == Control.Service.MediaSinkService.VideoConfiguration.VideoCodecResolutionType._1440x2560) &&
-                        hevcAvailableForHighResolution) {
+                        (hardwareHevcReliable || selectedSoftwareHevcAvailable)) {
                         AppLog.i("Resolution is 1440p -> Enforcing H.265 codec")
-                        Media.MediaCodecType.MEDIA_CODEC_VIDEO_H265
-                    } else {
-                        codecToRequest
                     }
 
                     mediaSinkServiceBuilder.availableType = effectiveCodec
@@ -118,24 +90,24 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
                     // describe the profile actually being asked for, not the one in Settings.
                     val announcedFps = announcedFrameRate(context, settings)
 
-                    AppLog.i("[ServiceDiscovery] NegotiatedResolution is: ${HeadUnitScreenConfig.getNegotiatedWidth()}x${HeadUnitScreenConfig.getNegotiatedHeight()}")
-                    logNegotiatedCodecCapability(effectiveCodec, announcedFps)
+                    AppLog.i("[ServiceDiscovery] NegotiatedResolution is: ${geometry.width}x${geometry.height}")
+                    logNegotiatedCodecCapability(effectiveCodec, announcedFps, geometry.width, geometry.height)
                     logNarrowBandProfile(context, settings)
                     AppLog.i("[ServiceDiscovery] Margins are: ${phoneWidthMargin}x${phoneHeightMargin}")
-                    val densityDecision = HeadUnitScreenConfig.densityDecision()
+                    val densityDecision = geometry.densityDecision
                     AppLog.i("[ServiceDiscovery] Density is: " + com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.describe(
                         densityDecision,
-                        HeadUnitScreenConfig.getNegotiatedWidth() - phoneWidthMargin,
-                        HeadUnitScreenConfig.getNegotiatedHeight() - phoneHeightMargin,
-                        HeadUnitScreenConfig.getPixelAspectRatioE4()
+                        geometry.width - phoneWidthMargin,
+                        geometry.height - phoneHeightMargin,
+                        geometry.pixelAspectRatioE4
                     ))
-                    AppLog.i("[ServiceDiscovery] PixelAspectRatioE4 is: ${HeadUnitScreenConfig.getPixelAspectRatioE4()} (10000 = square)")
+                    AppLog.i("[ServiceDiscovery] PixelAspectRatioE4 is: ${geometry.pixelAspectRatioE4} (10000 = square)")
 
                     val announcedFrameRateType = when (announcedFps) {
                         30 -> Control.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType._30
                         else -> Control.Service.MediaSinkService.VideoConfiguration.VideoFrameRateType._60
                     }
-                    val announcedPar = HeadUnitScreenConfig.getPixelAspectRatioE4()
+                    val announcedPar = geometry.pixelAspectRatioE4
                     mediaSinkServiceBuilder.addVideoConfigs(Control.Service.MediaSinkService.VideoConfiguration.newBuilder().apply {
                         codecResolution = negotiatedResolution
                         frameRate = announcedFrameRateType
@@ -153,7 +125,6 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
                         val margins = VideoFallbackPolicy.scaledMargins(
                             primarySize.first, primarySize.second, phoneWidthMargin, phoneHeightMargin, fallback
                         )
-                        HeadUnitScreenConfig.recordAnnouncedFallback(fallback, margins.width, margins.height)
                         val fallbackDensity = com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy.fallbackDensity(
                             densityDecision.announced, primarySize.first, VideoFallbackPolicy.sizeOf(fallback).first
                         )
@@ -171,21 +142,28 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
                 }.build()
             }.build()
 
+            // Publish the built wire value before this response can be sent and video can arrive.
+            transport.recordAnnouncedVideoCodec(when (video.mediaSinkService.availableType) {
+                Media.MediaCodecType.MEDIA_CODEC_VIDEO_H265 -> VideoDecoder.CodecType.H265
+                Media.MediaCodecType.MEDIA_CODEC_VIDEO_H264_BP -> VideoDecoder.CodecType.H264
+                else -> error("Unexpected announced video codec")
+            })
+
             services.add(video)
 
             val input = Control.Service.newBuilder().also { service ->
                 service.id = Channel.ID_INP
                 service.inputSourceService = Control.Service.InputSourceService.newBuilder().also {
                     it.touchscreen = Control.Service.InputSourceService.TouchConfig.newBuilder().apply {
-                        setWidth(HeadUnitScreenConfig.getNegotiatedWidth()) // Use negotiated width
-                        setHeight(HeadUnitScreenConfig.getNegotiatedHeight()) // Use negotiated height
+                        setWidth(geometry.width) // Use negotiated width
+                        setHeight(geometry.height) // Use negotiated height
                     }.build()
 
                     if (settings.enableRotary) {
                         AppLog.i("[ServiceDiscovery] Announcing Rotary/Touchpad support")
                         it.touchpad = Control.Service.InputSourceService.TouchConfig.newBuilder().apply {
-                            setWidth(HeadUnitScreenConfig.getNegotiatedWidth())
-                            setHeight(HeadUnitScreenConfig.getNegotiatedHeight())
+                            setWidth(geometry.width)
+                            setHeight(geometry.height)
                         }.build()
                     }
 
@@ -388,14 +366,12 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
          * artifacts coming off the wire instead. Revisit the rule only when a log shows the decoder
          * itself failing behind one of these lines.
          */
-        private fun logNegotiatedCodecCapability(codec: Media.MediaCodecType, fps: Int) {
+        private fun logNegotiatedCodecCapability(codec: Media.MediaCodecType, fps: Int, width: Int, height: Int) {
             val mime = when (codec) {
                 Media.MediaCodecType.MEDIA_CODEC_VIDEO_H265 -> VideoDecoder.CodecType.H265.mimeType
                 Media.MediaCodecType.MEDIA_CODEC_VIDEO_H264_BP -> VideoDecoder.CodecType.H264.mimeType
                 else -> return
             }
-            val width = HeadUnitScreenConfig.getNegotiatedWidth()
-            val height = HeadUnitScreenConfig.getNegotiatedHeight()
             if (width <= 0 || height <= 0) return
             val capability = com.andrerinas.openheadunit.decoder.video.DecoderCapabilityReport
                 .query(mime, width, height, fps)

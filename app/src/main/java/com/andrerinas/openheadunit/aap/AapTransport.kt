@@ -82,7 +82,8 @@ class AapTransport(
         private val onAaMediaMetadata: ((MediaPlayback.MediaMetaData, AaPresentationSession) -> Unit)? = null,
         private val onAaPlaybackStatus: ((MediaPlayback.MediaPlaybackStatus, AaPresentationSession) -> Unit)? = null,
         private val onAaPresentationClosed: ((AaPresentationSession) -> Unit)? = null,
-        private val externalSsl: AapSslContext? = null) {
+        private val externalSsl: AapSslContext? = null,
+        private val nightOverlayState: NightOverlayState? = null) {
 
     val ssl: AapSsl = externalSsl?.newSession() ?: AapSslContext(SingleKeyKeyManager(context))
     private val tlsWriter = AapTlsWriter(ssl, ::writeTlsFrame)
@@ -906,6 +907,10 @@ class AapTransport(
         }
     }
 
+    internal fun recordAnnouncedVideoCodec(codec: VideoDecoder.CodecType) {
+        aapVideo.recordAnnouncedCodec(codec)
+    }
+
     /**
      * Hands a video-channel message to the video thread, and answers whether it was picture.
      *
@@ -931,7 +936,8 @@ class AapTransport(
         // while video is queued; its eventual ACK still belongs to this message's original one.
         val ackSession = getSessionId(message.channel)
         val handler = videoHandler
-        if (handler == null) {
+        // Drop pre-discovery packets at receipt, not later after the worker observes a codec.
+        if (handler == null || aapVideo.announcedCodec == null) {
             if (acks) sendMediaAck(message.channel, ackSession)
             return isPayload
         }
@@ -1075,7 +1081,8 @@ class AapTransport(
             onAaMediaMetadata,
             onAaPlaybackStatus,
             onAaPresentationClosed,
-            presentationSession
+            presentationSession,
+            nightOverlayState
         )
         pollHandler?.sendEmptyMessage(MSG_POLL)
     }

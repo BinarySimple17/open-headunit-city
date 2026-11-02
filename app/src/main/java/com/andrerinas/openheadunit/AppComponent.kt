@@ -11,6 +11,7 @@ import com.andrerinas.openheadunit.connection.carkey.CarKeysManager
 import com.andrerinas.openheadunit.geely.daynight.GeelyDayNightWatch
 import com.andrerinas.openheadunit.utils.SUExecutor
 import com.andrerinas.openheadunit.utils.Settings
+import com.andrerinas.openheadunit.aap.NightOverlayState
 
 class AppComponent(private val app: App) {
 
@@ -21,6 +22,7 @@ class AppComponent(private val app: App) {
         DeviceMemoryProfile.readWithOverride(app, settings.debugForceMemoryProfile)
     }
     val audioDecoder = AudioDecoder()
+    val nightOverlayState = NightOverlayState()
 
     val notificationManager: NotificationManager
         get() = app.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
